@@ -4,6 +4,8 @@ import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -35,8 +37,9 @@ public class Bloque
      * El identificador es de tipo {@link String} y tiene un máximo de 100 caracteres.</p>
      */
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(length = 100)
-    private String id;
+    private Long id;
     
     /**
      * Lista de asignaturas asociadas al bloque.

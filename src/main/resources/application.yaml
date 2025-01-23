@@ -14,6 +14,8 @@ spring:
       enabled: true
       max-file-size: 10MB   # Tamaño máximo permitido para cada archivo
       max-request-size: 10MB  # Tamaño máximo permitido para toda la solicitud (incluyendo todos los archivos)
+server:
+   port: 8081
 
 logging:
   file:

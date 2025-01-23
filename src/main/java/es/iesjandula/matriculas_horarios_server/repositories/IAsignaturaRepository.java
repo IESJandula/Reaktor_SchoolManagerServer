@@ -1,6 +1,10 @@
 package es.iesjandula.matriculas_horarios_server.repositories;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import es.iesjandula.matriculas_horarios_server.models.Asignatura;
@@ -21,5 +25,15 @@ import es.iesjandula.matriculas_horarios_server.models.ids.IdAsignatura;
 @Repository
 public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsignatura>
 {
+	
+	@Query("SELECT a FROM Asignatura a WHERE a.id.curso = :curso AND a.id.etapa = :etapa")
+	List<Asignatura> findByCursoAndEtapa(@Param("curso") int curso, @Param("etapa") String etapa) ;
+	
+	@Query("SELECT a FROM Asignatura a WHERE a.id.curso = :curso AND a.id.etapa = :etapa AND a.id.nombre IN :nombres")
+	List<Asignatura> findAsignaturasByCursoEtapaAndNombres(
+	    @Param("curso") int curso, 
+	    @Param("etapa") String etapa, 
+	    @Param("nombres") List<String> nombres
+	);
 	
 }
