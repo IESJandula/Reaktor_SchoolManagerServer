@@ -74,15 +74,15 @@ public class DireccionControllerVentana3
        	
        	log.info("INFO - Lista de los cursos etapas") ;
        	return ResponseEntity.status(200).body(cursos) ;
-		} 
+	} 
    	catch (Exception exception) 
    	{
-			String msgError = "ERROR - No se pudo obtener la lista de cursos etapas" ;
-			log.error(msgError, exception) ;
-			MatriculasHorariosServerException matriculasHorariosServerException = new MatriculasHorariosServerException(1, msgError, exception) ;
-			return ResponseEntity.status(500).body(matriculasHorariosServerException.getBodyExceptionMessage()) ;
-		}
-   	
+		String msgError = "ERROR - No se pudo obtener la lista de cursos etapas" ;
+		log.error(msgError, exception) ;
+		
+		MatriculasHorariosServerException matriculasHorariosServerException = new MatriculasHorariosServerException(1, msgError, exception) ;
+		return ResponseEntity.status(500).body(matriculasHorariosServerException.getBodyExceptionMessage()) ;
+	}
    }
    
    /**
@@ -97,15 +97,10 @@ public class DireccionControllerVentana3
     * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
     */
    @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
-   public ResponseEntity<?> obtenerAsignatura
-   (
-   		@RequestParam("curso") int curso,
-   		@RequestParam("etapa") String etapa
-   )
+   public ResponseEntity<?> obtenerAsignatura(@RequestParam("curso") int curso, @RequestParam("etapa") String etapa)
    {
-   	
-   	try 
-   	{
+	   try 
+	   {
 			List<Asignatura> asignaturas = iAsignaturaRepository.findByCursoAndEtapa(curso, etapa) ;
 			
 			// Mapear a DTO y calcular el número de alumnos matriculados
@@ -167,6 +162,7 @@ public class DireccionControllerVentana3
    		if ( asignaturas == null || asignaturas.size() < 2)
    		{
                String msgError = "ERROR - Hay que seleccionar al menos 2 asignaturas";
+               
                log.error(msgError);
                throw new MatriculasHorariosServerException(100, msgError);
    		}
@@ -185,6 +181,7 @@ public class DireccionControllerVentana3
   			if (asignatura.getBloqueId() != null)
   			{
                String msgError = "ERROR - Una de las asignaturas ya tiene un bloque asignado";
+               
                log.error(msgError);
                throw new MatriculasHorariosServerException(102, msgError);
   			}
@@ -200,7 +197,7 @@ public class DireccionControllerVentana3
    			asignatura.setBloqueId(bloque);
    		}
    		
-   		iAsignaturaRepository.saveAllAndFlush(asignaturasSeleccionadas);
+   		this.iAsignaturaRepository.saveAllAndFlush(asignaturasSeleccionadas);
    		
    		return ResponseEntity.status(201).body(bloque.getId());
    		
@@ -244,7 +241,7 @@ public class DireccionControllerVentana3
 				// Desasociar la asignatura del bloque
 				Bloque bloque = asignatura.getBloqueId() ;
 				asignatura.setBloqueId(null) ;
-				iAsignaturaRepository.saveAndFlush(asignatura) ;
+				this.iAsignaturaRepository.saveAndFlush(asignatura) ;
 				
 				if (bloque != null && bloque.getAsignaturas().isEmpty())
 				{

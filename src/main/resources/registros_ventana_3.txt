@@ -1,3 +1,5 @@
+use matriculacion ;
+
 -- Agregar registros en la tabla Departamento
 INSERT INTO Departamento (nombre)
 VALUES
