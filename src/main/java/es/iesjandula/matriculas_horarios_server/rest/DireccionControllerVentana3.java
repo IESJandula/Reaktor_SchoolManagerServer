@@ -159,45 +159,39 @@ public class DireccionControllerVentana3
    	try
    	{	
    		
-   		if ( asignaturas == null || asignaturas.size() < 2)
+   		if (asignaturas == null || asignaturas.size() < 2)
    		{
                String msgError = "ERROR - Hay que seleccionar al menos 2 asignaturas";
-               
                log.error(msgError);
                throw new MatriculasHorariosServerException(100, msgError);
    		}
    		
-       List<Asignatura> asignaturasSeleccionadas = iAsignaturaRepository.findAsignaturasByCursoEtapaAndNombres(curso, etapa, asignaturas);
-       
-       if (asignaturasSeleccionadas.size() != asignaturas.size()) 
-       {
-           String msgError = "ERROR - Algunas asignaturas no fueron encontradas";
-           log.error(msgError);
-           throw new MatriculasHorariosServerException(101, msgError);
-       }
-       
-  		for (Asignatura asignatura : asignaturasSeleccionadas)
-  		{
-  			if (asignatura.getBloqueId() != null)
-  			{
-               String msgError = "ERROR - Una de las asignaturas ya tiene un bloque asignado";
-               
-               log.error(msgError);
-               throw new MatriculasHorariosServerException(102, msgError);
-  			}
-  			
-  		}
-	
    		Bloque bloque = new Bloque();
    		
-   		this.iBloqueRepository.save(bloque);
-
-   		for (Asignatura asignatura : asignaturasSeleccionadas)
+   		for (String asignaturaString : asignaturas)
    		{
-   			asignatura.setBloqueId(bloque);
+   			Optional<Asignatura> optionalAsignatura = this.iAsignaturaRepository.findByCursoAndEtapaAndNombre(curso, etapa, asignaturaString) ;
+   			
+   			if(!optionalAsignatura.isPresent())
+   			{
+   				String msgError = "ERROR - La asignatura no fue encontrada";
+   				log.error(msgError);
+   				throw new MatriculasHorariosServerException(101, msgError);
+   			}
+   			
+   			if(optionalAsignatura.get().getBloqueId() != null)
+   			{
+   				String msgError = "ERROR - Una de las asignaturas ya tiene un bloque asignado";
+   				log.error(msgError);
+   				throw new MatriculasHorariosServerException(102, msgError);
+   			}
+   			
+   			optionalAsignatura.get().setBloqueId(bloque);
+   			
+   	   		iAsignaturaRepository.saveAndFlush(optionalAsignatura.get());
    		}
-   		
-   		this.iAsignaturaRepository.saveAllAndFlush(asignaturasSeleccionadas);
+ 		
+   		this.iBloqueRepository.save(bloque);
    		
    		return ResponseEntity.status(201).body(bloque.getId());
    		
