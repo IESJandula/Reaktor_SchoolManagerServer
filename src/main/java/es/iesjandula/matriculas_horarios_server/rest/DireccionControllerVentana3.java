@@ -170,7 +170,7 @@ public class DireccionControllerVentana3
    		
    		for (String asignaturaString : asignaturas)
    		{
-   			Optional<Asignatura> optionalAsignatura = this.iAsignaturaRepository.findByCursoAndEtapaAndNombre(curso, etapa, asignaturaString) ;
+   			Optional<Asignatura> optionalAsignatura = this.iAsignaturaRepository.findAsignaturasByCursoEtapaAndNombre(curso, etapa, asignaturaString) ;
    			
    			if(!optionalAsignatura.isPresent())
    			{
