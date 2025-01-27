@@ -186,13 +186,13 @@ public class DireccionControllerVentana3
    				throw new MatriculasHorariosServerException(102, msgError);
    			}
    			
+   			this.iBloqueRepository.save(bloque);
+   			
    			optionalAsignatura.get().setBloqueId(bloque);
    			
    	   		iAsignaturaRepository.saveAndFlush(optionalAsignatura.get());
    		}
  		
-   		this.iBloqueRepository.save(bloque);
-   		
    		return ResponseEntity.status(201).body(bloque.getId());
    		
    	}
