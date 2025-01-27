@@ -5434,3 +5434,69 @@ Caused by: java.sql.SQLException: Referencing column 'bloque_id' and referenced 
 2025-01-27T13:23:30.649+01:00  WARN 7700 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
 2025-01-27T13:23:31.072+01:00  INFO 7700 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
 2025-01-27T13:23:31.082+01:00  INFO 7700 --- [main] .i.m.MatriculasHorariosServerApplication : Started MatriculasHorariosServerApplication in 5.845 seconds (process running for 6.23)
+2025-01-27T14:08:36.076+01:00  INFO 1312 --- [main] .i.m.MatriculasHorariosServerApplication : Starting MatriculasHorariosServerApplication using Java 22.0.2 with PID 1312 (C:\Users\2DAM\Desktop\Reaktor_SchoolManagementServer\target\classes started by 2DAM in C:\Users\2DAM\Desktop\Reaktor_SchoolManagementServer)
+2025-01-27T14:08:36.079+01:00 DEBUG 1312 --- [main] .i.m.MatriculasHorariosServerApplication : Running with Spring Boot v3.3.5, Spring v6.1.14
+2025-01-27T14:08:36.080+01:00  INFO 1312 --- [main] .i.m.MatriculasHorariosServerApplication : No active profile set, falling back to 1 default profile: "default"
+2025-01-27T14:08:36.736+01:00  INFO 1312 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-01-27T14:08:36.838+01:00  INFO 1312 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 93 ms. Found 13 JPA repository interfaces.
+2025-01-27T14:08:37.488+01:00  INFO 1312 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2025-01-27T14:08:37.506+01:00  INFO 1312 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-01-27T14:08:37.506+01:00  INFO 1312 --- [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2025-01-27T14:08:37.581+01:00  INFO 1312 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-01-27T14:08:37.581+01:00  INFO 1312 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1458 ms
+2025-01-27T14:08:37.757+01:00  INFO 1312 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-01-27T14:08:37.826+01:00  INFO 1312 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-01-27T14:08:37.868+01:00  INFO 1312 --- [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-01-27T14:08:38.193+01:00  INFO 1312 --- [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-01-27T14:08:38.230+01:00  INFO 1312 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-01-27T14:08:38.627+01:00  INFO 1312 --- [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@5341641d
+2025-01-27T14:08:38.629+01:00  INFO 1312 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-01-27T14:08:39.762+01:00  INFO 1312 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-01-27T14:08:40.830+01:00  INFO 1312 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-01-27T14:08:41.068+01:00  INFO 1312 --- [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-01-27T14:08:41.856+01:00  WARN 1312 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-01-27T14:08:42.297+01:00  INFO 1312 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2025-01-27T14:08:42.308+01:00  INFO 1312 --- [main] .i.m.MatriculasHorariosServerApplication : Started MatriculasHorariosServerApplication in 6.828 seconds (process running for 7.306)
+2025-01-27T14:08:47.536+01:00  INFO 1312 --- [http-nio-8081-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-01-27T14:08:47.537+01:00  INFO 1312 --- [http-nio-8081-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-01-27T14:08:47.538+01:00  INFO 1312 --- [http-nio-8081-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-01-27T14:08:47.659+01:00  INFO 1312 --- [http-nio-8081-exec-2] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:08:47.755+01:00  INFO 1312 --- [http-nio-8081-exec-1] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:08:47.782+01:00  INFO 1312 --- [http-nio-8081-exec-3] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:10:59.218+01:00  INFO 2360 --- [main] .i.m.MatriculasHorariosServerApplication : Starting MatriculasHorariosServerApplication using Java 22.0.2 with PID 2360 (C:\Users\2DAM\Desktop\Reaktor_SchoolManagementServer\target\classes started by 2DAM in C:\Users\2DAM\Desktop\Reaktor_SchoolManagementServer)
+2025-01-27T14:10:59.219+01:00 DEBUG 2360 --- [main] .i.m.MatriculasHorariosServerApplication : Running with Spring Boot v3.3.5, Spring v6.1.14
+2025-01-27T14:10:59.220+01:00  INFO 2360 --- [main] .i.m.MatriculasHorariosServerApplication : No active profile set, falling back to 1 default profile: "default"
+2025-01-27T14:10:59.887+01:00  INFO 2360 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-01-27T14:10:59.991+01:00  INFO 2360 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 95 ms. Found 13 JPA repository interfaces.
+2025-01-27T14:11:00.630+01:00  INFO 2360 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2025-01-27T14:11:00.651+01:00  INFO 2360 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-01-27T14:11:00.651+01:00  INFO 2360 --- [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2025-01-27T14:11:00.728+01:00  INFO 2360 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-01-27T14:11:00.729+01:00  INFO 2360 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1464 ms
+2025-01-27T14:11:00.921+01:00  INFO 2360 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-01-27T14:11:00.986+01:00  INFO 2360 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-01-27T14:11:01.023+01:00  INFO 2360 --- [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-01-27T14:11:01.333+01:00  INFO 2360 --- [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-01-27T14:11:01.368+01:00  INFO 2360 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-01-27T14:11:01.735+01:00  INFO 2360 --- [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@241d1052
+2025-01-27T14:11:01.737+01:00  INFO 2360 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-01-27T14:11:02.855+01:00  INFO 2360 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-01-27T14:11:03.018+01:00  INFO 2360 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-01-27T14:11:03.261+01:00  INFO 2360 --- [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-01-27T14:11:04.080+01:00  WARN 2360 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-01-27T14:11:04.507+01:00  INFO 2360 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2025-01-27T14:11:04.516+01:00  INFO 2360 --- [main] .i.m.MatriculasHorariosServerApplication : Started MatriculasHorariosServerApplication in 5.904 seconds (process running for 6.359)
+2025-01-27T14:11:36.701+01:00  INFO 2360 --- [http-nio-8081-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-01-27T14:11:36.701+01:00  INFO 2360 --- [http-nio-8081-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-01-27T14:11:36.703+01:00  INFO 2360 --- [http-nio-8081-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2025-01-27T14:11:38.286+01:00  INFO 2360 --- [http-nio-8081-exec-5] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:11:39.810+01:00  INFO 2360 --- [http-nio-8081-exec-7] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:11:39.834+01:00  INFO 2360 --- [http-nio-8081-exec-8] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:12:04.769+01:00  INFO 2360 --- [http-nio-8081-exec-5] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:12:04.793+01:00  INFO 2360 --- [http-nio-8081-exec-6] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:12:06.742+01:00  INFO 2360 --- [http-nio-8081-exec-8] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:12:06.766+01:00  INFO 2360 --- [http-nio-8081-exec-9] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:12:06.994+01:00  INFO 2360 --- [http-nio-8081-exec-2] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:12:07.020+01:00  INFO 2360 --- [http-nio-8081-exec-3] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:12:07.442+01:00  INFO 2360 --- [http-nio-8081-exec-4] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-01-27T14:12:07.464+01:00  INFO 2360 --- [http-nio-8081-exec-5] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
