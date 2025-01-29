@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import es.iesjandula.matriculas_horarios_server.dtos.AlumnoDto;
+import es.iesjandula.matriculas_horarios_server.dtos.AlumnoDto2;
 import es.iesjandula.matriculas_horarios_server.dtos.CursoEtapaDto;
 import es.iesjandula.matriculas_horarios_server.models.CursoEtapa;
 import es.iesjandula.matriculas_horarios_server.models.CursoEtapaGrupo;
@@ -591,12 +592,9 @@ public class DireccionController
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
            
             // Crear la lista de Alumnos a devolver
-            List<AlumnoDto> alumnosPendientesDeAsignarYAsignados = List.of();
-            
-            // Añadir a la lista de Alumnos a devolver los Alumnos pendientes de asignar por el CursoEtapa
-            alumnosPendientesDeAsignarYAsignados = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
-            
-            // Añadir a la lista de Alumnos a devolver los Alumnos asignados al CursoEtapaGrupo
+            List<AlumnoDto2> alumnosPendientesDeAsignarYAsignados = List.of();
+                        
+            // Añadir a la lista de Alumnos a devolver los Alumnos asignados al CursoEtapaGrupo y no asignados a ningun grupo
             alumnosPendientesDeAsignarYAsignados.addAll(this.iDatosBrutoAlumnoMatriculaGrupoRepository.findDistinctAlumnosByCursoEtapaGrupo(curso, etapa, grupo));
             
             // Si la lista esta vacía

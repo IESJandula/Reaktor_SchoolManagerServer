@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import es.iesjandula.matriculas_horarios_server.dtos.AlumnoDto;
+import es.iesjandula.matriculas_horarios_server.dtos.AlumnoDto2;
 import es.iesjandula.matriculas_horarios_server.models.CursoEtapaGrupo;
 import es.iesjandula.matriculas_horarios_server.models.DatosBrutoAlumnoMatriculaGrupo;
 
@@ -48,13 +49,13 @@ public interface IDatosBrutoAlumnoMatriculaGrupoRepository extends JpaRepository
      * @param grupo 		   - El grupo específico.
      * @return List<AlumnoDto> - La lista de AlumnoDto con nombres y apellidos únicos.
      */
-    @Query("SELECT new es.iesjandula.matriculas_horarios_server.dtos.AlumnoDto(d.nombre, d.apellidos) " +
+    @Query("SELECT new es.iesjandula.matriculas_horarios_server.dtos.AlumnoDto2(d.nombre, d.apellidos, d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
            "FROM DatosBrutoAlumnoMatriculaGrupo d " +
            "WHERE d.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso " +
            "AND d.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa " +
-           "AND d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo " +
+           "AND (d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo OR d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo IS NULL OR d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '') " +
            "GROUP BY d.nombre, d.apellidos")
-    List<AlumnoDto> findDistinctAlumnosByCursoEtapaGrupo
+    List<AlumnoDto2> findDistinctAlumnosByCursoEtapaGrupo
     (
             @Param("curso") Integer curso, 
             @Param("etapa") String etapa,
