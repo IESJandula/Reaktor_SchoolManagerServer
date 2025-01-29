@@ -54,7 +54,7 @@ public interface IDatosBrutoAlumnoMatriculaGrupoRepository extends JpaRepository
            "WHERE d.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso " +
            "AND d.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa " +
            "AND (d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo OR d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo IS NULL OR d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '') " +
-           "GROUP BY d.nombre, d.apellidos")
+           "GROUP BY d.nombre, d.apellidos, d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo")
     List<AlumnoDto2> findDistinctAlumnosByCursoEtapaGrupo
     (
             @Param("curso") Integer curso, 
