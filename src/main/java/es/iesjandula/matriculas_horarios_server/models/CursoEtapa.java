@@ -42,6 +42,6 @@ public class CursoEtapa
      * <p>La clase tiene una relación de uno a muchos con la entidad {@link DatosBrutoAlumnoMatricula}. Esta relación se mapea
      * a través de la propiedad "cursoEtapa" en la clase {@link DatosBrutoAlumnoMatricula}.</p>
      */
-    @OneToMany(mappedBy = "cursoEtapa")
-    private List<DatosBrutoAlumnoMatricula> datosBrutosAlumnosMatriculados;
+    //@OneToMany(mappedBy = "cursoEtapa")
+    //private List<DatosBrutoAlumnoMatricula> datosBrutosAlumnosMatriculados;
 }
