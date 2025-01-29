@@ -249,3 +249,31 @@ java.lang.UnsupportedOperationException: null
 2025-01-29T20:47:10.934+01:00  INFO 25896 --- [http-nio-8081-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
 2025-01-29T20:47:11.073+01:00 ERROR 25896 --- [http-nio-8081-exec-2] e.i.m.rest.DireccionController           : ERROR - Lista sin alumnos encontrados
 2025-01-29T20:47:11.073+01:00 ERROR 25896 --- [http-nio-8081-exec-2] e.i.m.rest.DireccionController           : {code=1, message=ERROR - Lista sin alumnos encontrados}
+2025-01-29T20:52:52.188+01:00  INFO 17772 --- [main] .i.m.MatriculasHorariosServerApplication : Starting MatriculasHorariosServerApplication using Java 17.0.8.1 with PID 17772 (C:\Users\Usuario\Desktop\Reaktor_SchoolManagementServer\target\classes started by Usuario in C:\Users\Usuario\Desktop\Reaktor_SchoolManagementServer)
+2025-01-29T20:52:52.191+01:00 DEBUG 17772 --- [main] .i.m.MatriculasHorariosServerApplication : Running with Spring Boot v3.3.5, Spring v6.1.14
+2025-01-29T20:52:52.193+01:00  INFO 17772 --- [main] .i.m.MatriculasHorariosServerApplication : No active profile set, falling back to 1 default profile: "default"
+2025-01-29T20:52:53.218+01:00  INFO 17772 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-01-29T20:52:53.354+01:00  INFO 17772 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 122 ms. Found 13 JPA repository interfaces.
+2025-01-29T20:52:54.309+01:00  INFO 17772 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2025-01-29T20:52:54.325+01:00  INFO 17772 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-01-29T20:52:54.326+01:00  INFO 17772 --- [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2025-01-29T20:52:54.424+01:00  INFO 17772 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-01-29T20:52:54.425+01:00  INFO 17772 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2151 ms
+2025-01-29T20:52:54.658+01:00  INFO 17772 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-01-29T20:52:54.751+01:00  INFO 17772 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-01-29T20:52:54.803+01:00  INFO 17772 --- [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-01-29T20:52:55.244+01:00  INFO 17772 --- [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-01-29T20:52:55.298+01:00  INFO 17772 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-01-29T20:52:55.728+01:00  INFO 17772 --- [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@636fccb0
+2025-01-29T20:52:55.732+01:00  INFO 17772 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-01-29T20:52:57.414+01:00  INFO 17772 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-01-29T20:52:57.609+01:00  INFO 17772 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-01-29T20:52:57.985+01:00  INFO 17772 --- [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-01-29T20:52:59.099+01:00  WARN 17772 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-01-29T20:52:59.688+01:00  INFO 17772 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2025-01-29T20:52:59.700+01:00  INFO 17772 --- [main] .i.m.MatriculasHorariosServerApplication : Started MatriculasHorariosServerApplication in 8.232 seconds (process running for 8.838)
+2025-01-29T20:53:11.571+01:00  INFO 17772 --- [http-nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-01-29T20:53:11.571+01:00  INFO 17772 --- [http-nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-01-29T20:53:11.572+01:00  INFO 17772 --- [http-nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-01-29T20:53:11.729+01:00 ERROR 17772 --- [http-nio-8081-exec-1] e.i.m.rest.DireccionController           : ERROR - Lista sin alumnos encontrados
+2025-01-29T20:53:11.730+01:00 ERROR 17772 --- [http-nio-8081-exec-1] e.i.m.rest.DireccionController           : {code=1, message=ERROR - Lista sin alumnos encontrados}
