@@ -419,7 +419,7 @@ public class DireccionController
     @RequestMapping(method = RequestMethod.POST, value = "/grupos/alumnos")
     public ResponseEntity<?> asignarAlumnos
     (
-            @RequestBody List<AlumnoDto> alumnos,
+            @RequestBody List<AlumnoDto2> alumnos,
             @RequestParam(value = "curso", required = true) Integer curso,
             @RequestParam(value = "etapa", required = true) String etapa,
             @RequestParam(value = "grupo", required = true) Character grupo
@@ -436,10 +436,14 @@ public class DireccionController
         
 
             // Por cada alumno buscarlo en DatosBrutosAlumnoMatricula y añadirlos a DatosBrutosAlumnoMatriculaGrupo
-            for (AlumnoDto alumno : alumnos)
+            for (AlumnoDto2 alumno : alumnos)
             {
+            	if(alumno.getGrupo() != grupo) 
+            	{
+            		continue;
+            	}
             	
-                // Optional de DatosBrutoAlumnoMatriculaEntity
+            	// Optional de DatosBrutoAlumnoMatriculaEntity
                 List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatriculaAsignaturasOpt;
 
                 // Buscar los registros del alumno en DatosBrutosAlumnoMatricula
