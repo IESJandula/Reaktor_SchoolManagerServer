@@ -595,7 +595,7 @@ public class DireccionController
             List<AlumnoDto2> alumnosPendientesDeAsignarYAsignados = List.of();
                         
             // Añadir a la lista de Alumnos a devolver los Alumnos asignados al CursoEtapaGrupo y no asignados a ningun grupo
-            alumnosPendientesDeAsignarYAsignados.addAll(this.iDatosBrutoAlumnoMatriculaGrupoRepository.findDistinctAlumnosByCursoEtapaGrupo(curso, etapa, grupo));
+            alumnosPendientesDeAsignarYAsignados = this.iDatosBrutoAlumnoMatriculaGrupoRepository.findDistinctAlumnosByCursoEtapaGrupo(curso, etapa, grupo);
             
             // Si la lista esta vacía
             if(alumnosPendientesDeAsignarYAsignados.isEmpty())
