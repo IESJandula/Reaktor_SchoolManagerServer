@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/matriculacion?createDatabaseIfNotExist=true
     username: root  
-    password: toor
+    password: root
   jpa:
     hibernate:
       ddl-auto: update  
