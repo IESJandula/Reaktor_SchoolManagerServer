@@ -1,0 +1,27 @@
+spring:
+  jpa.hibernate.ddl-auto: update
+  datasource:
+    url: jdbc:mysql://localhost:3306/reaktor_schoolManagerServer?createDatabaseIfNotExist=true
+    username: root
+    password: ${DB_PASSWORD}
+    hikari:
+      connection-timeout: 60000
+      maximum-pool-size: 5
+server:
+  port: 8086
+  ssl:
+    key-store: classpath:apijandula.p12
+    key-store-password: ${SSL_KEY_STORE_PASSWORD}
+    keyStoreType: PKCS12
+logging:
+    level:
+        root: INFO
+    file:
+        name: /tmp/reaktor_schoolManagerServer.log
+        max-size: 1MB
+        max-history: 10
+        total-size-cap: 10MB
+
+reaktor:
+  publicKeyFile: ${PUBLIC_KEY_FILE}
+  urlCors: https://somos.iesjandula.es

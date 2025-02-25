@@ -3,69 +3,84 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<groupId>es.iesjandula.reaktor</groupId>
+		<artifactId>Dependencies</artifactId>
+		<version>1.0.0</version>
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>es.iesjandula</groupId>
-	<artifactId>MatriculasHorariosServer</artifactId>
-	<version>1.0.0</version>
-	<name>MatriculasHorariosServer</name>
-	<description>Microservicios para la matriculación </description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>17</java.version>
-	</properties>
+
+	<artifactId>SchoolManagerServer</artifactId>
+	<name>SchoolManagerServer</name>
+	
 	<dependencies>
+		<!-- Utilidades comunes a todos los servidores -->
+		<dependency>
+			<groupId>es.iesjandula.reaktor</groupId>
+			<artifactId>BaseServer</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+		<!-- Utilidades comunes a todos los client -->
+		<dependency>
+			<groupId>es.iesjandula.reaktor</groupId>
+			<artifactId>BaseClient</artifactId>
+			<version>1.0.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-lang3</artifactId>
-		</dependency>
-		
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 	<build>
+		<!-- Util para la asignación de secretos desde Github -->
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering> <!-- Activar filtrado de recursos -->
+				<excludes>
+					<exclude>**/*.p12</exclude> <!-- Excluir archivos .p12
+					(keystore) del filtrado -->
+					<exclude>**/*.pem</exclude> <!-- Excluir archivos .pem
+					(keystore) del filtrado -->
+					<exclude>**/*.csv</exclude> <!-- Excluir archivos .csv del
+					filtrado -->
+				</excludes>
+			</resource>
+			<!-- Añadir otra sección de recursos para incluir archivos binarios
+			sin filtrado -->
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering> <!-- No aplicar filtrado a archivos
+				binarios -->
+				<includes>
+					<include>**/*.p12</include>
+					<include>**/*.pem</include>
+					<include>**/*.csv</include>
+				</includes>
+			</resource>
+			<!-- FIN - Util para la asignación de secretos desde Github -->
+		</resources>
 		<plugins>
+			<!-- Util para la asignación de secretos desde Github -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-resources-plugin</artifactId>
+				<configuration>
+					<encoding>UTF-8</encoding>
+					<useDefaultDelimiters>true</useDefaultDelimiters> <!--
+					Asegura el uso de delimitadores por defecto (${...}) -->
+					<filters>
+						<filter>
+							src/main/resources/application-VPS-filter.properties</filter>
+					</filters>
+				</configuration>
+			</plugin>
+			<!-- FIN - Util para la asignación de secretos desde Github -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
@@ -77,6 +92,18 @@
 						</exclude>
 					</excludes>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<classifier>jar-with-dependencies</classifier>
+							<mainClass>
+								es.iesjandula.reaktor.bookings_server.ReaktorBookingServerApplication</mainClass>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

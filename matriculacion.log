@@ -423,3 +423,49 @@ Caused by: org.hibernate.query.SemanticException: Missing constructor for type '
 	at org.hibernate.internal.AbstractSharedSessionContract.createQuery(AbstractSharedSessionContract.java:852) ~[hibernate-core-6.5.3.Final.jar:6.5.3.Final]
 	... 71 common frames omitted
 
+2025-02-21T11:37:30.387+01:00  INFO 16728 --- [main] .i.m.MatriculasHorariosServerApplication : Starting MatriculasHorariosServerApplication using Java 23.0.1 with PID 16728 (D:\Clases\TFG\Proyectos\Reaktor_SchoolManagerServer\target\classes started by 2DAM in D:\Clases\TFG\Proyectos\Reaktor_SchoolManagerServer)
+2025-02-21T11:37:30.389+01:00 DEBUG 16728 --- [main] .i.m.MatriculasHorariosServerApplication : Running with Spring Boot v3.3.5, Spring v6.1.14
+2025-02-21T11:37:30.389+01:00  INFO 16728 --- [main] .i.m.MatriculasHorariosServerApplication : No active profile set, falling back to 1 default profile: "default"
+2025-02-21T11:37:31.203+01:00  INFO 16728 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-02-21T11:37:31.323+01:00  INFO 16728 --- [main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 110 ms. Found 13 JPA repository interfaces.
+2025-02-21T11:37:31.897+01:00  INFO 16728 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2025-02-21T11:37:31.911+01:00  INFO 16728 --- [main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-02-21T11:37:31.911+01:00  INFO 16728 --- [main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.31]
+2025-02-21T11:37:31.971+01:00  INFO 16728 --- [main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-02-21T11:37:31.972+01:00  INFO 16728 --- [main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1524 ms
+2025-02-21T11:37:32.124+01:00  INFO 16728 --- [main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-02-21T11:37:32.182+01:00  INFO 16728 --- [main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2025-02-21T11:37:32.218+01:00  INFO 16728 --- [main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-02-21T11:37:32.533+01:00  INFO 16728 --- [main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-02-21T11:37:32.566+01:00  INFO 16728 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-02-21T11:37:33.080+01:00  INFO 16728 --- [main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@70c56434
+2025-02-21T11:37:33.082+01:00  INFO 16728 --- [main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-02-21T11:37:34.183+01:00  INFO 16728 --- [main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-02-21T11:37:35.142+01:00  INFO 16728 --- [main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-02-21T11:37:35.362+01:00  INFO 16728 --- [main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-02-21T11:37:36.164+01:00  WARN 16728 --- [main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-02-21T11:37:36.563+01:00  INFO 16728 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2025-02-21T11:37:36.572+01:00  INFO 16728 --- [main] .i.m.MatriculasHorariosServerApplication : Started MatriculasHorariosServerApplication in 6.656 seconds (process running for 7.067)
+2025-02-21T11:38:03.447+01:00  INFO 16728 --- [http-nio-8081-exec-2] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-02-21T11:38:03.447+01:00  INFO 16728 --- [http-nio-8081-exec-2] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-02-21T11:38:03.448+01:00  INFO 16728 --- [http-nio-8081-exec-2] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-02-21T11:44:57.634+01:00 ERROR 16728 --- [http-nio-8081-exec-10] e.i.m.rest.DireccionController           : ERROR - No se encontraron grupos para el curso 1 y etapa Bachillerato
+2025-02-21T11:44:57.635+01:00 ERROR 16728 --- [http-nio-8081-exec-10] e.i.m.rest.DireccionController           : {code=1, message=ERROR - No se encontraron grupos para el curso y etapa especificados}
+2025-02-21T11:44:58.309+01:00  INFO 16728 --- [http-nio-8081-exec-2] e.i.m.rest.DireccionController           : INFO - Grupo creado correctamente para el curso: 1 y etapa: Bachillerato
+2025-02-21T11:44:58.315+01:00  INFO 16728 --- [http-nio-8081-exec-1] e.i.m.rest.DireccionController           : INFO - Se han encontrado los siguientes grupos para el curso: 1 y etapa: Bachillerato
+2025-02-21T11:45:00.901+01:00  INFO 16728 --- [http-nio-8081-exec-3] e.i.m.rest.DireccionController           : INFO - Grupo creado correctamente para el curso: 1 y etapa: Bachillerato
+2025-02-21T11:45:00.907+01:00  INFO 16728 --- [http-nio-8081-exec-4] e.i.m.rest.DireccionController           : INFO - Se han encontrado los siguientes grupos para el curso: 1 y etapa: Bachillerato
+2025-02-21T11:45:01.757+01:00  INFO 16728 --- [http-nio-8081-exec-5] e.i.m.rest.DireccionController           : INFO - Grupo creado correctamente para el curso: 1 y etapa: Bachillerato
+2025-02-21T11:45:01.764+01:00  INFO 16728 --- [http-nio-8081-exec-6] e.i.m.rest.DireccionController           : INFO - Se han encontrado los siguientes grupos para el curso: 1 y etapa: Bachillerato
+2025-02-21T11:45:11.026+01:00  WARN 16728 --- [http-nio-8081-exec-7] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MissingServletRequestParameterException: Required request parameter 'grupo' for method parameter type Character is not present]
+2025-02-21T11:45:11.942+01:00  WARN 16728 --- [http-nio-8081-exec-8] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MissingServletRequestParameterException: Required request parameter 'grupo' for method parameter type Character is not present]
+2025-02-21T11:45:12.304+01:00  WARN 16728 --- [http-nio-8081-exec-9] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MissingServletRequestParameterException: Required request parameter 'grupo' for method parameter type Character is not present]
+2025-02-21T11:45:12.463+01:00  WARN 16728 --- [http-nio-8081-exec-10] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MissingServletRequestParameterException: Required request parameter 'grupo' for method parameter type Character is not present]
+2025-02-21T12:06:40.654+01:00  INFO 16728 --- [http-nio-8081-exec-2] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-02-21T12:06:45.105+01:00  INFO 16728 --- [http-nio-8081-exec-1] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-02-21T12:10:42.399+01:00  INFO 16728 --- [http-nio-8081-exec-9] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-02-21T12:10:49.654+01:00  INFO 16728 --- [http-nio-8081-exec-1] e.i.m.rest.DireccionControllerVentana3   : INFO - Lista de los cursos etapas
+2025-02-21T12:12:27.982+01:00  WARN 16728 --- [http-nio-8081-exec-7] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.method.annotation.MethodArgumentTypeMismatchException: Method parameter 'curso': Failed to convert value of type 'java.lang.String' to required type 'java.lang.Integer'; For input string: "NaN"]
+2025-02-21T12:12:31.016+01:00  INFO 16728 --- [http-nio-8081-exec-8] e.i.m.rest.DireccionController           : INFO - Se han encontrado los siguientes grupos para el curso: 1 y etapa: Bachillerato
+2025-02-21T12:12:31.427+01:00  INFO 16728 --- [http-nio-8081-exec-9] e.i.m.rest.DireccionController           : INFO - Grupo creado correctamente para el curso: 1 y etapa: Bachillerato
+2025-02-21T12:12:31.436+01:00  INFO 16728 --- [http-nio-8081-exec-10] e.i.m.rest.DireccionController           : INFO - Se han encontrado los siguientes grupos para el curso: 1 y etapa: Bachillerato

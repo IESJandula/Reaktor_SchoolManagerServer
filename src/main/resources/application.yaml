@@ -1,12 +1,17 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/matriculacion?createDatabaseIfNotExist=true
+    url: jdbc:mysql://localhost:3306/reaktor_schoolManagerServer?createDatabaseIfNotExist=true
     username: root  
-    password: root
+    password: toor
   jpa:
     hibernate:
       ddl-auto: update  
     show-sql: true
+  http:
+    encoding:
+    charset: UTF-8
+    enabled: true
+    force: true
 
   # Habilitar la carga de archivos multipart
   servlet:
@@ -15,11 +20,21 @@ spring:
       max-file-size: 10MB   # Tamaño máximo permitido para cada archivo
       max-request-size: 10MB  # Tamaño máximo permitido para toda la solicitud (incluyendo todos los archivos)
 server:
-   port: 8081
+   port: 8086
 
 logging:
   file:
-    name: matriculacion.log
+    name: C:\logs\School_manager.log
+    max-size: 1MB
+    max-history: 10
+    total-size-cap: 10MB
   level:
     root: info
     es.iesjandula.matriculas_horarios_server: debug
+reaktor:
+  publicKeyFile: C:\claves\public_key.pem
+  urlCors: http://localhost:5173, http://192.168.1.209:5173, http://192.168.1.181:5173, http://192.168.1.137:5173, http://172.20.10.2:5173, http://localhost:8080
+  clientId: schoolManager
+  firebase_server_url: http://localhost:8083
+  users_timeout: 30000
+  http_connection_timeout: 30000
