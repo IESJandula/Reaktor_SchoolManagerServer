@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.matriculas_horarios_server.parsers.IParseoCursoEtapa;
@@ -21,6 +23,9 @@ import es.iesjandula.matriculas_horarios_server.utils.Constants;
  * -----------------------------------------------------------------------------------------------------------------
  */
 @SpringBootApplication
+@EnableScheduling
+@ComponentScan(basePackages =
+		{ "es.iesjandula" })
 public class MatriculasHorariosServerApplication implements CommandLineRunner
 {
 	@Autowired

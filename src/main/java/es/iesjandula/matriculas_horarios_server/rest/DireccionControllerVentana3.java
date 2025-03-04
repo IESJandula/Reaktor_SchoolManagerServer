@@ -5,8 +5,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import es.iesjandula.reaktor.base.utils.BaseConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,6 +67,7 @@ public class DireccionControllerVentana3
      * 
      * @return ResponseEntity<?> - Respuesta con las lista de cursos y etapas.
      */
+	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
    @RequestMapping(method = RequestMethod.GET, value = "/etapaCursos")
    public ResponseEntity<?> obtenerCursosEtapas()
    {
@@ -96,6 +99,7 @@ public class DireccionControllerVentana3
     * @param etapa 			 - La etapa para la cual se solicita la lista de alumnos.
     * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
     */
+   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
    @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
    public ResponseEntity<?> obtenerAsignatura(@RequestParam("curso") int curso, @RequestParam("etapa") String etapa)
    {
@@ -148,6 +152,7 @@ public class DireccionControllerVentana3
     * @param  idAsignatura 	 - JSON que contiene el curso, la etapa y el nombre de la asignatura.
     * @return ResponseEntity<?> - Respuesta del endpoint que no devolverá nada
     */
+   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
    @RequestMapping(method = RequestMethod.POST, value = "/bloques")
    public ResponseEntity<?> crearBloques
    (
@@ -219,6 +224,7 @@ public class DireccionControllerVentana3
     * @param  idAsignatura 	 - JSON que contiene el curso, la etapa y el nombre de la asignatura.
     * @return ResponseEntity<?> - Respuesta del endpoint que no devolverá nada
     */
+   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
    @RequestMapping(method = RequestMethod.DELETE, value = "/eliminarBloque")
    public ResponseEntity<?> eliminarBloque(@RequestBody IdAsignatura idAsignatura)
    {

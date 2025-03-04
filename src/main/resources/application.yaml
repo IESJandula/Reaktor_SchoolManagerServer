@@ -1,8 +1,8 @@
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_schoolManagerServer?createDatabaseIfNotExist=true
-    username: root  
-    password: toor
+    username: Alejandro
+    password: lyoko2
   jpa:
     hibernate:
       ddl-auto: update  

@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
+import es.iesjandula.reaktor.base.utils.BaseConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -61,7 +63,10 @@ public class DireccionController
 	
 	@Autowired
 	IParseoDatosBrutos iParseoDatosBrutos;
-    
+
+
+
+
     /**
      * Endpoint para cargar las matrículas a través de un archivo CSV.
      * 
@@ -74,6 +79,7 @@ public class DireccionController
      * @return ResponseEntity<?> - El mensaje de éxito o el detalle de un error ocurrido durante el procesamiento.
      * @throws IOException 
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/cargarMatriculas", consumes = "multipart/form-data")
     public ResponseEntity<?> cargarMatriculas 
     (
@@ -147,6 +153,7 @@ public class DireccionController
      * 
      * @return ResponseEntity<?> - La lista de registros de CursoEtapa si se encuentran datos, o una excepción con el mensaje de error si la lista está vacía o si ocurre un error.
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/cursoEtapa")
     public ResponseEntity<?> obtenerCursoEtapa()
     {
@@ -199,6 +206,7 @@ public class DireccionController
      * @param etapa              - La etapa educativa asociada al curso para el cual se está creando el grupo.
      * @return ResponseEntity<?> - Un mensaje de éxito indicando que el grupo ha sido creado correctamente, o una excepción con el mensaje de error si ocurrió algún problema.
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/grupos")
     public ResponseEntity<?> crearGrupo
     (
@@ -264,6 +272,7 @@ public class DireccionController
      * @param etapa              - La etapa educativa asociada al curso para la cual se desean obtener los grupos.
      * @return ResponseEntity<?> - La lista de grupos encontrados o una excepción con el mensaje de error si no se encontraron grupos o si ocurre algún fallo durante el proceso.
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/grupos")
     public ResponseEntity<?> obtenerGrupo
     (
@@ -329,6 +338,7 @@ public class DireccionController
      * @param grupo              - El identificador del grupo a eliminar (una letra que representa el grupo).
      * @return ResponseEntity<?> - Un mensaje de éxito indicando que el grupo ha sido eliminado correctamente, o una excepción con el mensaje de error si ocurre un fallo durante el proceso.
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/grupos")
     public ResponseEntity<?> eliminarGrupo
     (
@@ -416,6 +426,7 @@ public class DireccionController
      * @param grupo   			 - El identificador del grupo (una letra que representa el grupo) al que se asignarán los alumnos.
      * @return ResponseEntity<?> - Respuesta con un mensaje de éxito si los alumnos se asignaron correctamente, o una excepción con el mensaje de error si ocurre un fallo durante el proceso.
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/grupos/alumnos")
     public ResponseEntity<?> asignarAlumnos
     (
@@ -438,7 +449,7 @@ public class DireccionController
             // Por cada alumno buscarlo en DatosBrutosAlumnoMatricula y añadirlos a DatosBrutosAlumnoMatriculaGrupo
             for (AlumnoDto2 alumno : alumnos)
             {
-            	if(alumno.getGrupo() != grupo) 
+            	if(alumno.getGrupo() != grupo && alumno.getGrupo() != null)
             	{
             		continue;
             	}
@@ -496,6 +507,7 @@ public class DireccionController
      * @param alumno 			 - El objeto `AlumnoDto` que contiene los datos del alumno a desasignar.
      * @return ResponseEntity<?> - Respuesta con un mensaje de éxito si el alumno fue desasignado correctamente, o una excepción con el mensaje de error si ocurre un fallo durante el proceso.
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/grupos/alumnos")
     public ResponseEntity<?> desasignarAlumno
     (
@@ -580,6 +592,7 @@ public class DireccionController
      * @param grupo 			 - El grupo específico dentro del curso y etapa que se está consultando.
      * @return ResponseEntity<?> - Respuesta con la lista de alumnos del grupo o pendientes de asignar, o una excepción personalizada si ocurre algún error durante la operación.
      */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/grupos/alumnos")
     public ResponseEntity<?> obtenerAlumnos
     (
