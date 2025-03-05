@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>es.iesjandula.reaktor</groupId>
 		<artifactId>Dependencies</artifactId>
 		<version>1.0.0</version>
-		<relativePath /> <!-- lookup parent from repository -->
+		<relativePath />
+		<!-- lookup parent from repository -->
 	</parent>
 
 	<artifactId>SchoolManagerServer</artifactId>
 	<name>SchoolManagerServer</name>
-	
+
 	<dependencies>
 		<!-- Utilidades comunes a todos los servidores -->
 		<dependency>
@@ -42,13 +42,13 @@
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
-				<filtering>true</filtering> <!-- Activar filtrado de recursos -->
+				<filtering>true</filtering>				<!-- Activar filtrado de recursos -->
 				<excludes>
-					<exclude>**/*.p12</exclude> <!-- Excluir archivos .p12
+					<exclude>**/*.p12</exclude>					<!-- Excluir archivos .p12
 					(keystore) del filtrado -->
-					<exclude>**/*.pem</exclude> <!-- Excluir archivos .pem
+					<exclude>**/*.pem</exclude>					<!-- Excluir archivos .pem
 					(keystore) del filtrado -->
-					<exclude>**/*.csv</exclude> <!-- Excluir archivos .csv del
+					<exclude>**/*.csv</exclude>					<!-- Excluir archivos .csv del
 					filtrado -->
 				</excludes>
 			</resource>
@@ -56,7 +56,7 @@
 			sin filtrado -->
 			<resource>
 				<directory>src/main/resources</directory>
-				<filtering>false</filtering> <!-- No aplicar filtrado a archivos
+				<filtering>false</filtering>				<!-- No aplicar filtrado a archivos
 				binarios -->
 				<includes>
 					<include>**/*.p12</include>
@@ -73,7 +73,7 @@
 				<artifactId>maven-resources-plugin</artifactId>
 				<configuration>
 					<encoding>UTF-8</encoding>
-					<useDefaultDelimiters>true</useDefaultDelimiters> <!--
+					<useDefaultDelimiters>true</useDefaultDelimiters>					<!--
 					Asegura el uso de delimitadores por defecto (${...}) -->
 					<filters>
 						<filter>

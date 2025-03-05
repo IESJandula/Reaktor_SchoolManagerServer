@@ -2,7 +2,7 @@ spring:
   jpa.hibernate.ddl-auto: update
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_schoolManagerServer?createDatabaseIfNotExist=true
-    username: root  
+    username: root
     password: toor
     hikari:
       connection-timeout: 60000

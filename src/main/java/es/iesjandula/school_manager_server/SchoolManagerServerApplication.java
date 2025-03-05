@@ -18,16 +18,16 @@ import es.iesjandula.school_manager_server.utils.Constants;
 /**
  * Clase principal que inicia la aplicación Spring Boot.
  * -----------------------------------------------------------------------------------------------------------------
- * Esta clase contiene el método {@link main} que se encarga de iniciar la aplicación. 
- * Implementa {@link CommandLineRunner} para ejecutar lógica al iniciar la aplicación.
+ * Esta clase contiene el método {@link main} que se encarga de iniciar la
+ * aplicación.
+ * Implementa {@link CommandLineRunner} para ejecutar lógica al iniciar la
+ * aplicación.
  * -----------------------------------------------------------------------------------------------------------------
  */
 @SpringBootApplication
 @EnableScheduling
-@ComponentScan(basePackages =
-{ "es.iesjandula" })
-public class SchoolManagerServerApplication implements CommandLineRunner
-{
+@ComponentScan(basePackages = { "es.iesjandula" })
+public class SchoolManagerServerApplication implements CommandLineRunner {
 	@Autowired
 	IParseoCursoEtapa iParseoCursoEtapa;
 
@@ -37,11 +37,11 @@ public class SchoolManagerServerApplication implements CommandLineRunner
 	/**
 	 * Método principal que se utiliza para arrancar la aplicación Spring Boot.
 	 * -----------------------------------------------------------------------------------------------------------------
-	 * Este método ejecuta la aplicación, utilizando {@link SpringApplication} para inicializar el contexto de la aplicación.
+	 * Este método ejecuta la aplicación, utilizando {@link SpringApplication} para
+	 * inicializar el contexto de la aplicación.
 	 * -----------------------------------------------------------------------------------------------------------------
 	 */
-	public static void main(String[] args) 
-	{
+	public static void main(String[] args) {
 		// Iniciar la aplicación Spring Boot.
 		SpringApplication.run(SchoolManagerServerApplication.class, args);
 	}
@@ -49,17 +49,21 @@ public class SchoolManagerServerApplication implements CommandLineRunner
 	/**
 	 * Método {@link run} que se ejecuta al arrancar la aplicación.
 	 * -----------------------------------------------------------------------------------------------------------------
-	 * Este método se ejecuta al iniciar la aplicación y se encarga de realizar el parseo de datos.
-	 * En este caso, lee el archivo CSV "cursos_etapas.csv" y lo procesa utilizando el servicio de parseo correspondiente.
+	 * Este método se ejecuta al iniciar la aplicación y se encarga de realizar el
+	 * parseo de datos.
+	 * En este caso, lee el archivo CSV "cursos_etapas.csv" y lo procesa utilizando
+	 * el servicio de parseo correspondiente.
 	 * -----------------------------------------------------------------------------------------------------------------
-	 * @param args 		 - Argumentos pasados a la aplicación (no utilizados en este caso).
+	 * 
+	 * @param args - Argumentos pasados a la aplicación (no utilizados en este
+	 *             caso).
 	 * @throws Exception - Si ocurre algún error durante la ejecución.
 	 */
 	@Transactional(readOnly = false)
-	public void run(String... args) throws Exception 
-	{
+	public void run(String... args) throws Exception {
 		// Parsear CSV CursoEtapa
-		// Crear un archivo File a partir de la ruta de acceso especificada en las constantes.
+		// Crear un archivo File a partir de la ruta de acceso especificada en las
+		// constantes.
 		File file = new File(Constants.CSV_ROUTES + "cursos_etapas.csv");
 
 		// Crear un objeto Scanner para leer el contenido del archivo.
