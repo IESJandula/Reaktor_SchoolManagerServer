@@ -2,7 +2,7 @@ package es.iesjandula.school_manager_server.parsers;
 
 import java.util.Scanner;
 
-import es.iesjandula.school_manager_server.utils.MatriculasHorariosServerException;
+import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
 
 /**
  * Interfaz - IParseoCursoEtapa 
@@ -18,7 +18,7 @@ public interface IParseoCursoEtapa
      * Parsea los datos proporcionados para extraer información relacionada con "CursoEtapa".
      * 
      * @param scanner 							 - Una instancia de {@link Scanner} que contiene los datos de entrada en bruto a procesar.
-     * @throws MatriculasHorariosServerException - Si ocurre algún error durante el proceso de parseo.
+     * @throws SchoolManagerServerException - Si ocurre algún error durante el proceso de parseo.
      */
-    public void parseoCursoEtapa(Scanner scanner) throws MatriculasHorariosServerException;
+    public void parseoCursoEtapa(Scanner scanner) throws SchoolManagerServerException;
 }

@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
  */
 @AllArgsConstructor
 @NoArgsConstructor
-public class MatriculasHorariosServerException extends Exception
+public class SchoolManagerServerException extends Exception
 {
 	/**
 	 * SerialVersionUID utilizado para la serialización de la clase.
@@ -40,7 +40,7 @@ public class MatriculasHorariosServerException extends Exception
 	 * -----------------------------------------------------------------------------------------------------------------
 	 * @param msg - El mensaje que se asociará con la excepción.
 	 */
-	public MatriculasHorariosServerException(String msg)
+	public SchoolManagerServerException(String msg)
 	{
 		this.msg = msg;
 		System.out.println(msg);
@@ -54,7 +54,7 @@ public class MatriculasHorariosServerException extends Exception
 	 * @param code - El código asociado a la excepción.
 	 * @param msg  - El mensaje que se asociará con la excepción.
 	 */
-	public MatriculasHorariosServerException(int code, String msg) 
+	public SchoolManagerServerException(int code, String msg) 
 	{
 		this.code = code;
 		this.msg = msg;

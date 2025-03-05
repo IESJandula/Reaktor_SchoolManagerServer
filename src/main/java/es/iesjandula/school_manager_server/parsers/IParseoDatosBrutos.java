@@ -3,7 +3,7 @@ package es.iesjandula.school_manager_server.parsers;
 import java.util.Scanner;
 
 import es.iesjandula.school_manager_server.models.CursoEtapa;
-import es.iesjandula.school_manager_server.utils.MatriculasHorariosServerException;
+import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
 
 /**
  * Interfaz - IParseoDatosBrutos
@@ -20,7 +20,7 @@ public interface IParseoDatosBrutos
      *
      * @param scanner   						 - Una instancia de {@link Scanner} que contiene los datos en bruto a procesar.
      * @param cursoEtapa 						 - Una instancia de {@link CursoEtapa} que será actualizada con los datos extraídos.
-     * @throws MatriculasHorariosServerException - Si ocurre algún error durante el proceso de parseo, 
+     * @throws SchoolManagerServerException - Si ocurre algún error durante el proceso de parseo, 
      */
-    public void parseoDatosBrutos(Scanner scanner, CursoEtapa cursoEtapa) throws MatriculasHorariosServerException;
+    public void parseoDatosBrutos(Scanner scanner, CursoEtapa cursoEtapa) throws SchoolManagerServerException;
 }

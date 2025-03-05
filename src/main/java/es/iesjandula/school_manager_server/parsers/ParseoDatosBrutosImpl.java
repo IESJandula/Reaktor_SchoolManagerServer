@@ -9,7 +9,7 @@ import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.school_manager_server.utils.Constants;
-import es.iesjandula.school_manager_server.utils.MatriculasHorariosServerException;
+import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -32,10 +32,10 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
      * 
      * @param scanner    						 - Una instancia de {@link Scanner} con los datos de entrada en formato CSV.
      * @param cursoEtapa 						 - Un objeto {@link CursoEtapa} que representa el curso y etapa asociados a los datos.
-     * @throws MatriculasHorariosServerException - Si ocurre algún error durante el parseo, como inconsistencias en los datos.
+     * @throws SchoolManagerServerException - Si ocurre algún error durante el parseo, como inconsistencias en los datos.
      */
     @Override
-    public void parseoDatosBrutos(Scanner scanner, CursoEtapa cursoEtapa) throws MatriculasHorariosServerException 
+    public void parseoDatosBrutos(Scanner scanner, CursoEtapa cursoEtapa) throws SchoolManagerServerException 
     {
         try 
         {
@@ -91,7 +91,7 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
         catch (Exception exception) 
         {
         	 // Captura cualquier excepción y lanza una excepción personalizada
-        	MatriculasHorariosServerException matriculasHorariosServerException = new MatriculasHorariosServerException(1, "ERROR - Los datos de los cursos no han podido ser procesados", exception);
+        	SchoolManagerServerException matriculasHorariosServerException = new SchoolManagerServerException(1, "ERROR - Los datos de los cursos no han podido ser procesados", exception);
         	log.error(matriculasHorariosServerException.getBodyExceptionMessage().toString());
            
             

@@ -9,7 +9,7 @@ import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.school_manager_server.utils.Constants;
-import es.iesjandula.school_manager_server.utils.MatriculasHorariosServerException;
+import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -31,10 +31,10 @@ public class ParseoCursoEtapaImpl implements IParseoCursoEtapa
      * Implementación del método para parsear y persistir datos de "CursoEtapa".
      * 
      * @param scanner 							 - Una instancia de {@link Scanner} que contiene los datos en bruto en formato CSV.
-     * @throws MatriculasHorariosServerException - Si ocurre algún error durante el parseo, como un formato de datos incorrecto.
+     * @throws SchoolManagerServerException - Si ocurre algún error durante el parseo, como un formato de datos incorrecto.
      */
     @Override
-    public void parseoCursoEtapa(Scanner scanner) throws MatriculasHorariosServerException 
+    public void parseoCursoEtapa(Scanner scanner) throws SchoolManagerServerException 
     {   
         try 
         {
@@ -72,7 +72,7 @@ public class ParseoCursoEtapaImpl implements IParseoCursoEtapa
         catch (Exception exception) 
         {
         	 // Captura cualquier excepción y lanza una excepción personalizada
-        	MatriculasHorariosServerException matriculasHorariosServerException = new MatriculasHorariosServerException(1, "ERROR - Los datos de los cursos no han podido ser procesados", exception);
+        	SchoolManagerServerException matriculasHorariosServerException = new SchoolManagerServerException(1, "ERROR - Los datos de los cursos no han podido ser procesados", exception);
         	log.error(matriculasHorariosServerException.getBodyExceptionMessage().toString());
            
             
