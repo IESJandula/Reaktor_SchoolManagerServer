@@ -431,9 +431,9 @@ public class DireccionController {
     @RequestMapping(method = RequestMethod.POST, value = "/grupos/alumnos")
     public ResponseEntity<?> asignarAlumnos(
             @RequestBody List<AlumnoDto2> alumnos,
-            @RequestParam(value = "curso", required = true) Integer curso,
-            @RequestParam(value = "etapa", required = true) String etapa,
-            @RequestParam(value = "grupo", required = true) Character grupo) {
+            @RequestHeader(value = "curso", required = true) Integer curso,
+            @RequestHeader(value = "etapa", required = true) String etapa,
+            @RequestHeader(value = "grupo", required = true) Character grupo) {
         try {
             // Crear el objeto CursoEtapaGrupo con los parámetros recibidos
             CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
@@ -600,9 +600,9 @@ public class DireccionController {
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/grupos/alumnos")
     public ResponseEntity<?> obtenerAlumnos(
-            @RequestParam(value = "curso", required = true) Integer curso,
-            @RequestParam(value = "etapa", required = true) String etapa,
-            @RequestParam(value = "grupo", required = true) Character grupo) {
+            @RequestHeader(value = "curso", required = true) Integer curso,
+            @RequestHeader(value = "etapa", required = true) String etapa,
+            @RequestHeader(value = "grupo", required = true) Character grupo) {
         try {
             // Crear el objeto CursoEtapaGrupo con los parámetros recibidos
             CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();

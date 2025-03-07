@@ -11,6 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.Transactional;
 
+import es.iesjandula.school_manager_server.interfaces.IGestorParseo;
 import es.iesjandula.school_manager_server.parsers.IParseoCursoEtapa;
 import es.iesjandula.school_manager_server.parsers.IParseoDatosBrutos;
 import es.iesjandula.school_manager_server.utils.Constants;
@@ -33,6 +34,9 @@ public class SchoolManagerServerApplication implements CommandLineRunner {
 
 	@Autowired
 	IParseoDatosBrutos iParseoDatosBrutos;
+	
+	@Autowired
+	private IGestorParseo parseoFicheros;
 
 	/**
 	 * Método principal que se utiliza para arrancar la aplicación Spring Boot.
@@ -71,5 +75,8 @@ public class SchoolManagerServerApplication implements CommandLineRunner {
 
 		// Llamar al servicio para parsear el archivo de cursos y etapas.
 		iParseoCursoEtapa.parseoCursoEtapa(scanner);
+		
+		this.parseoFicheros.parseaFichero(Constants.NOMBRE_FICHERO_DEPARTAMENTO);
+		this.parseoFicheros.parseaFichero(Constants.NOMBRE_FICHERO_ASIGNATURAS);
 	}
 }

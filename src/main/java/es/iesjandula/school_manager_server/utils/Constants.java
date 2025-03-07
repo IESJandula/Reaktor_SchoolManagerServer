@@ -28,4 +28,9 @@ public class Constants
      * <p>Indica el grupo base asignado, comenzando con 'A'.</p>
      */
     public static final char GROUP = 'A';
+    
+    public static final String NOMBRE_FICHERO_DEPARTAMENTO = "departamentos.csv";
+
+    public static final String NOMBRE_FICHERO_ASIGNATURAS= "asignaturas.csv";
+
 }
