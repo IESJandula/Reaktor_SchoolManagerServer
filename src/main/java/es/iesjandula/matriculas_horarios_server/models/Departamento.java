@@ -34,6 +34,13 @@ public class Departamento
     @Id
     @Column(length = 100)
     private String nombre;
+
+    /**
+     * Plantilla del Departamento.
+     * Cantidad de profesores del departamento.
+     */
+    @Column
+    private int plantilla;
     
     /**
      * Lista de asignaturas que son propiedad del Departamento.

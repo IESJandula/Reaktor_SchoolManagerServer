@@ -40,6 +40,7 @@ public class IdMatricula implements Serializable {
         @JoinColumn(name = "asignatura_curso", referencedColumnName = "curso"),
         @JoinColumn(name = "asignatura_etapa", referencedColumnName = "etapa"),
         @JoinColumn(name = "asignatura_grupo", referencedColumnName = "grupo"),
+            @JoinColumn(name = "asignatura_horas", referencedColumnName = "horas"),
         @JoinColumn(name = "asignatura_nombre", referencedColumnName = "nombre")
     })
     private Asignatura asignatura;

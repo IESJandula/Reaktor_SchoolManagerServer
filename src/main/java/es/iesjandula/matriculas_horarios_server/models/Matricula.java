@@ -44,6 +44,7 @@ public class Matricula {
         @JoinColumn(name = "asignatura_curso", referencedColumnName = "curso", insertable = false, updatable = false),
         @JoinColumn(name = "asignatura_etapa", referencedColumnName = "etapa", insertable = false, updatable = false),
         @JoinColumn(name = "asignatura_grupo", referencedColumnName = "grupo", insertable = false, updatable = false),
+            @JoinColumn(name = "asignatura_horas", referencedColumnName = "horas", insertable = false, updatable = false),
         @JoinColumn(name = "asignatura_nombre", referencedColumnName = "nombre", insertable = false, updatable = false)
     })
     private Asignatura asignatura;
