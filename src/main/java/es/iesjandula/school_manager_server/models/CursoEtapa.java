@@ -1,11 +1,8 @@
 package es.iesjandula.school_manager_server.models;
 
-import java.util.List;
-
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapa;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;

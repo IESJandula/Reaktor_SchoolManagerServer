@@ -21,13 +21,13 @@ import org.springframework.web.multipart.MultipartFile;
 import es.iesjandula.school_manager_server.dtos.AlumnoDto;
 import es.iesjandula.school_manager_server.dtos.AlumnoDto2;
 import es.iesjandula.school_manager_server.dtos.CursoEtapaDto;
+import es.iesjandula.school_manager_server.interfaces.IParseoDatosBrutos;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatriculaGrupo;
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapaGrupo;
-import es.iesjandula.school_manager_server.parsers.IParseoDatosBrutos;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaGrupoRepository;
@@ -45,21 +45,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping(value = "/direccion")
-public class DireccionController {
+public class DireccionController 
+{
     @Autowired
-    ICursoEtapaRepository iCursoEtapaRepository;
+    private ICursoEtapaRepository iCursoEtapaRepository;
 
     @Autowired
-    ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
+    private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
 
     @Autowired
-    IDatosBrutoAlumnoMatriculaRepository iDatosBrutoAlumnoMatriculaRepository;
+    private IDatosBrutoAlumnoMatriculaRepository iDatosBrutoAlumnoMatriculaRepository;
 
     @Autowired
-    IDatosBrutoAlumnoMatriculaGrupoRepository iDatosBrutoAlumnoMatriculaGrupoRepository;
+    private IDatosBrutoAlumnoMatriculaGrupoRepository iDatosBrutoAlumnoMatriculaGrupoRepository;
 
     @Autowired
-    IParseoDatosBrutos iParseoDatosBrutos;
+    private IParseoDatosBrutos iParseoDatosBrutos;
+    
 
     /**
      * Endpoint para cargar las matrículas a través de un archivo CSV.
@@ -82,10 +84,13 @@ public class DireccionController {
     public ResponseEntity<?> cargarMatriculas(
             @RequestParam(value = "csv", required = true) MultipartFile archivoCsv,
             @RequestHeader(value = "curso", required = true) Integer curso,
-            @RequestHeader(value = "etapa", required = true) String etapa) {
-        try {
+            @RequestHeader(value = "etapa", required = true) String etapa) 
+    {
+        try 
+        {
             // Si el archivo esta vacio
-            if (archivoCsv.isEmpty()) {
+            if (archivoCsv.isEmpty()) 
+            {
                 // Lanzar excepcion
                 String msgError = "ERROR - El archivo importado está vacío";
                 log.error(msgError);
@@ -116,13 +121,17 @@ public class DireccionController {
 
             // Devolver OK informando que se ha insertado los registros
             return ResponseEntity.ok().build();
-        } catch (SchoolManagerServerException schoolManagerServerException) {
+        } 
+        catch (SchoolManagerServerException schoolManagerServerException) 
+        {
             // Manejo de excepciones personalizadas
             log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
 
             // Devolver la excepción personalizada con código 1 y el mensaje de error
             return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-        } catch (IOException ioException) {
+        } 
+        catch (IOException ioException) 
+        {
             // Manejo de excepciones generales
             String msgError = "ERROR - No se pudo realizar la lectura del fichero";
             log.error(msgError, ioException);
@@ -133,6 +142,68 @@ public class DireccionController {
                     1, msgError, ioException);
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+    
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/cargarMatriculas")
+    public ResponseEntity<?> obtenerDatosMatriculas()
+    {
+    	try 
+    	{
+    		
+    		List<CursoEtapaDto> listCursoEtapa = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso();
+    		
+    		if(listCursoEtapa.isEmpty()) 
+    		{
+    			String mensajeError = "No se ha encontrado datos para ese curso y etapa";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+    		}
+    		
+    		return ResponseEntity.ok(listCursoEtapa);
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) {
+
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+    	}
+    	
+    }
+    
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/cargarMatriculas")
+    public ResponseEntity<?> borrarDatosMatriculas(@RequestHeader(value = "curso", required = true) Integer curso,
+    		@RequestHeader(value = "etapa", required = true) String etapa)
+    {
+    	try 
+    	{
+    		
+    		List<CursoEtapaDto> listAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso(curso, etapa);
+    		
+    		if(listAlumnoMatriculas.isEmpty()) 
+    		{
+    			String mensajeError = "No se ha encontrado datos para ese curso y etapa";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+    		}
+    		
+    		IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
+    		idCursoEtapa.setCurso(curso);
+    		idCursoEtapa.setEtapa(etapa);
+    		
+    		CursoEtapa cursoEtapa = new CursoEtapa();
+    		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
+    		
+    		this.iDatosBrutoAlumnoMatriculaRepository.deleteDistinctByCursoEtapa(cursoEtapa);
+    		
+    		return ResponseEntity.ok().build();
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) {
+    		
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+    	}
+    	
     }
 
     /**

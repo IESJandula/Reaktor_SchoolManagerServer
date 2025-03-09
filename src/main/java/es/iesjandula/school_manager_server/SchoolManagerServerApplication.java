@@ -12,8 +12,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.school_manager_server.interfaces.IGestorParseo;
-import es.iesjandula.school_manager_server.parsers.IParseoCursoEtapa;
-import es.iesjandula.school_manager_server.parsers.IParseoDatosBrutos;
+import es.iesjandula.school_manager_server.interfaces.IParseoCursoEtapa;
+import es.iesjandula.school_manager_server.interfaces.IParseoDatosBrutos;
 import es.iesjandula.school_manager_server.utils.Constants;
 
 /**

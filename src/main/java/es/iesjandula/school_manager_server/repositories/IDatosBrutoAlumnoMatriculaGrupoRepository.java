@@ -10,7 +10,9 @@ import org.springframework.stereotype.Repository;
 
 import es.iesjandula.school_manager_server.dtos.AlumnoDto;
 import es.iesjandula.school_manager_server.dtos.AlumnoDto2;
+import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.CursoEtapaGrupo;
+import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatriculaGrupo;
 
 /**
@@ -60,5 +62,10 @@ public interface IDatosBrutoAlumnoMatriculaGrupoRepository extends JpaRepository
             @Param("curso") Integer curso, 
             @Param("etapa") String etapa,
             @Param("grupo") Character grupo
+    );
+    
+    List<DatosBrutoAlumnoMatriculaGrupo> deleteDistinctByCursoEtapaGrupo
+    (
+            @Param("curso") CursoEtapaGrupo cursoEtapaGrupo
     );
 }

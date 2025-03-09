@@ -4,11 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.school_manager_server.dtos.AlumnoDto2;
+import es.iesjandula.school_manager_server.dtos.CursoEtapaDto;
+import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
 
 /**
@@ -47,5 +51,24 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
     (
             @Param("curso") Integer curso, 
             @Param("etapa") String etapa
+    );
+    
+    @Query("SELECT DISTINCT new es.iesjandula.school_manager_server.dtos.CursoEtapaDto (c.idCursoEtapa.curso, c.idCursoEtapa.etapa) "
+    		+ "FROM DatosBrutoAlumnoMatricula d "
+    		+ "JOIN d.cursoEtapa c "
+    		+ "WHERE c.idCursoEtapa.curso = :curso AND c.idCursoEtapa.etapa = :etapa AND d.nombre IS NOT NULL")
+    List<CursoEtapaDto> encontrarAlumnosMatriculaPorEtapaYCurso(@Param("curso") Integer curso, 
+            																@Param("etapa") String etapa);
+    @Query("SELECT DISTINCT new es.iesjandula.school_manager_server.dtos.CursoEtapaDto (c.idCursoEtapa.curso, c.idCursoEtapa.etapa) "
+    		+ "FROM DatosBrutoAlumnoMatricula d "
+    		+ "JOIN d.cursoEtapa c "
+    		+ "WHERE d.nombre IS NOT NULL")
+    List<CursoEtapaDto> encontrarAlumnosMatriculaPorEtapaYCurso();
+    
+    @Modifying
+    @Transactional
+    List<DatosBrutoAlumnoMatricula> deleteDistinctByCursoEtapa
+    (
+            @Param("curso") CursoEtapa cursoEtapa
     );
 }

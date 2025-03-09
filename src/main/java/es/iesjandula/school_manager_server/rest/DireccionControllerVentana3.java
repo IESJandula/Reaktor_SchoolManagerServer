@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.school_manager_server.dtos.AsignaturaDto;
+import es.iesjandula.school_manager_server.interfaces.IParseoDatosBrutos;
 import es.iesjandula.school_manager_server.models.Asignatura;
 import es.iesjandula.school_manager_server.models.Bloque;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
-import es.iesjandula.school_manager_server.parsers.IParseoDatosBrutos;
 import es.iesjandula.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.school_manager_server.repositories.IBloqueRepository;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaGrupoRepository;

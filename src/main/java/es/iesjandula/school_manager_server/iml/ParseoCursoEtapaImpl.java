@@ -1,10 +1,11 @@
-package es.iesjandula.school_manager_server.parsers;
+package es.iesjandula.school_manager_server.iml;
 
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import es.iesjandula.school_manager_server.interfaces.IParseoCursoEtapa;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaRepository;
