@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import es.iesjandula.school_manager_server.dtos.AlumnoDto;
 import es.iesjandula.school_manager_server.dtos.AlumnoDto2;
 import es.iesjandula.school_manager_server.dtos.CursoEtapaDto;
+import es.iesjandula.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.school_manager_server.interfaces.IParseoDatosBrutos;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.CursoEtapaGrupo;
@@ -144,6 +145,7 @@ public class DireccionController
         }
     }
     
+    /*Endpoint para que nos muestre los datos de los cursos que tienen matriculas*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/cargarMatriculas")
     public ResponseEntity<?> obtenerDatosMatriculas()
@@ -170,10 +172,11 @@ public class DireccionController
     	
     }
     
+    /* Endpoint que borrar la información asignada las matriculas relacionada a un curso*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/cargarMatriculas")
     public ResponseEntity<?> borrarDatosMatriculas(@RequestHeader(value = "curso", required = true) Integer curso,
-    		@RequestHeader(value = "etapa", required = true) String etapa)
+    											   @RequestHeader(value = "etapa", required = true) String etapa)
     {
     	try 
     	{
@@ -199,7 +202,8 @@ public class DireccionController
     		
     		return ResponseEntity.ok().build();
     	}
-    	catch (SchoolManagerServerException schoolManagerServerException) {
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
     		
     		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
     	}
@@ -647,6 +651,47 @@ public class DireccionController
                     1, msgError, exception);
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+    
+    /* Endpoint para desasignar todos los alumnos de un grupo a la vez */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/grupos/borrar_alumnos")
+    public ResponseEntity<?> desasignarTodosAlumnos(@RequestBody CursoEtapaGrupoDto cursoEtapaGrupoDto) 
+    {
+    	
+    	try 
+    	{
+    		List<CursoEtapaGrupoDto> listCursoEtapaGrupoDtos = this.iDatosBrutoAlumnoMatriculaGrupoRepository.encontrarCursoEtapaGrupo(cursoEtapaGrupoDto.getCurso(), cursoEtapaGrupoDto.getEtapa(), cursoEtapaGrupoDto.getGrupo());
+    		
+    		if(listCursoEtapaGrupoDtos.isEmpty()) 
+    		{
+    			
+    			String mensajeError = "No se ha encontrado el curso, la etapa y el grupo";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+    		}
+    		
+    		IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+    		idCursoEtapaGrupo.setCurso(cursoEtapaGrupoDto.getCurso());
+    		idCursoEtapaGrupo.setEtapa(cursoEtapaGrupoDto.getEtapa());
+    		idCursoEtapaGrupo.setGrupo(cursoEtapaGrupoDto.getGrupo());
+    		
+    		CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+    		cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+    		
+    		DatosBrutoAlumnoMatriculaGrupo alumnoMatriculaGrupo = new DatosBrutoAlumnoMatriculaGrupo();
+    		alumnoMatriculaGrupo.setCursoEtapaGrupo(cursoEtapaGrupo);
+    		
+    		this.iDatosBrutoAlumnoMatriculaGrupoRepository.deleteByCursoEtapaGrupo(cursoEtapaGrupo);
+    		
+    		return ResponseEntity.ok().build(); 
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
+    		
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+		}
     }
 
     /**

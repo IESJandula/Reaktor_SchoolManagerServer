@@ -9,9 +9,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Clase que representa la clave primaria compuesta para la entidad {@link CursoEtapaGrupo}.
+ * Clase que representa la clave primaria compuesta para la entidad {@link CursoEtapaGrupoDto}.
  * -----------------------------------------------------------------------------------------------------------------
- * La clase {@link IdCursoEtapaGrupo} es utilizada como clave primaria compuesta para la entidad {@link CursoEtapaGrupo}.
+ * La clase {@link IdCursoEtapaGrupo} es utilizada como clave primaria compuesta para la entidad {@link CursoEtapaGrupoDto}.
  * Esta clave primaria consta de tres atributos: curso, etapa y grupo, los cuales juntos identifican de manera única una 
  * combinación específica de curso, etapa educativa y grupo dentro del sistema.
  * -----------------------------------------------------------------------------------------------------------------

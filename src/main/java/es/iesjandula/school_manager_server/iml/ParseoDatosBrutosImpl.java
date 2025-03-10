@@ -74,14 +74,23 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                         // Añadir nombre del alumno al registro -> Pablo
                         datosBrutoAlumnoMatricula.setNombre(nombreAlumno);
                     	
-                        // Obtener a que campo de asignatura corresponde
-                        String asignatura = valoresCampos[i].trim();
-                        
-                        // Añadir asignatura matriculada al registro -> LENGUA
-                        datosBrutoAlumnoMatricula.setAsignatura(asignatura.toUpperCase());
-                        
-                        // Añadir curso al registro -> 2DAM
-                        datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
+                        if(valoresCampos[i] == "MATR") {
+                        	
+                        	// Obtener a que campo de asignatura corresponde
+                        	String asignatura = valoresCampos[i].trim();
+                        	
+                        	// Añadir asignatura matriculada al registro -> LENGUA
+                        	datosBrutoAlumnoMatricula.setAsignatura(asignatura.toUpperCase());
+                        	
+                        	// Añadir curso al registro -> 2DAM
+                        	datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
+                        }
+                        else {
+                        	String mensajeError = "El Csv no tiene el formato correcto";
+                			
+                			log.error(mensajeError);
+                			throw new SchoolManagerServerException(6, mensajeError);
+                        }
                         
                         // Guardar o actualizar en la tabla -> DatosBrutoAlumnoMatricula
                         this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);

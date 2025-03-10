@@ -4,15 +4,15 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import es.iesjandula.school_manager_server.dtos.AlumnoDto;
 import es.iesjandula.school_manager_server.dtos.AlumnoDto2;
-import es.iesjandula.school_manager_server.models.CursoEtapa;
+import es.iesjandula.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.school_manager_server.models.CursoEtapaGrupo;
-import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatriculaGrupo;
 
 /**
@@ -57,15 +57,19 @@ public interface IDatosBrutoAlumnoMatriculaGrupoRepository extends JpaRepository
            "AND d.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa " +
            "AND (d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo OR d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo IS NULL OR d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '') " +
            "GROUP BY d.nombre, d.apellidos, d.cursoEtapaGrupo.idCursoEtapaGrupo.grupo")
-    List<AlumnoDto2> findDistinctAlumnosByCursoEtapaGrupo
-    (
-            @Param("curso") Integer curso, 
-            @Param("etapa") String etapa,
-            @Param("grupo") Character grupo
-    );
+    List<AlumnoDto2> findDistinctAlumnosByCursoEtapaGrupo(@Param("curso") Integer curso,
+    													  @Param("etapa") String etapa,
+    													  @Param("grupo") Character grupo);
     
-    List<DatosBrutoAlumnoMatriculaGrupo> deleteDistinctByCursoEtapaGrupo
-    (
-            @Param("curso") CursoEtapaGrupo cursoEtapaGrupo
-    );
+    @Modifying
+    @Transactional
+    List<DatosBrutoAlumnoMatriculaGrupo> deleteByCursoEtapaGrupo(@Param("curso") CursoEtapaGrupo cursoEtapaGrupo);
+    
+    @Query("SELECT new es.iesjandula.school_manager_server.dtos.CursoEtapaGrupoDto(c.idCursoEtapaGrupo.curso, c.idCursoEtapaGrupo.etapa, c.idCursoEtapaGrupo.grupo) "
+    		+ "FROM DatosBrutoAlumnoMatriculaGrupo d "
+    		+ "JOIN d.cursoEtapaGrupo c "
+    		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo = :grupo")
+    List<CursoEtapaGrupoDto> encontrarCursoEtapaGrupo(@Param("curso") Integer curso, 
+										              @Param("etapa") String etapa,
+										              @Param("grupo") Character grupo);
 }
