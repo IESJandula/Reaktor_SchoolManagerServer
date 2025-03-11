@@ -751,12 +751,12 @@ public class DireccionController
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
 
             // Crear la lista de Alumnos a devolver
-            List<AlumnoDto2> alumnosPendientesDeAsignarYAsignados = List.of();
+            List<AlumnoDto2> alumnosPendientesDeAsignarYAsignados = this.iDatosBrutoAlumnoMatriculaGrupoRepository
+                    .findDistinctAlumnosByCursoEtapaGrupo(curso, etapa, grupo);
 
             // Añadir a la lista de Alumnos a devolver los Alumnos asignados al
             // CursoEtapaGrupo
-            alumnosPendientesDeAsignarYAsignados.addAll(this.iDatosBrutoAlumnoMatriculaGrupoRepository
-                    .findDistinctAlumnosByCursoEtapaGrupo(curso, etapa, grupo));
+
 
             // Si la lista esta vacía
             if (alumnosPendientesDeAsignarYAsignados.isEmpty()) {
