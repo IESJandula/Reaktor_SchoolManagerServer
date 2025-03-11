@@ -165,7 +165,8 @@ public class DireccionController
     		
     		return ResponseEntity.ok(listCursoEtapa);
     	}
-    	catch (SchoolManagerServerException schoolManagerServerException) {
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
 
     		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
     	}
@@ -224,8 +225,10 @@ public class DireccionController
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/cursoEtapa")
-    public ResponseEntity<?> obtenerCursoEtapa() {
-        try {
+    public ResponseEntity<?> obtenerCursoEtapa() 
+    {
+        try 
+        {
             // Lista usada para guardar los registros de la Tabla CursoEtapa
             List<CursoEtapaDto> listaCursoEtapa = new ArrayList<>();
 
@@ -233,7 +236,8 @@ public class DireccionController
             listaCursoEtapa = this.iCursoEtapaRepository.findCursoEtapa();
 
             // Si la lista esta vacia, lanzar excepcion
-            if (listaCursoEtapa.isEmpty()) {
+            if (listaCursoEtapa.isEmpty()) 
+            {
                 // Lanzar excepcion y mostrar log con mensaje diferente
                 log.error("ERROR - Lista vacía");
                 throw new SchoolManagerServerException(404, "ERROR - No se ha encontrado ningun curso");
@@ -241,13 +245,15 @@ public class DireccionController
 
             // Devolver la lista
             return ResponseEntity.status(200).body(listaCursoEtapa);
-        } catch (SchoolManagerServerException schoolManagerServerException) {
+        } catch (SchoolManagerServerException schoolManagerServerException) 
+        {
             // Manejo de excepciones personalizadas
             log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
 
             // Devolver la excepción personalizada con código 1 y el mensaje de error
             return ResponseEntity.status(404).body(schoolManagerServerException);
-        } catch (Exception exception) {
+        } catch (Exception exception) 
+        {
             // Manejo de excepciones generales
             String msgError = "ERROR - No se pudo cargar la lista";
             log.error(msgError, exception);
@@ -281,8 +287,10 @@ public class DireccionController
     @RequestMapping(method = RequestMethod.POST, value = "/grupos")
     public ResponseEntity<?> crearGrupo(
             @RequestHeader(value = "curso", required = true) Integer curso,
-            @RequestHeader(value = "etapa", required = true) String etapa) {
-        try {
+            @RequestHeader(value = "etapa", required = true) String etapa) 
+    {
+        try 
+        {
             // Numero de veces repetido el Curso Etapa en la BD
             int contador = this.iCursoEtapaGrupoRepository.findCountByCursoAndEtapa(curso, etapa);
 
@@ -290,7 +298,8 @@ public class DireccionController
             char grupo = Constants.GROUP;
 
             // Asignar la letra según el numero de veces que este repetido en BD
-            for (int i = 0; i < contador; i++) {
+            for (int i = 0; i < contador; i++) 
+            {
                 grupo++;
             }
 
@@ -311,7 +320,9 @@ public class DireccionController
 
             // Devolver la respuesta indicando que el grupo ha sido creado correctamente
             return ResponseEntity.ok().build();
-        } catch (Exception exception) {
+        } 
+        catch (Exception exception) 
+        {
             // Manejo de excepciones generales
             String msgError = "ERROR - No se ha podido crear el grupo";
             log.error(msgError, exception);
@@ -347,8 +358,10 @@ public class DireccionController
     @RequestMapping(method = RequestMethod.GET, value = "/grupos")
     public ResponseEntity<?> obtenerGrupo(
             @RequestHeader(value = "curso", required = true) Integer curso,
-            @RequestHeader(value = "etapa", required = true) String etapa) {
-        try {
+            @RequestHeader(value = "etapa", required = true) String etapa) 
+    {
+        try 
+        {
             // Crear el objeto CursoEtapa con los parámetros recibidos
             CursoEtapa cursoEtapa = new CursoEtapa();
             IdCursoEtapa idCursoEtapa = new IdCursoEtapa(curso, etapa);
@@ -358,7 +371,8 @@ public class DireccionController
             List<String> grupos = this.iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapa(curso, etapa);
 
             // Si la lista está vacía, lanzar una excepción
-            if (grupos.isEmpty()) {
+            if (grupos.isEmpty()) 
+            {
                 // Lanzar excepcion y mostrar log con mensaje de Error
                 String msgError = "ERROR - No se encontraron grupos para el curso {} y etapa {}";
                 log.error(msgError, curso, etapa);
@@ -371,13 +385,15 @@ public class DireccionController
 
             // Devolver la lista de grupos encontrados
             return ResponseEntity.status(200).body(grupos);
-        } catch (SchoolManagerServerException schoolManagerServerException) {
+        } catch (SchoolManagerServerException schoolManagerServerException) 
+        {
             // Manejo de excepciones personalizadas
             log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
 
             // Devolver la excepción personalizada con código 1 y el mensaje de error
             return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-        } catch (Exception exception) {
+        } catch (Exception exception) 
+        {
             // Manejo de excepciones generales
             String msgError = "ERROR - No se pudieron buscar los grupos";
             log.error(msgError, exception);
@@ -415,14 +431,17 @@ public class DireccionController
     public ResponseEntity<?> eliminarGrupo(
             @RequestHeader(value = "curso", required = true) Integer curso,
             @RequestHeader(value = "etapa", required = true) String etapa,
-            @RequestHeader(value = "grupo", required = true) Character grupo) {
-        try {
+            @RequestHeader(value = "grupo", required = true) Character grupo) 
+    {
+        try 
+        {
             // Crear el objeto CursoEtapaGrupo con los parámetros recibidos
             CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
             IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, grupo);
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
 
-            if (this.iCursoEtapaGrupoRepository.findById(idCursoEtapaGrupo).isEmpty()) {
+            if (this.iCursoEtapaGrupoRepository.findById(idCursoEtapaGrupo).isEmpty()) 
+            {
                 // Lanzar excepcion y mostrar log con mensaje de Error
                 String msgError = "ERROR - El grupo indicado no existe";
                 log.error(msgError, curso, etapa);
@@ -444,7 +463,8 @@ public class DireccionController
             cursoEtapa.setIdCursoEtapa(idCursoEtapa);
 
             // Transferir los Alumnos a la tabla DatosBrutoAlumnoMatricula
-            for (DatosBrutoAlumnoMatriculaGrupo alumno : alumnosAsignadosAlGrupo) {
+            for (DatosBrutoAlumnoMatriculaGrupo alumno : alumnosAsignadosAlGrupo) 
+            {
                 // Asignar valores de Alumno a registro de DatosBrutoAlumnoMatriculaEntity
                 datosBrutoAlumnoMatricula.setNombre(alumno.getNombre());
                 datosBrutoAlumnoMatricula.setApellidos(alumno.getApellidos());
@@ -467,7 +487,8 @@ public class DireccionController
 
             // Devolver mensaje de OK
             return ResponseEntity.ok().build();
-        } catch (Exception exception) {
+        } catch (Exception exception) 
+        {
             // Manejo de excepciones generales
             String msgError = "ERROR - No se pudo eliminar el grupo";
             log.error(msgError, exception);
@@ -508,8 +529,10 @@ public class DireccionController
             @RequestBody List<AlumnoDto2> alumnos,
             @RequestHeader(value = "curso", required = true) Integer curso,
             @RequestHeader(value = "etapa", required = true) String etapa,
-            @RequestHeader(value = "grupo", required = true) Character grupo) {
-        try {
+            @RequestHeader(value = "grupo", required = true) Character grupo) 
+    {
+        try 
+        {
             // Crear el objeto CursoEtapaGrupo con los parámetros recibidos
             CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
             IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, grupo);
@@ -518,7 +541,8 @@ public class DireccionController
             // Por cada alumno buscarlo en DatosBrutosAlumnoMatricula y añadirlos a
             // DatosBrutosAlumnoMatriculaGrupo
             for (AlumnoDto2 alumno : alumnos) {
-                if (alumno.getGrupo() != grupo && alumno.getGrupo() != null) {
+                if (alumno.getGrupo() != grupo && alumno.getGrupo() != null) 
+                {
                     continue;
                 }
 
@@ -634,7 +658,8 @@ public class DireccionController
 
             // Devolver mensaje de OK
             return ResponseEntity.ok().build();
-        } catch (SchoolManagerServerException schoolManagerServerException) {
+        } catch (SchoolManagerServerException schoolManagerServerException) 
+        {
             // Manejo de excepciones personalizadas
             log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
 
@@ -728,11 +753,6 @@ public class DireccionController
             // Crear la lista de Alumnos a devolver
             List<AlumnoDto2> alumnosPendientesDeAsignarYAsignados = List.of();
 
-            // Añadir a la lista de Alumnos a devolver los Alumnos pendientes de asignar por
-            // el CursoEtapa
-            alumnosPendientesDeAsignarYAsignados = this.iDatosBrutoAlumnoMatriculaRepository
-                    .findDistinctAlumnosByCursoEtapa(curso, etapa);
-
             // Añadir a la lista de Alumnos a devolver los Alumnos asignados al
             // CursoEtapaGrupo
             alumnosPendientesDeAsignarYAsignados.addAll(this.iDatosBrutoAlumnoMatriculaGrupoRepository
@@ -768,6 +788,30 @@ public class DireccionController
                     1, msgError, exception);
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/grupos/todos_alumnos")
+    public ResponseEntity<?> obtenerTodosAlumnos(@RequestHeader(value = "curso", required = true) Integer curso,
+            									 @RequestHeader(value = "etapa", required = true) String etapa)
+    {
+    	try 
+    	{
+    		List<AlumnoDto2> listaDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
+        	
+        	if(listaDatosBrutoAlumnoMatriculas.isEmpty()) {
+        		String mensajeError = "No se ha encontrado datos para ese curso y etapa";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+        	}
+    		return ResponseEntity.ok(listaDatosBrutoAlumnoMatriculas);
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
+
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+    	}
+    	
     }
 
 }

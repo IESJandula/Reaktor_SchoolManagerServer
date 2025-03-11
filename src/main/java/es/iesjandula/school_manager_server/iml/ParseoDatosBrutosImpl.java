@@ -74,7 +74,8 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                         // Añadir nombre del alumno al registro -> Pablo
                         datosBrutoAlumnoMatricula.setNombre(nombreAlumno);
                     	
-                        if(valoresCampos[i] == "MATR") {
+                        if(valoresRegistro[i + 1].trim().equals("MATR") || valoresRegistro[i + 1].trim().equals("SUPCA") || 
+                        		valoresRegistro[i + 1].trim().equals("CONV") || valoresRegistro[i + 1].trim().equals("PEND")) {
                         	
                         	// Obtener a que campo de asignatura corresponde
                         	String asignatura = valoresCampos[i].trim();

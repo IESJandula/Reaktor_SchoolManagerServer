@@ -58,7 +58,8 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
     		+ "JOIN d.cursoEtapa c "
     		+ "WHERE c.idCursoEtapa.curso = :curso AND c.idCursoEtapa.etapa = :etapa AND d.nombre IS NOT NULL")
     List<CursoEtapaDto> encontrarAlumnosMatriculaPorEtapaYCurso(@Param("curso") Integer curso, 
-            																@Param("etapa") String etapa);
+            													@Param("etapa") String etapa);
+    
     @Query("SELECT DISTINCT new es.iesjandula.school_manager_server.dtos.CursoEtapaDto (c.idCursoEtapa.curso, c.idCursoEtapa.etapa) "
     		+ "FROM DatosBrutoAlumnoMatricula d "
     		+ "JOIN d.cursoEtapa c "
