@@ -17,44 +17,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.school_manager_server.dtos.AsignaturaDto;
-import es.iesjandula.school_manager_server.interfaces.IParseoDatosBrutos;
 import es.iesjandula.school_manager_server.models.Asignatura;
 import es.iesjandula.school_manager_server.models.Bloque;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.school_manager_server.repositories.IBloqueRepository;
-import es.iesjandula.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaRepository;
-import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaGrupoRepository;
-import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
 @RequestMapping(value = "/direccionVentana3")
-public class DireccionControllerVentana3 {
+public class Paso3AsignaturasYBloquesController 
+{
 	@Autowired
-	ICursoEtapaRepository iCursoEtapaRepository;
+	private ICursoEtapaRepository iCursoEtapaRepository;
 
 	@Autowired
-	ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
+	private IAsignaturaRepository iAsignaturaRepository;
 
 	@Autowired
-	IDatosBrutoAlumnoMatriculaRepository iDatosBrutoAlumnoMatriculaRepository;
-
-	@Autowired
-	IDatosBrutoAlumnoMatriculaGrupoRepository iDatosBrutoAlumnoMatriculaGrupoRepository;
-
-	@Autowired
-	IParseoDatosBrutos iParseoDatosBrutos;
-
-	@Autowired
-	IAsignaturaRepository iAsignaturaRepository;
-
-	@Autowired
-	IBloqueRepository iBloqueRepository;
+	private IBloqueRepository iBloqueRepository;
 
 	/**
 	 * Endpoint para obtener los cursos etapas.
@@ -70,18 +55,18 @@ public class DireccionControllerVentana3 {
 	   {
 	   	try 
 	   	{
-	   		List<CursoEtapa> cursos = this.iCursoEtapaRepository.findAll() ;
+	   		List<CursoEtapa> cursos = this.iCursoEtapaRepository.findAll();
 	       	
-	       	log.info("INFO - Lista de los cursos etapas") ;
-	       	return ResponseEntity.status(200).body(cursos) ;
+	       	log.info("INFO - Lista de los cursos etapas");
+	       	return ResponseEntity.status(200).body(cursos);
 		} 
 	   	catch (Exception exception) 
 	   	{
-			String msgError = "ERROR - No se pudo obtener la lista de cursos etapas" ;
-			log.error(msgError, exception) ;
+			String msgError = "ERROR - No se pudo obtener la lista de cursos etapas";
+			log.error(msgError, exception);
 			
-			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception) ;
-			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage()) ;
+			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
 	   }
 	   
@@ -103,18 +88,18 @@ public class DireccionControllerVentana3 {
 	   {
 		   try 
 		   {
-				List<Asignatura> asignaturas = iAsignaturaRepository.findByCursoAndEtapa(curso, etapa) ;
+				List<Asignatura> asignaturas = iAsignaturaRepository.findByCursoAndEtapa(curso, etapa);
 				
 				// Mapear a DTO y calcular el número de alumnos matriculados
 				List<AsignaturaDto> asignaturasDto = asignaturas.stream().map(asignatura -> 
 				{
-					AsignaturaDto dto = new AsignaturaDto() ;
-					dto.setNombre(asignatura.getId().getNombre()) ;
-					dto.setGrupo(asignatura.getId().getGrupo()) ;
-					dto.setEtapa(asignatura.getId().getEtapa()) ;
-					dto.setCurso(asignatura.getId().getCurso()) ;
+					AsignaturaDto dto = new AsignaturaDto();
+					dto.setNombre(asignatura.getId().getNombre());
+					dto.setGrupo(asignatura.getId().getGrupo());
+					dto.setEtapa(asignatura.getId().getEtapa());
+					dto.setCurso(asignatura.getId().getCurso());
 					// Numero total de alumnos en la asignatura
-					dto.setNumeroDeAlumnos(asignatura.getMatriculas().size()) ;
+					dto.setNumeroDeAlumnos(asignatura.getMatriculas().size());
 					
 					// Calcular el número de alumnos en el grupo específico
 					Map<String, Integer> numeroAlumnosEnGrupo = asignatura.getMatriculas().stream()
@@ -122,22 +107,22 @@ public class DireccionControllerVentana3 {
 									matricula -> matricula.getAsignatura().getId().getGrupo(),
 									Collectors.summingInt(m -> 1)
 							 )) ;
-					dto.setNumeroAlumnosEnGrupo(numeroAlumnosEnGrupo) ;
+					dto.setNumeroAlumnosEnGrupo(numeroAlumnosEnGrupo);
 					
-					dto.setBloqueId(asignatura.getBloqueId() != null ? asignatura.getBloqueId().getId() : null) ;
+					dto.setBloqueId(asignatura.getBloqueId() != null ? asignatura.getBloqueId().getId() : null);
 					return dto ;
-				}).collect(Collectors.toList()) ;
+				}).collect(Collectors.toList());
 				
-				return ResponseEntity.status(200).body(asignaturasDto) ;
+				return ResponseEntity.status(200).body(asignaturasDto);
 			} 
-	   	catch (Exception exception) 
-	   	{
-				String msgError = "ERROR - No se pudo obtener la lista de asignaturas" ;
-				log.error(msgError, exception) ;
-				SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception) ;
-				return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage()) ;
+		   	catch (Exception exception) 
+		   	{
+				String msgError = "ERROR - No se pudo obtener la lista de asignaturas";
+				log.error(msgError, exception);
+				SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+				return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
 			}
-	   	
+		   
 	   }
 	   
 	   /**
@@ -152,12 +137,9 @@ public class DireccionControllerVentana3 {
 	    */
 	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
 	   @RequestMapping(method = RequestMethod.POST, value = "/bloques")
-	   public ResponseEntity<?> crearBloques
-	   (
-	   		@RequestParam("curso") int curso,
-	   		@RequestParam("etapa") String etapa,
-	   		@RequestParam("asignaturas") List<String> asignaturas
-	   )
+	   public ResponseEntity<?> crearBloques(@RequestParam("curso") int curso,
+											 @RequestParam("etapa") String etapa,
+											 @RequestParam("asignaturas") List<String> asignaturas)
 	   {	
 	   	try
 	   	{	
@@ -173,7 +155,7 @@ public class DireccionControllerVentana3 {
 	   		
 	   		for (String asignaturaString : asignaturas)
 	   		{
-	   			Optional<Asignatura> optionalAsignatura = this.iAsignaturaRepository.findAsignaturasByCursoEtapaAndNombre(curso, etapa, asignaturaString) ;
+	   			Optional<Asignatura> optionalAsignatura = this.iAsignaturaRepository.findAsignaturasByCursoEtapaAndNombre(curso, etapa, asignaturaString);
 	   			
 	   			if(!optionalAsignatura.isPresent())
 	   			{
@@ -204,10 +186,10 @@ public class DireccionControllerVentana3 {
 	   	}
 	   	catch (Exception exception)
 	   	{
-				String msgError = "ERROR - No se pudo crear el bloque" ;
-				log.error(msgError, exception) ;
-				SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception) ;
-				return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage()) ;
+			String msgError = "ERROR - No se pudo crear el bloque";
+			log.error(msgError, exception);
+			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
 	   	}
 	   	
 	   }
@@ -230,33 +212,34 @@ public class DireccionControllerVentana3 {
 	   	{
 	   		
 	   		// Buscamos el id de la asignatura
-				Optional<Asignatura> asignaturaOpt = iAsignaturaRepository.findById(idAsignatura) ;
+			Optional<Asignatura> asignaturaOpt = iAsignaturaRepository.findById(idAsignatura);
+			
+			if (asignaturaOpt.isPresent())
+			{
+				Asignatura asignatura = asignaturaOpt.get();
 				
-				if (asignaturaOpt.isPresent())
+				// Desasociar la asignatura del bloque
+				Bloque bloque = asignatura.getBloqueId();
+				asignatura.setBloqueId(null) ;
+				this.iAsignaturaRepository.saveAndFlush(asignatura);
+				
+				if (bloque != null && bloque.getAsignaturas().isEmpty())
 				{
-					Asignatura asignatura = asignaturaOpt.get() ;
-					
-					// Desasociar la asignatura del bloque
-					Bloque bloque = asignatura.getBloqueId() ;
-					asignatura.setBloqueId(null) ;
-					this.iAsignaturaRepository.saveAndFlush(asignatura) ;
-					
-					if (bloque != null && bloque.getAsignaturas().isEmpty())
-					{
-						iBloqueRepository.delete(bloque) ;
-					}
+					iBloqueRepository.delete(bloque);
 				}
+			}
+			
+			log.info("INFO - Bloque eliminado con éxito");
+			return ResponseEntity.status(200).build();
 				
-				log.info("INFO - Bloque eliminado con éxito") ;
-				return ResponseEntity.status(200).build() ;
-				
-			} catch (Exception exception) 
+		} 
+	   	catch (Exception exception) 
 	   	{
-				String msgError = "ERROR - Error en el servidor" ;
-				log.error(msgError, exception) ;
-				SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception) ;
-				return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage()) ;
-			} 
+			String msgError = "ERROR - Error en el servidor";
+			log.error(msgError, exception);
+			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+		} 
 	   	
 	   }
 	}

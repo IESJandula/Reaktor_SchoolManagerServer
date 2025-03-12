@@ -1,5 +1,7 @@
 package es.iesjandula.school_manager_server.iml;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +62,8 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                 // Nombre del Alumno -> Pablo
                 String nombreAlumno = valoresRegistro[1].trim().replace("\"", "") ;
                 
+                List<DatosBrutoAlumnoMatricula> listaDatosBrutoAlumnoMatriculas = new ArrayList<DatosBrutoAlumnoMatricula>();
+                
                 for (int i = 1; i < valoresCampos.length; i++)
                 {
                     // Si tiene algun valor el campo de registro de la asignatura 
@@ -74,8 +78,7 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                         // Añadir nombre del alumno al registro -> Pablo
                         datosBrutoAlumnoMatricula.setNombre(nombreAlumno);
                     	
-                        if(valoresRegistro[i + 1].trim().equals("MATR") || valoresRegistro[i + 1].trim().equals("SUPCA") || 
-                        		valoresRegistro[i + 1].trim().equals("CONV") || valoresRegistro[i + 1].trim().equals("PEND")) {
+                        if(valoresRegistro[i + 1].trim().equals("MATR")) {
                         	
                         	// Obtener a que campo de asignatura corresponde
                         	String asignatura = valoresCampos[i].trim();
@@ -86,17 +89,22 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                         	// Añadir curso al registro -> 2DAM
                         	datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
                         }
+                        else if (valoresRegistro[i + 1].trim().equals("SUPCA") || valoresRegistro[i + 1].trim().equals("APRO")  ||
+                        		valoresRegistro[i + 1].trim().equals("CONV") || valoresRegistro[i + 1].trim().equals("PEND")) {
+							
+                        	continue;
+						}
                         else {
                         	String mensajeError = "El Csv no tiene el formato correcto";
                 			
                 			log.error(mensajeError);
                 			throw new SchoolManagerServerException(6, mensajeError);
                         }
-                        
-                        // Guardar o actualizar en la tabla -> DatosBrutoAlumnoMatricula
-                        this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);
+                        listaDatosBrutoAlumnoMatriculas.add(datosBrutoAlumnoMatricula);
                     }
                 }
+                // Guardar o actualizar en la tabla -> DatosBrutoAlumnoMatricula
+                this.iDatosBrutoAlumnoMatriculaRepository.saveAllAndFlush(listaDatosBrutoAlumnoMatriculas);
             }
         } 
         catch (Exception exception) 

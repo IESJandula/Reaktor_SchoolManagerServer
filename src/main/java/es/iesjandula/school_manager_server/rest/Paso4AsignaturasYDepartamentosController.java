@@ -7,8 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/cargarMatriculas")
-public class Paso1CargarMatriculaController 
+@RequestMapping(value = "/asignaturasYDepartamentos")
+public class Paso4AsignaturasYDepartamentosController 
 {
 
 }
