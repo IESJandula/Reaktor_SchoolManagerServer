@@ -19,22 +19,17 @@ import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.school_manager_server.dtos.AsignaturaDto;
 import es.iesjandula.school_manager_server.models.Asignatura;
 import es.iesjandula.school_manager_server.models.Bloque;
-import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.school_manager_server.repositories.IBloqueRepository;
-import es.iesjandula.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/direccionVentana3")
+@RequestMapping(value = "/asignaturasYBloques")
 public class Paso3AsignaturasYBloquesController 
 {
-	@Autowired
-	private ICursoEtapaRepository iCursoEtapaRepository;
-
 	@Autowired
 	private IAsignaturaRepository iAsignaturaRepository;
 
@@ -42,45 +37,16 @@ public class Paso3AsignaturasYBloquesController
 	private IBloqueRepository iBloqueRepository;
 
 	/**
-	 * Endpoint para obtener los cursos etapas.
-	 * 
-	 * Este método obtiene mediante un get todos los cursos etapas guardados en base
-	 * de datos para despues mostrarlos en el front en un select.
-	 * 
-	 * @return ResponseEntity<?> - Respuesta con las lista de cursos y etapas.
-	 */
-	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	   @RequestMapping(method = RequestMethod.GET, value = "/etapaCursos")
-	   public ResponseEntity<?> obtenerCursosEtapas()
-	   {
-	   	try 
-	   	{
-	   		List<CursoEtapa> cursos = this.iCursoEtapaRepository.findAll();
-	       	
-	       	log.info("INFO - Lista de los cursos etapas");
-	       	return ResponseEntity.status(200).body(cursos);
-		} 
-	   	catch (Exception exception) 
-	   	{
-			String msgError = "ERROR - No se pudo obtener la lista de cursos etapas";
-			log.error(msgError, exception);
-			
-			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
-			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-	   }
-	   
-	   /**
-	    * Endpoint para obtener las asignaturas de los cursos etapas.
-	    * 
-	    * Este método recibe los parámetros del curso y la etapa y luego recupera una lista
-	    * de asignaturas mostrando su nombre, el nº de horas, el nº de alumnos tanto en general
-	    * como en los distintos grupos.
-	    * 
-	    * @param curso 		     - El curso para el que se solicita la lista de alumnos.
-	    * @param etapa 			 - La etapa para la cual se solicita la lista de alumnos.
-	    * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
-	    */
+    * Endpoint para obtener las asignaturas de los cursos etapas.
+    * 
+    * Este método recibe los parámetros del curso y la etapa y luego recupera una lista
+    * de asignaturas mostrando su nombre, el nº de horas, el nº de alumnos tanto en general
+    * como en los distintos grupos.
+    * 
+    * @param curso 		     - El curso para el que se solicita la lista de alumnos.
+    * @param etapa 			 - La etapa para la cual se solicita la lista de alumnos.
+    * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
+    */
 	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
 	   @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
 	   public ResponseEntity<?> obtenerAsignatura(@RequestHeader("curso") int curso, 
@@ -205,7 +171,7 @@ public class Paso3AsignaturasYBloquesController
 	    * @return ResponseEntity<?> - Respuesta del endpoint que no devolverá nada
 	    */
 	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	   @RequestMapping(method = RequestMethod.DELETE, value = "/eliminarBloque")
+	   @RequestMapping(method = RequestMethod.DELETE, value = "/bloques")
 	   public ResponseEntity<?> eliminarBloque(@RequestBody IdAsignatura idAsignatura)
 	   {
 	   	try 
