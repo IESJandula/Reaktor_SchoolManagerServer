@@ -10,6 +10,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 
 /**
  * Entidad - DatosBrutoAlumnoMatricula
@@ -58,6 +59,12 @@ public class DatosBrutoAlumnoMatricula
      */
     @Column(length = 100)
     private String asignatura;
+
+    /**
+     * Variable para determinar si el alumno esta asignado
+     */
+    @Column(nullable = false,columnDefinition = "BOOLEAN DEFAULT false")
+    private boolean asignado;
 
     /**
      * Relación con la entidad {@link CursoEtapa}.

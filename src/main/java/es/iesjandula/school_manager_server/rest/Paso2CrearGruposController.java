@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import es.iesjandula.school_manager_server.dtos.AlumnoDto3;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -325,7 +326,7 @@ public class Paso2CrearGruposController
     {
     	try 
     	{
-    		List<AlumnoDto2> listaDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
+    		List<AlumnoDto3> listaDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
         	
         	if(listaDatosBrutoAlumnoMatriculas.isEmpty()) {
         		String mensajeError = "No se ha encontrado datos para ese curso y etapa";
@@ -379,6 +380,8 @@ public class Paso2CrearGruposController
             CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
             IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, grupo);
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+            IdCursoEtapa idCursoEtapa = new IdCursoEtapa(curso, etapa);
+            CursoEtapa cursoEtapa = new CursoEtapa(idCursoEtapa);
 
             // Por cada alumno buscarlo en DatosBrutosAlumnoMatricula y añadirlos a
             // DatosBrutosAlumnoMatriculaGrupo
@@ -394,7 +397,7 @@ public class Paso2CrearGruposController
 
                 // Buscar los registros del alumno en DatosBrutosAlumnoMatricula
                 datosBrutoAlumnoMatriculaAsignaturasOpt = this.iDatosBrutoAlumnoMatriculaRepository
-                        .findByNombreAndApellidos(alumno.getNombre(), alumno.getApellidos());
+                        .findByNombreAndApellidosAndCursoEtapa(alumno.getNombre(), alumno.getApellidos(),cursoEtapa);
 
                 for (DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaAsignaturaOpt : datosBrutoAlumnoMatriculaAsignaturasOpt) 
                 {
@@ -411,7 +414,8 @@ public class Paso2CrearGruposController
                     this.iDatosBrutoAlumnoMatriculaGrupoRepository.saveAndFlush(datosBrutoAlumnoMatriculaGrupo);
 
                     // Eliminar el registro en la tabla DatosBrutoAlumnoMatricula
-                    this.iDatosBrutoAlumnoMatriculaRepository.delete(datosBrutoAlumnoMatriculaAsignaturaOpt);
+                    datosBrutoAlumnoMatriculaAsignaturaOpt.setAsignado(true);
+                    this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculaAsignaturaOpt);
                 }
             }
 
@@ -494,12 +498,15 @@ public class Paso2CrearGruposController
                         .setAsignatura(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getAsignatura());
                 datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
 
-                // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
-                this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);
-
                 // Eliminar el registro en la tabla DatosBrutoAlumnoMatriculaGrupo
                 this.iDatosBrutoAlumnoMatriculaGrupoRepository
                         .delete(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get());
+                datosBrutoAlumnoMatricula.setAsignado(false);
+                // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
+                this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);
+
+
+
             }
 
             // Log de información antes de la respuesta

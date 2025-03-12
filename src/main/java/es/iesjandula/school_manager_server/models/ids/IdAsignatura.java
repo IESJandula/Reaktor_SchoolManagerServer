@@ -45,11 +45,6 @@ public class IdAsignatura implements Serializable
 	@Column(length = 2)
 	private String grupo;
 
-	/**
-	 * Numero de horas a impartir estipuladas de la asignatura.
-	 */
-	@Column
-	private int horas;
 	
 	/**
 	 * Nombre de la asignatura (por ejemplo, "Matemáticas", "Física").

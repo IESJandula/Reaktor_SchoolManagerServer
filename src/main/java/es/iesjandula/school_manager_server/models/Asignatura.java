@@ -3,12 +3,7 @@ package es.iesjandula.school_manager_server.models;
 import java.util.List;
 
 import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,6 +34,12 @@ public class Asignatura
      */
     @EmbeddedId
     private IdAsignatura id;
+
+    /**
+     * Numero de horas a impartir estipuladas de la asignatura.
+     */
+    @Column
+    private int horas;
     
     /**
      * Departamento propietario de la asignatura.

@@ -3,6 +3,7 @@ package es.iesjandula.school_manager_server.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import es.iesjandula.school_manager_server.dtos.AlumnoDto3;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -33,7 +34,7 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
      * @param apellidos 								 - Los apellidos del alumno a buscar.
      * @return List<<DatosBrutoAlumnoMatricula> - Una lista de {@link Optional} de {@link DatosBrutoAlumnoMatricula} que coinciden con el nombre y apellidos.
      */
-    public List<DatosBrutoAlumnoMatricula> findByNombreAndApellidos(String nombre, String apellidos);
+    public List<DatosBrutoAlumnoMatricula> findByNombreAndApellidosAndCursoEtapa(String nombre, String apellidos, CursoEtapa cursoEtapa);
     
     /**
      * Método para obtener nombres y apellidos únicos y mapearlos al DTO AlumnoDto.
@@ -42,12 +43,12 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
      * @param etapa 		   - La etapa específica.
      * @return List<AlumnoDto> - La lista de AlumnoDto con nombres y apellidos únicos.
      */
-    @Query("SELECT new es.iesjandula.school_manager_server.dtos.AlumnoDto2(d.nombre, d.apellidos, null) " +
+    @Query("SELECT new es.iesjandula.school_manager_server.dtos.AlumnoDto3(d.nombre, d.apellidos, d.asignado) " +
            "FROM DatosBrutoAlumnoMatricula d " +
            "WHERE d.cursoEtapa.idCursoEtapa.curso = :curso " +
            "AND d.cursoEtapa.idCursoEtapa.etapa = :etapa " +
            "GROUP BY d.nombre, d.apellidos")
-    List<AlumnoDto2> findDistinctAlumnosByCursoEtapa
+    List<AlumnoDto3> findDistinctAlumnosByCursoEtapa
     (
             @Param("curso") Integer curso, 
             @Param("etapa") String etapa
