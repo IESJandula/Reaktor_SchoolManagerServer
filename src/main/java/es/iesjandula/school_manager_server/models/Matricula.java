@@ -3,10 +3,6 @@ package es.iesjandula.school_manager_server.models;
 import es.iesjandula.school_manager_server.models.ids.IdMatricula;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinColumns;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,19 +28,6 @@ public class Matricula {
      * La clave primaria se compone de diferentes atributos relacionados con la asignatura.
      */
     @EmbeddedId
-    private IdMatricula id;
+    private IdMatricula idMatricula;
 
-    /**
-     * Asignatura en la que está matriculado el alumno. Relación de muchos a uno con la entidad {@link Asignatura}.
-     * Se usa {@link JoinColumns} para mapear varias columnas que corresponden a los atributos de la asignatura.
-     */
-    @MapsId("asignatura")
-    @ManyToOne
-    @JoinColumns({
-        @JoinColumn(name = "asignatura_curso", referencedColumnName = "curso", insertable = false, updatable = false),
-        @JoinColumn(name = "asignatura_etapa", referencedColumnName = "etapa", insertable = false, updatable = false),
-        @JoinColumn(name = "asignatura_grupo", referencedColumnName = "grupo", insertable = false, updatable = false),
-        @JoinColumn(name = "asignatura_nombre", referencedColumnName = "nombre", insertable = false, updatable = false)
-    })
-    private Asignatura asignatura;
 }

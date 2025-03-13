@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import es.iesjandula.school_manager_server.interfaces.IGestorParseo;
-import es.iesjandula.school_manager_server.interfaces.IParseoAsignaturas;
 import es.iesjandula.school_manager_server.interfaces.IParseoDepartamentos;
 import es.iesjandula.school_manager_server.utils.Constants;
 import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
@@ -21,9 +20,6 @@ public class GestorParseoIml implements IGestorParseo
 	@Autowired
 	private IParseoDepartamentos parseoDepartamentos;
 	
-	@Autowired
-	private IParseoAsignaturas parseoAsignaturas;
-
 	@Override
 	public void parseaFichero(String nombreFichero) throws SchoolManagerServerException 
 	{
@@ -37,15 +33,6 @@ public class GestorParseoIml implements IGestorParseo
 			this.parseoDepartamentos.parseaFichero(scannerDepartamento);
 			
 			scannerDepartamento.close();
-			break;
-		}
-		case Constants.NOMBRE_FICHERO_ASIGNATURAS: 
-		{
-			
-			Scanner scannerAsignaturas = this.abrirFichero(nombreFichero);
-			this.parseoAsignaturas.parseaFichero(scannerAsignaturas);
-			
-			scannerAsignaturas.close();
 			break;
 		}
 		default:

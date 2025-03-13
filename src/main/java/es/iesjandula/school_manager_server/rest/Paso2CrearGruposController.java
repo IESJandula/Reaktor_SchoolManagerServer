@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import es.iesjandula.school_manager_server.dtos.AlumnoDto3;
+import es.iesjandula.school_manager_server.dtos.MatriculaDto;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,16 +19,24 @@ import org.springframework.web.bind.annotation.RestController;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.school_manager_server.dtos.AlumnoDto;
 import es.iesjandula.school_manager_server.dtos.AlumnoDto2;
+import es.iesjandula.school_manager_server.models.Alumno;
+import es.iesjandula.school_manager_server.models.Asignatura;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatriculaGrupo;
+import es.iesjandula.school_manager_server.models.Matricula;
+import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapaGrupo;
+import es.iesjandula.school_manager_server.models.ids.IdMatricula;
+import es.iesjandula.school_manager_server.repositories.IAlumnoRepository;
+import es.iesjandula.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaGrupoRepository;
 import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
+import es.iesjandula.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.school_manager_server.utils.Constants;
 import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +57,15 @@ public class Paso2CrearGruposController
 
     @Autowired
     private IDatosBrutoAlumnoMatriculaGrupoRepository iDatosBrutoAlumnoMatriculaGrupoRepository;
+    
+    @Autowired
+    private IAlumnoRepository iAlumnoRepository;
+    
+    @Autowired
+    private IAsignaturaRepository iAsignaturaRepository;
+    
+    @Autowired
+    private IMatriculaRepository iMatriculaRepository;
 
     /**
 	 * Endpoint para obtener los cursos etapas.
@@ -385,38 +404,71 @@ public class Paso2CrearGruposController
 
             // Por cada alumno buscarlo en DatosBrutosAlumnoMatricula y añadirlos a
             // DatosBrutosAlumnoMatriculaGrupo
-            for (AlumnoDto2 alumno : alumnos) 
+            for (AlumnoDto2 alumnoDatosBrutos : alumnos) 
             {
-                if (alumno.getGrupo() != grupo && alumno.getGrupo() != null) 
+                if (alumnoDatosBrutos.getGrupo() != grupo && alumnoDatosBrutos.getGrupo() != null) 
                 {
                     continue;
                 }
-
                 // Optional de DatosBrutoAlumnoMatriculaEntity
                 List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatriculaAsignaturasOpt;
 
                 // Buscar los registros del alumno en DatosBrutosAlumnoMatricula
                 datosBrutoAlumnoMatriculaAsignaturasOpt = this.iDatosBrutoAlumnoMatriculaRepository
-                        .findByNombreAndApellidosAndCursoEtapa(alumno.getNombre(), alumno.getApellidos(),cursoEtapa);
+                        .findByNombreAndApellidosAndCursoEtapa(alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos(),cursoEtapa);
 
+                // Crear registro de la Tabla Alumno
+                Alumno alumno = new Alumno();
+                Matricula matricula = new Matricula();
+                
+                List<Matricula> listaMatriculas = new ArrayList<Matricula>();
+                
                 for (DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaAsignaturaOpt : datosBrutoAlumnoMatriculaAsignaturasOpt) 
                 {
-                    // Crear registro de la Tabla DatosBrutosAlumnoMatriculaGrupo
-                    DatosBrutoAlumnoMatriculaGrupo datosBrutoAlumnoMatriculaGrupo = new DatosBrutoAlumnoMatriculaGrupo();
+                	
                     // Asignar cada uno de los campos
-                    datosBrutoAlumnoMatriculaGrupo.setNombre(datosBrutoAlumnoMatriculaAsignaturaOpt.getNombre());
-                    datosBrutoAlumnoMatriculaGrupo.setApellidos(datosBrutoAlumnoMatriculaAsignaturaOpt.getApellidos());
-                    datosBrutoAlumnoMatriculaGrupo
-                            .setAsignatura(datosBrutoAlumnoMatriculaAsignaturaOpt.getAsignatura());
-                    datosBrutoAlumnoMatriculaGrupo.setCursoEtapaGrupo(cursoEtapaGrupo);
+                    alumno.setNombre(datosBrutoAlumnoMatriculaAsignaturaOpt.getNombre());
+                    alumno.setApellidos(datosBrutoAlumnoMatriculaAsignaturaOpt.getApellidos());
+                    
+                    // Crear registro de la Tabla Alumno
+                    IdAsignatura idAsignatura = new IdAsignatura();
+                    // Asignar cada uno de los campos
+                    idAsignatura.setCurso(curso);
+                    idAsignatura.setEtapa(etapa);
+                    idAsignatura.setGrupo(grupo);
+                    idAsignatura.setNombre(datosBrutoAlumnoMatriculaAsignaturaOpt.getAsignatura());
+                    
+                    Asignatura asignatura = new Asignatura();
+                    asignatura.setIdAsignatura(idAsignatura);
+                   
+                    IdMatricula idMatricula = new IdMatricula();
+                    idMatricula.setAsignatura(asignatura);
+                    idMatricula.setAlumno(alumno);
 
-                    // Guardar el registro en la tabla DatosBrutoAlumnoMatriculaGrupo
-                    this.iDatosBrutoAlumnoMatriculaGrupoRepository.saveAndFlush(datosBrutoAlumnoMatriculaGrupo);
+                    matricula.setIdMatricula(idMatricula);
+                    
+                    listaMatriculas.add(matricula);
 
-                    // Eliminar el registro en la tabla DatosBrutoAlumnoMatricula
+                    if(this.iAsignaturaRepository.findById(idAsignatura) != null) 
+                    {
+                    	
+                    	// Guardar el registro en la tabla Asignatura
+                    	this.iAsignaturaRepository.saveAndFlush(asignatura);
+                    }
+                    else 
+                    {
+                    	continue;
+                    }
+                    
+
                     datosBrutoAlumnoMatriculaAsignaturaOpt.setAsignado(true);
                     this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculaAsignaturaOpt);
                 }
+                // Guardar el registro en la tabla Alumno
+                this.iAlumnoRepository.saveAndFlush(alumno);
+
+                // Guardar el registro en la tabla Matricula
+                this.iMatriculaRepository.saveAllAndFlush(listaMatriculas);
             }
 
             // Log de información antes de la respuesta
@@ -450,90 +502,128 @@ public class Paso2CrearGruposController
      * tabla `DatosBrutoAlumnoMatricula` y luego se elimina el registro en la tabla
      * `DatosBrutoAlumnoMatriculaGrupo`, desasignando así al alumno del grupo.
      * 
-     * @param alumno - El objeto `AlumnoDto` que contiene los datos del alumno a
+     * @param alumnoDto - El objeto `AlumnoDto` que contiene los datos del alumno a
      *               desasignar.
      * @return ResponseEntity<?> - Respuesta con un mensaje de éxito si el alumno
      *         fue desasignado correctamente, o una excepción con el mensaje de
      *         error si ocurre un fallo durante el proceso.
      */
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
-    public ResponseEntity<?> borrarAlumno(@RequestBody AlumnoDto alumno) 
-    {
-        try 
-        {
-            // Optional DatosBrutoAlumnoMatriculaGrupo
-            List<Optional<DatosBrutoAlumnoMatriculaGrupo>> datosBrutoAlumnoMatriculaGrupoAsignaturasOpt = this.iDatosBrutoAlumnoMatriculaGrupoRepository
-                    .findAllByNombreAndApellidos(alumno.getNombre(), alumno.getApellidos());
-
-            // Por cada asignatura del Alumno
-            for (Optional<DatosBrutoAlumnoMatriculaGrupo> datosBrutoAlumnoMatriculaGrupoAsignaturaOpt : datosBrutoAlumnoMatriculaGrupoAsignaturasOpt) 
-            {
-                // Si no existe el registro
-                if (!datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.isPresent()) 
-                {
-                    // Lanzar excepcion y mostrar log con mensaje de Error
-                    String msgError = "ERROR - No se encontraron los datos del alumno";
-                    log.error(msgError);
-                    throw new SchoolManagerServerException(1, msgError);
-                }
-
-                // Crear registro DatosBrutoAlumnoMatricula
-                DatosBrutoAlumnoMatricula datosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
-
-                // Crear CursoEtapa del Alumno
-                CursoEtapa cursoEtapa = new CursoEtapa();
-                IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
-                idCursoEtapa.setCurso(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getCursoEtapaGrupo()
-                        .getIdCursoEtapaGrupo().getCurso());
-                idCursoEtapa.setEtapa(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getCursoEtapaGrupo()
-                        .getIdCursoEtapaGrupo().getEtapa());
-                cursoEtapa.setIdCursoEtapa(idCursoEtapa);
-
-                // Asignar alumno a registro de DatosBrutoAlumnoMatriculaEntity
-                datosBrutoAlumnoMatricula.setNombre(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getNombre());
-                datosBrutoAlumnoMatricula
-                        .setApellidos(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getApellidos());
-                datosBrutoAlumnoMatricula
-                        .setAsignatura(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getAsignatura());
-                datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
-
-                // Eliminar el registro en la tabla DatosBrutoAlumnoMatriculaGrupo
-                this.iDatosBrutoAlumnoMatriculaGrupoRepository
-                        .delete(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get());
-                datosBrutoAlumnoMatricula.setAsignado(false);
-                // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
-                this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);
-
-
-
-            }
-
-            // Log de información antes de la respuesta
-            log.info("INFO - Alumno desasignado correctamente");
-
-            // Devolver mensaje de OK
-            return ResponseEntity.ok().build();
-        } 
-        catch (SchoolManagerServerException schoolManagerServerException) 
-        {
-            // Manejo de excepciones personalizadas
-            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
-
-            // Devolver la excepción personalizada con código 1 y el mensaje de error
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
-        {
-            // Manejo de excepciones generales
-            String msgError = "ERROR - No se pudo desasignar el alumno del grupo";
-            log.error(msgError, exception);
-
-            // Devolver una excepción personalizada con código 1, el mensaje de error y la
-            // excepcion general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
-                    1, msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }
+//    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+//    @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
+//    public ResponseEntity<?> borrarAlumno(@RequestBody AlumnoDto alumnoDto) 
+//    {
+//        try 
+//        {
+//            // Optional DatosBrutoAlumnoMatriculaGrupo
+////            List<Optional<DatosBrutoAlumnoMatriculaGrupo>> datosBrutoAlumnoMatriculaGrupoAsignaturasOpt = this.iDatosBrutoAlumnoMatriculaGrupoRepository
+////                    .findAllByNombreAndApellidos(alumno.getNombre(), alumno.getApellidos());
+//            
+//            List<MatriculaDto> listaAlumnosABorrar = this.iMatriculaRepository.encontrarAlumnoPorNombreYApellidos(alumnoDto.getNombre(), alumnoDto.getApellidos());
+//            
+//         // Crear registro de la Tabla Alumno
+//            Alumno alumno = new Alumno();
+//            Matricula matricula = new Matricula();
+//            
+//            for(MatriculaDto alumnoABorrar : listaAlumnosABorrar) {
+//            	
+//            	// Si no existe el registro
+//            	if(alumnoABorrar == null) 
+//            	{
+//            		// Lanzar excepcion y mostrar log con mensaje de Error
+//            		String mensajeError = "ERROR - No se encontraron los datos del alumno";
+//            		log.error(mensajeError);
+//                    throw new SchoolManagerServerException(1, mensajeError);
+//            	}
+//            	
+//            	alumno.setNombre(alumnoDto.getNombre());
+//            	alumno.setApellidos(alumnoDto.getApellidos());
+//            	
+//            	IdAsignatura idAsignatura = new IdAsignatura();
+//            	idAsignatura.setCurso(alumnoABorrar.getCurso());
+//            	idAsignatura.setEtapa(alumnoABorrar.getEtapa());
+//            	idAsignatura.setGrupo(alumnoABorrar.getGrupo());
+//            	idAsignatura.setNombre(alumnoABorrar.getNombreAsignatura());
+//            	
+//            	Asignatura asignatura = new Asignatura();
+//            	asignatura.setIdAsignatura(idAsignatura);
+//            	
+//            	if() {
+//            		
+//            		this.iAsignaturaRepository.delete(asignatura);
+//            	}
+//            	else 
+//            	{
+//            		continue;
+//            	}
+//            	
+//            	IdMatricula idMatricula = new IdMatricula();
+//            	idMatricula.setAlumno(alumno);
+//            	
+//            }
+//            
+//            this.iAlumnoRepository.delete(alumno);
+//            
+//            this.iMatriculaRepository.delete(matricula);
+//
+//            // Por cada asignatura del Alumno
+//            for (Optional<DatosBrutoAlumnoMatriculaGrupo> datosBrutoAlumnoMatriculaGrupoAsignaturaOpt : datosBrutoAlumnoMatriculaGrupoAsignaturasOpt) 
+//            {
+//                // Crear registro DatosBrutoAlumnoMatricula
+//                DatosBrutoAlumnoMatricula datosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
+//
+//                // Crear CursoEtapa del Alumno
+//                CursoEtapa cursoEtapa = new CursoEtapa();
+//                IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
+//                idCursoEtapa.setCurso(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getCursoEtapaGrupo()
+//                        .getIdCursoEtapaGrupo().getCurso());
+//                idCursoEtapa.setEtapa(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getCursoEtapaGrupo()
+//                        .getIdCursoEtapaGrupo().getEtapa());
+//                cursoEtapa.setIdCursoEtapa(idCursoEtapa);
+//
+//                // Asignar alumno a registro de DatosBrutoAlumnoMatriculaEntity
+//                datosBrutoAlumnoMatricula.setNombre(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getNombre());
+//                datosBrutoAlumnoMatricula
+//                        .setApellidos(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getApellidos());
+//                datosBrutoAlumnoMatricula
+//                        .setAsignatura(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getAsignatura());
+//                datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
+//
+//                // Eliminar el registro en la tabla DatosBrutoAlumnoMatriculaGrupo
+//                this.iDatosBrutoAlumnoMatriculaGrupoRepository
+//                        .delete(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get());
+//                
+//                
+//                datosBrutoAlumnoMatricula.setAsignado(false);
+//                // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
+//                this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);
+//
+//            }
+//
+//            // Log de información antes de la respuesta
+//            log.info("INFO - Alumno desasignado correctamente");
+//
+//            // Devolver mensaje de OK
+//            return ResponseEntity.ok().build();
+//        } 
+//        catch (SchoolManagerServerException schoolManagerServerException) 
+//        {
+//            // Manejo de excepciones personalizadas
+//            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
+//
+//            // Devolver la excepción personalizada con código 1 y el mensaje de error
+//            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+//        } 
+//        catch (Exception exception) 
+//        {
+//            // Manejo de excepciones generales
+//            String msgError = "ERROR - No se pudo desasignar el alumno del grupo";
+//            log.error(msgError, exception);
+//
+//            // Devolver una excepción personalizada con código 1, el mensaje de error y la
+//            // excepcion general
+//            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
+//                    1, msgError, exception);
+//            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+//        }
+//    }
 }

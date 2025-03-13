@@ -14,7 +14,7 @@ public class AsignaturaDto
 
 	private String nombre ;
 	
-	private String grupo ;
+	private Character grupo ;
 	
 	private String etapa ;
 	

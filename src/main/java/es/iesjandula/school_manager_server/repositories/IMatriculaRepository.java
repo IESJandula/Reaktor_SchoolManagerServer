@@ -1,8 +1,13 @@
 package es.iesjandula.school_manager_server.repositories;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import es.iesjandula.school_manager_server.dtos.MatriculaDto;
 import es.iesjandula.school_manager_server.models.Matricula;
 import es.iesjandula.school_manager_server.models.ids.IdMatricula;
 
@@ -16,5 +21,14 @@ import es.iesjandula.school_manager_server.models.ids.IdMatricula;
 @Repository
 public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricula>
 {
+	
+	@Query("SELECT new es.iesjandula.school_manager_server.dtos.MatriculaDto(alu.nombre, alu.apellidos, a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre) "
+			+ "FROM Matricula m "
+			+ "JOIN m.idMatricula idM "
+			+ "JOIN idM.alumno alu "
+			+ "JOIN idM.asignatura a "
+			+ "WHERE alu.nombre = :nombre AND alu.apellidos = :apellidos")
+	List<MatriculaDto> encontrarAlumnoPorNombreYApellidos(@Param("nombre") String nombre,
+														  @Param("apellidos") String apellidos);
 
 }

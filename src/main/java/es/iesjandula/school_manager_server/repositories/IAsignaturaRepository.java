@@ -51,4 +51,6 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 		    @Param("nombre") String nombre
 		);
 	*/
+	
+	
 }

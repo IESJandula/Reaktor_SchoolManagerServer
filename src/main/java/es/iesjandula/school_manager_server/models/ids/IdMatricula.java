@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import es.iesjandula.school_manager_server.models.Alumno;
 import es.iesjandula.school_manager_server.models.Asignatura;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinColumns;
@@ -29,20 +30,20 @@ public class IdMatricula implements Serializable {
     /**
      * Atributo único de serialización para la clase.
      */
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 5643290309503852464L;
 
-    /**
-     * La asignatura en la que el alumno está matriculado.
-     * Representa una relación con la entidad {@link Asignatura}.
+	/**
+     * Asignatura en la que está matriculado el alumno. Relación de muchos a uno con la entidad {@link Asignatura}.
+     * Se usa {@link JoinColumns} para mapear varias columnas que corresponden a los atributos de la asignatura.
      */
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumns({
-        @JoinColumn(name = "asignatura_curso", referencedColumnName = "curso"),
-        @JoinColumn(name = "asignatura_etapa", referencedColumnName = "etapa"),
-        @JoinColumn(name = "asignatura_grupo", referencedColumnName = "grupo"),
-        @JoinColumn(name = "asignatura_nombre", referencedColumnName = "nombre")
-    })
-    private Asignatura asignatura;
+		@JoinColumn(name = "asignatura_curso", referencedColumnName = "curso"),
+		@JoinColumn(name = "asignatura_etapa", referencedColumnName = "etapa"),
+		@JoinColumn(name = "asignatura_grupo", referencedColumnName = "grupo"),
+		@JoinColumn(name = "asignatura_nombre", referencedColumnName = "nombre")
+	})
+	private Asignatura asignatura;
 
     /**
      * El alumno que está matriculado en la asignatura.

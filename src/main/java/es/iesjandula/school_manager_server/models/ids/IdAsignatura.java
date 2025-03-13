@@ -42,8 +42,8 @@ public class IdAsignatura implements Serializable
 	/**
 	 * Grupo al que pertenece la asignatura (por ejemplo, "A", "B").
 	 */
-	@Column(length = 2)
-	private String grupo;
+	@Column
+	private Character grupo;
 
 	
 	/**

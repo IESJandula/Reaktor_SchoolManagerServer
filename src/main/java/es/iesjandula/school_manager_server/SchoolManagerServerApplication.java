@@ -77,6 +77,5 @@ public class SchoolManagerServerApplication implements CommandLineRunner {
 		iParseoCursoEtapa.parseoCursoEtapa(scanner);
 		
 		this.parseoFicheros.parseaFichero(Constants.NOMBRE_FICHERO_DEPARTAMENTO);
-		this.parseoFicheros.parseaFichero(Constants.NOMBRE_FICHERO_ASIGNATURAS);
 	}
 }
