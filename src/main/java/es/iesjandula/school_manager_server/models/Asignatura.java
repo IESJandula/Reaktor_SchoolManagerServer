@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * Entidad - Asignatura
  * -----------------------------------------------------------------------------------------------------------------
@@ -71,6 +73,6 @@ public class Asignatura
      * <p>Existe una relación de uno a muchos con la entidad "Matricula", donde la asignatura puede estar asociada a muchas matrículas.
      * Esta relación se mapea mediante el atributo "asignatura" en la clase "Matricula".</p>
      */
-//    @OneToMany(mappedBy = "asignatura")
-//    private List<Matricula> matriculas;
+    @OneToMany(mappedBy = "idMatricula.asignatura")
+    private List<Matricula> matriculas;
 }

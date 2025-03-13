@@ -31,4 +31,13 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 	List<MatriculaDto> encontrarAlumnoPorNombreYApellidos(@Param("nombre") String nombre,
 														  @Param("apellidos") String apellidos);
 
+	@Query("SELECT m.idMatricula.alumno.id "
+			+ "FROM Matricula m "
+			+ "JOIN m.idMatricula idM "
+			+ "JOIN idM.asignatura a "
+			+ "WHERE idM.asignatura.idAsignatura.curso = :curso AND idM.asignatura.idAsignatura.etapa = :etapa AND idM.asignatura.idAsignatura.grupo = :grupo")
+	List<Integer> encontrarIdAlumnoPorCursoEtapaYGrupo(@Param("curso") Integer curso,
+										  @Param("etapa") String etapa,
+										  @Param("grupo") Character grupo);
+
 }

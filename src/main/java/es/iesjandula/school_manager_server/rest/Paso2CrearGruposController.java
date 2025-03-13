@@ -298,11 +298,24 @@ public class Paso2CrearGruposController
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
 
             // Crear la lista de Alumnos a devolver
-            List<AlumnoDto2> alumnosPendientesDeAsignarYAsignados = this.iDatosBrutoAlumnoMatriculaGrupoRepository
-                    .findDistinctAlumnosByCursoEtapaGrupo(curso, etapa, grupo);
+            List<Integer> idsDeAlumnosDelGrupo = this.iMatriculaRepository
+                    .encontrarIdAlumnoPorCursoEtapaYGrupo(curso, etapa, grupo);
+
+            List<AlumnoDto2> alumnosEnGrupo = new ArrayList<>();
+
+            for (Integer idAlumno : idsDeAlumnosDelGrupo){
+                AlumnoDto2 alumnoDto2 = new AlumnoDto2();
+                Optional<Alumno> alumnoEncontrado = this.iAlumnoRepository.findById(idAlumno);
+                if (alumnoEncontrado.isPresent()){
+                alumnoDto2.setNombre(alumnoEncontrado.get().getNombre());
+                alumnoDto2.setApellidos(alumnoEncontrado.get().getApellidos());
+                alumnoDto2.setGrupo(grupo);
+                }
+                alumnosEnGrupo.add(alumnoDto2);
+            }
 
             // Si la lista esta vacía
-            if (alumnosPendientesDeAsignarYAsignados.isEmpty()) 
+            if (alumnosEnGrupo.isEmpty())
             {
                 // Lanzar excepcion y mostrar log con mensaje de Error
                 String msgError = "ERROR - Lista sin alumnos encontrados";
@@ -314,7 +327,7 @@ public class Paso2CrearGruposController
             log.info("INFO - Lista con nombres y apellidos de los alumnos asignados y pendientes de asignar");
 
             // Devolver la lista de Alumnos
-            return ResponseEntity.status(200).body(alumnosPendientesDeAsignarYAsignados);
+            return ResponseEntity.status(200).body(alumnosEnGrupo);
         } 
         catch (SchoolManagerServerException schoolManagerServerException) 
         {
@@ -449,7 +462,7 @@ public class Paso2CrearGruposController
                     
                     listaMatriculas.add(matricula);
 
-                    if(this.iAsignaturaRepository.findById(idAsignatura) != null) 
+                    if(this.iAsignaturaRepository.findById(idAsignatura).isPresent())
                     {
                     	
                     	// Guardar el registro en la tabla Asignatura
