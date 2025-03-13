@@ -19,8 +19,6 @@ public class AsignaturaDto
 	private String etapa ;
 	
 	private int curso ;
-
-	private int horas;
 	
 	private int numeroDeAlumnos ;
 	

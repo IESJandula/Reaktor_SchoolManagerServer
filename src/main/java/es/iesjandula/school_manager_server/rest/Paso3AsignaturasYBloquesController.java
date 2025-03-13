@@ -47,50 +47,49 @@ public class Paso3AsignaturasYBloquesController
     * @param etapa 			 - La etapa para la cual se solicita la lista de alumnos.
     * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
     */
-	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	   @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
-	   public ResponseEntity<?> obtenerAsignatura(@RequestHeader("curso") int curso,
-			   									  @RequestHeader("etapa") String etapa)
-	   {
-		   try
-		   {
-				List<Asignatura> asignaturas = iAsignaturaRepository.findByCursoAndEtapa(curso, etapa);
-
-				// Mapear a DTO y calcular el número de alumnos matriculados
-				List<AsignaturaDto> asignaturasDto = asignaturas.stream().map(asignatura ->
-				{
-					AsignaturaDto dto = new AsignaturaDto();
-					dto.setNombre(asignatura.getIdAsignatura().getNombre());
-					dto.setGrupo(asignatura.getIdAsignatura().getGrupo());
-					dto.setEtapa(asignatura.getIdAsignatura().getEtapa());
-					dto.setCurso(asignatura.getIdAsignatura().getCurso());
-					dto.setHoras(asignatura.getHoras());
-					// Numero total de alumnos en la asignatura
-					dto.setNumeroDeAlumnos(asignatura.getMatriculas().size());
-
-					// Calcular el número de alumnos en el grupo específico
-					Map<String, Integer> numeroAlumnosEnGrupo = asignatura.getMatriculas().stream()
-							.collect(Collectors.groupingBy(
-									matricula -> matricula.getIdMatricula().getAsignatura().getIdAsignatura().getGrupo().toString(),
-									Collectors.summingInt(m -> 1)
-							));
-					dto.setNumeroAlumnosEnGrupo(numeroAlumnosEnGrupo);
-
-					dto.setBloqueId(asignatura.getBloqueId() != null ? asignatura.getBloqueId().getId() : null);
-					return dto ;
-				}).collect(Collectors.toList());
-
-				return ResponseEntity.status(200).body(asignaturasDto);
-			}
-		   	catch (Exception exception)
-		   	{
-				String msgError = "ERROR - No se pudo obtener la lista de asignaturas";
-				log.error(msgError, exception);
-				SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
-				return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-			}
-
-	   }
+//	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+//	   @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
+//	   public ResponseEntity<?> obtenerAsignatura(@RequestHeader("curso") int curso, 
+//			   									  @RequestHeader("etapa") String etapa)
+//	   {
+//		   try 
+//		   {
+//				List<Asignatura> asignaturas = iAsignaturaRepository.findByCursoAndEtapa(curso, etapa);
+//				
+//				// Mapear a DTO y calcular el número de alumnos matriculados
+//				List<AsignaturaDto> asignaturasDto = asignaturas.stream().map(asignatura -> 
+//				{
+//					AsignaturaDto dto = new AsignaturaDto();
+//					dto.setNombre(asignatura.getIdAsignatura().getNombre());
+//					dto.setGrupo(asignatura.getIdAsignatura().getGrupo());
+//					dto.setEtapa(asignatura.getIdAsignatura().getEtapa());
+//					dto.setCurso(asignatura.getIdAsignatura().getCurso());
+//					// Numero total de alumnos en la asignatura
+//					dto.setNumeroDeAlumnos(asignatura.getMatriculas().size());
+//					
+//					// Calcular el número de alumnos en el grupo específico
+//					Map<String, Integer> numeroAlumnosEnGrupo = asignatura.getMatriculas().stream()
+//							.collect(Collectors.groupingBy(
+//									matricula -> matricula.getAsignatura().getId().getGrupo(),
+//									Collectors.summingInt(m -> 1)
+//							 )) ;
+//					dto.setNumeroAlumnosEnGrupo(numeroAlumnosEnGrupo);
+//					
+//					dto.setBloqueId(asignatura.getBloqueId() != null ? asignatura.getBloqueId().getId() : null);
+//					return dto ;
+//				}).collect(Collectors.toList());
+//				
+//				return ResponseEntity.status(200).body(asignaturasDto);
+//			} 
+//		   	catch (Exception exception) 
+//		   	{
+//				String msgError = "ERROR - No se pudo obtener la lista de asignaturas";
+//				log.error(msgError, exception);
+//				SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+//				return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+//			}
+//		   
+//	   }
 	   
 	   /**
 	    * Endpoint para crear un bloque y asignarlo a un conjunto de asignaturas
