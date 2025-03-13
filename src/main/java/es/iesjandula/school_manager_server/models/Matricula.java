@@ -1,9 +1,7 @@
 package es.iesjandula.school_manager_server.models;
 
 import es.iesjandula.school_manager_server.models.ids.IdMatricula;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,4 +28,13 @@ public class Matricula {
     @EmbeddedId
     private IdMatricula idMatricula;
 
+    @ManyToOne
+    @MapsId("asignatura") // Este valor debe coincidir con el nombre del atributo en IdMatricula
+    @JoinColumns({
+            @JoinColumn(name = "asignatura_curso", referencedColumnName = "curso"),
+            @JoinColumn(name = "asignatura_etapa", referencedColumnName = "etapa"),
+            @JoinColumn(name = "asignatura_grupo", referencedColumnName = "grupo"),
+            @JoinColumn(name = "asignatura_nombre", referencedColumnName = "nombre")
+    })
+    private Asignatura asignatura;
 }
