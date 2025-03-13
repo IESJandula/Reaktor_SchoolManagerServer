@@ -2,12 +2,12 @@ package es.iesjandula.school_manager_server.rest;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import es.iesjandula.school_manager_server.dtos.AlumnoDto3;
 import es.iesjandula.school_manager_server.dtos.MatriculaDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,7 +24,6 @@ import es.iesjandula.school_manager_server.models.Asignatura;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
-import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatriculaGrupo;
 import es.iesjandula.school_manager_server.models.Matricula;
 import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapa;
@@ -298,24 +297,11 @@ public class Paso2CrearGruposController
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
 
             // Crear la lista de Alumnos a devolver
-            List<Integer> idsDeAlumnosDelGrupo = this.iMatriculaRepository
-                    .encontrarIdAlumnoPorCursoEtapaYGrupo(curso, etapa, grupo);
-
-            List<AlumnoDto2> alumnosEnGrupo = new ArrayList<>();
-
-            for (Integer idAlumno : idsDeAlumnosDelGrupo){
-                AlumnoDto2 alumnoDto2 = new AlumnoDto2();
-                Optional<Alumno> alumnoEncontrado = this.iAlumnoRepository.findById(idAlumno);
-                if (alumnoEncontrado.isPresent()){
-                alumnoDto2.setNombre(alumnoEncontrado.get().getNombre());
-                alumnoDto2.setApellidos(alumnoEncontrado.get().getApellidos());
-                alumnoDto2.setGrupo(grupo);
-                }
-                alumnosEnGrupo.add(alumnoDto2);
-            }
+            List<AlumnoDto2> alumnosPendientesDeAsignarYAsignados = this.iDatosBrutoAlumnoMatriculaGrupoRepository
+                    .findDistinctAlumnosByCursoEtapaGrupo(curso, etapa, grupo);
 
             // Si la lista esta vacía
-            if (alumnosEnGrupo.isEmpty())
+            if (alumnosPendientesDeAsignarYAsignados.isEmpty()) 
             {
                 // Lanzar excepcion y mostrar log con mensaje de Error
                 String msgError = "ERROR - Lista sin alumnos encontrados";
@@ -327,7 +313,7 @@ public class Paso2CrearGruposController
             log.info("INFO - Lista con nombres y apellidos de los alumnos asignados y pendientes de asignar");
 
             // Devolver la lista de Alumnos
-            return ResponseEntity.status(200).body(alumnosEnGrupo);
+            return ResponseEntity.status(200).body(alumnosPendientesDeAsignarYAsignados);
         } 
         catch (SchoolManagerServerException schoolManagerServerException) 
         {
@@ -432,7 +418,6 @@ public class Paso2CrearGruposController
 
                 // Crear registro de la Tabla Alumno
                 Alumno alumno = new Alumno();
-                Matricula matricula = new Matricula();
                 
                 List<Matricula> listaMatriculas = new ArrayList<Matricula>();
                 
@@ -458,11 +443,12 @@ public class Paso2CrearGruposController
                     idMatricula.setAsignatura(asignatura);
                     idMatricula.setAlumno(alumno);
 
+                    Matricula matricula = new Matricula();
                     matricula.setIdMatricula(idMatricula);
                     
                     listaMatriculas.add(matricula);
 
-                    if(this.iAsignaturaRepository.findById(idAsignatura).isPresent())
+                    if(this.iAsignaturaRepository.findById(idAsignatura) != null) 
                     {
                     	
                     	// Guardar el registro en la tabla Asignatura
@@ -472,7 +458,6 @@ public class Paso2CrearGruposController
                     {
                     	continue;
                     }
-                    
 
                     datosBrutoAlumnoMatriculaAsignaturaOpt.setAsignado(true);
                     this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculaAsignaturaOpt);
@@ -521,122 +506,102 @@ public class Paso2CrearGruposController
      *         fue desasignado correctamente, o una excepción con el mensaje de
      *         error si ocurre un fallo durante el proceso.
      */
-//    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-//    @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
-//    public ResponseEntity<?> borrarAlumno(@RequestBody AlumnoDto alumnoDto) 
-//    {
-//        try 
-//        {
-//            // Optional DatosBrutoAlumnoMatriculaGrupo
-////            List<Optional<DatosBrutoAlumnoMatriculaGrupo>> datosBrutoAlumnoMatriculaGrupoAsignaturasOpt = this.iDatosBrutoAlumnoMatriculaGrupoRepository
-////                    .findAllByNombreAndApellidos(alumno.getNombre(), alumno.getApellidos());
-//            
-//            List<MatriculaDto> listaAlumnosABorrar = this.iMatriculaRepository.encontrarAlumnoPorNombreYApellidos(alumnoDto.getNombre(), alumnoDto.getApellidos());
-//            
-//         // Crear registro de la Tabla Alumno
-//            Alumno alumno = new Alumno();
-//            Matricula matricula = new Matricula();
-//            
-//            for(MatriculaDto alumnoABorrar : listaAlumnosABorrar) {
-//            	
-//            	// Si no existe el registro
-//            	if(alumnoABorrar == null) 
-//            	{
-//            		// Lanzar excepcion y mostrar log con mensaje de Error
-//            		String mensajeError = "ERROR - No se encontraron los datos del alumno";
-//            		log.error(mensajeError);
-//                    throw new SchoolManagerServerException(1, mensajeError);
-//            	}
-//            	
-//            	alumno.setNombre(alumnoDto.getNombre());
-//            	alumno.setApellidos(alumnoDto.getApellidos());
-//            	
-//            	IdAsignatura idAsignatura = new IdAsignatura();
-//            	idAsignatura.setCurso(alumnoABorrar.getCurso());
-//            	idAsignatura.setEtapa(alumnoABorrar.getEtapa());
-//            	idAsignatura.setGrupo(alumnoABorrar.getGrupo());
-//            	idAsignatura.setNombre(alumnoABorrar.getNombreAsignatura());
-//            	
-//            	Asignatura asignatura = new Asignatura();
-//            	asignatura.setIdAsignatura(idAsignatura);
-//            	
-//            	if() {
-//            		
-//            		this.iAsignaturaRepository.delete(asignatura);
-//            	}
-//            	else 
-//            	{
-//            		continue;
-//            	}
-//            	
-//            	IdMatricula idMatricula = new IdMatricula();
-//            	idMatricula.setAlumno(alumno);
-//            	
-//            }
-//            
-//            this.iAlumnoRepository.delete(alumno);
-//            
-//            this.iMatriculaRepository.delete(matricula);
-//
-//            // Por cada asignatura del Alumno
-//            for (Optional<DatosBrutoAlumnoMatriculaGrupo> datosBrutoAlumnoMatriculaGrupoAsignaturaOpt : datosBrutoAlumnoMatriculaGrupoAsignaturasOpt) 
-//            {
-//                // Crear registro DatosBrutoAlumnoMatricula
-//                DatosBrutoAlumnoMatricula datosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
-//
-//                // Crear CursoEtapa del Alumno
-//                CursoEtapa cursoEtapa = new CursoEtapa();
-//                IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
-//                idCursoEtapa.setCurso(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getCursoEtapaGrupo()
-//                        .getIdCursoEtapaGrupo().getCurso());
-//                idCursoEtapa.setEtapa(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getCursoEtapaGrupo()
-//                        .getIdCursoEtapaGrupo().getEtapa());
-//                cursoEtapa.setIdCursoEtapa(idCursoEtapa);
-//
-//                // Asignar alumno a registro de DatosBrutoAlumnoMatriculaEntity
-//                datosBrutoAlumnoMatricula.setNombre(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getNombre());
-//                datosBrutoAlumnoMatricula
-//                        .setApellidos(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getApellidos());
-//                datosBrutoAlumnoMatricula
-//                        .setAsignatura(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get().getAsignatura());
-//                datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
-//
-//                // Eliminar el registro en la tabla DatosBrutoAlumnoMatriculaGrupo
-//                this.iDatosBrutoAlumnoMatriculaGrupoRepository
-//                        .delete(datosBrutoAlumnoMatriculaGrupoAsignaturaOpt.get());
-//                
-//                
-//                datosBrutoAlumnoMatricula.setAsignado(false);
-//                // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
-//                this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);
-//
-//            }
-//
-//            // Log de información antes de la respuesta
-//            log.info("INFO - Alumno desasignado correctamente");
-//
-//            // Devolver mensaje de OK
-//            return ResponseEntity.ok().build();
-//        } 
-//        catch (SchoolManagerServerException schoolManagerServerException) 
-//        {
-//            // Manejo de excepciones personalizadas
-//            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
-//
-//            // Devolver la excepción personalizada con código 1 y el mensaje de error
-//            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-//        } 
-//        catch (Exception exception) 
-//        {
-//            // Manejo de excepciones generales
-//            String msgError = "ERROR - No se pudo desasignar el alumno del grupo";
-//            log.error(msgError, exception);
-//
-//            // Devolver una excepción personalizada con código 1, el mensaje de error y la
-//            // excepcion general
-//            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
-//                    1, msgError, exception);
-//            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-//        }
-//    }
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
+    @Modifying
+    public ResponseEntity<?> borrarAlumno(@RequestBody AlumnoDto alumnoDto) 
+    {
+        try 
+        {
+            // Optional DatosBrutoAlumnoMatriculaGrupo
+//            List<Optional<DatosBrutoAlumnoMatriculaGrupo>> datosBrutoAlumnoMatriculaGrupoAsignaturasOpt = this.iDatosBrutoAlumnoMatriculaGrupoRepository
+//                    .findAllByNombreAndApellidos(alumno.getNombre(), alumno.getApellidos());
+            
+            List<MatriculaDto> listaAlumnosABorrar = this.iMatriculaRepository.encontrarAlumnoPorNombreYApellidos(alumnoDto.getNombre(), alumnoDto.getApellidos());
+            
+         // Crear registro de la Tabla Alumno
+            Alumno alumno = new Alumno();
+            
+            // Por cada asignatura del Alumno
+            for(MatriculaDto alumnoABorrar : listaAlumnosABorrar) {
+            	
+            	// Si no existe el registro
+            	if(alumnoABorrar == null) 
+            	{
+            		// Lanzar excepcion y mostrar log con mensaje de Error
+            		String mensajeError = "ERROR - No se encontraron los datos del alumno";
+            		log.error(mensajeError);
+                    throw new SchoolManagerServerException(1, mensajeError);
+            	}
+            	
+            	alumno.setNombre(alumnoDto.getNombre());
+            	alumno.setApellidos(alumnoDto.getApellidos());
+            	
+            	IdAsignatura idAsignatura = new IdAsignatura();
+            	idAsignatura.setCurso(alumnoABorrar.getCurso());
+            	idAsignatura.setEtapa(alumnoABorrar.getEtapa());
+            	idAsignatura.setGrupo(alumnoABorrar.getGrupo());
+            	idAsignatura.setNombre(alumnoABorrar.getNombreAsignatura());
+            	
+            	Asignatura asignatura = new Asignatura();
+            	asignatura.setIdAsignatura(idAsignatura);
+            	
+            	IdMatricula idMatricula = new IdMatricula();
+            	idMatricula.setAlumno(alumno);
+            	idMatricula.setAsignatura(asignatura);
+            	
+            	Matricula matricula = new Matricula();
+            	matricula.setIdMatricula(idMatricula);
+
+            	// Eliminar el registro en la tabla Asignatura
+            	this.iMatriculaRepository.borrarPorTodo(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(), alumnoABorrar.getNombreAsignatura());
+            	
+            	if(this.iMatriculaRepository.numeroAsignaturasPorNombre(idAsignatura.getNombre()) < 1) 
+            	{
+            		
+            		// Eliminar el registro en la tabla Asignatura
+            		this.iAsignaturaRepository.delete(asignatura);
+            	}
+            	else 
+            	{
+            		continue;
+            	}
+            	
+            	DatosBrutoAlumnoMatricula datosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
+            	
+            	datosBrutoAlumnoMatricula.setAsignado(false);
+            	// Guardar el registro en la tabla DatosBrutoAlumnoMatricula
+            	this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);
+            	
+            }
+            this.iAlumnoRepository.deleteByNombreAndApellidos(alumno.getNombre(), alumno.getApellidos());
+            
+            
+            // Log de información antes de la respuesta
+            log.info("INFO - Alumno desasignado correctamente");
+
+            // Devolver mensaje de OK
+            return ResponseEntity.ok().build();
+        } 
+        catch (SchoolManagerServerException schoolManagerServerException) 
+        {
+            // Manejo de excepciones personalizadas
+            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
+
+            // Devolver la excepción personalizada con código 1 y el mensaje de error
+            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+        } 
+        catch (Exception exception) 
+        {
+            // Manejo de excepciones generales
+            String msgError = "ERROR - No se pudo desasignar el alumno del grupo";
+            log.error(msgError, exception);
+
+            // Devolver una excepción personalizada con código 1, el mensaje de error y la
+            // excepcion general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
+                    1, msgError, exception);
+            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 }

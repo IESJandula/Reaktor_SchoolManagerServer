@@ -38,10 +38,10 @@ public class IdMatricula implements Serializable {
      */
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumns({
-		@JoinColumn(name = "asignatura_curso", referencedColumnName = "curso"),
-		@JoinColumn(name = "asignatura_etapa", referencedColumnName = "etapa"),
-		@JoinColumn(name = "asignatura_grupo", referencedColumnName = "grupo"),
-		@JoinColumn(name = "asignatura_nombre", referencedColumnName = "nombre")
+    	@JoinColumn(name = "curso", referencedColumnName = "curso"),
+		@JoinColumn(name = "etapa", referencedColumnName = "etapa"),
+		@JoinColumn(name = "grupo", referencedColumnName = "grupo"),
+		@JoinColumn(name = "nombre", referencedColumnName = "nombre")
 	})
 	private Asignatura asignatura;
 
@@ -49,7 +49,7 @@ public class IdMatricula implements Serializable {
      * El alumno que está matriculado en la asignatura.
      * Representa una relación con la entidad {@link Alumno}.
      */
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "alumno_id", referencedColumnName = "id")
     private Alumno alumno;
 }

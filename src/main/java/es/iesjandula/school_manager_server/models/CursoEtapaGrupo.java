@@ -1,11 +1,8 @@
 package es.iesjandula.school_manager_server.models;
 
-import java.util.List;
-
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,11 +34,5 @@ public class CursoEtapaGrupo
     @EmbeddedId
     private IdCursoEtapaGrupo idCursoEtapaGrupo;
 
-    /**
-     * Lista de registros de alumnos matriculados en el curso, etapa y grupo correspondientes.
-     * <p>La clase tiene una relación de uno a muchos con la entidad {@link DatosBrutoAlumnoMatriculaGrupo}. Esta relación se mapea
-     * a través de la propiedad "cursoEtapaGrupo" en la clase {@link DatosBrutoAlumnoMatriculaGrupo}.</p>
-     */
-    @OneToMany(mappedBy = "cursoEtapaGrupo")
-    private List<DatosBrutoAlumnoMatriculaGrupo> datosBrutosAlumnosMatriculadosGrupo;
+   
 }
