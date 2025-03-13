@@ -1,5 +1,7 @@
 package es.iesjandula.school_manager_server.models;
 
+import java.util.List;
+
 import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -71,6 +73,6 @@ public class Asignatura
      * <p>Existe una relación de uno a muchos con la entidad "Matricula", donde la asignatura puede estar asociada a muchas matrículas.
      * Esta relación se mapea mediante el atributo "asignatura" en la clase "Matricula".</p>
      */
-//    @OneToMany(mappedBy = "asignatura")
-//    private List<Matricula> matriculas;
+    @OneToMany(mappedBy = "idMatricula.asignatura", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Matricula> matriculas;
 }

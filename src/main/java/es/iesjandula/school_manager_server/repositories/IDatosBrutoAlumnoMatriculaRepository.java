@@ -11,7 +11,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import es.iesjandula.school_manager_server.dtos.AlumnoDto2;
 import es.iesjandula.school_manager_server.dtos.CursoEtapaDto;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;

@@ -1,7 +1,10 @@
 package es.iesjandula.school_manager_server.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.school_manager_server.models.Alumno;
 
@@ -18,5 +21,10 @@ import es.iesjandula.school_manager_server.models.Alumno;
 @Repository
 public interface IAlumnoRepository extends JpaRepository<Alumno, Integer>
 {
+	
+	@Modifying
+	@Transactional
+	void deleteByNombreAndApellidos(@Param("nombre") String nombre,
+									  @Param("apellidos") String apellidos);
 	
 }
