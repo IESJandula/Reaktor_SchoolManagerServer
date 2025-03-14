@@ -288,11 +288,6 @@ public class Paso2CrearGruposController
     {
         try
         {
-            // Crear el objeto CursoEtapaGrupo con los parámetros recibidos
-            CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
-            IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, grupo);
-            cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
-
             // Crear la lista de Alumnos a devolver
             List<Integer> idsDeAlumnosDelGrupo = this.iMatriculaRepository
                     .encontrarIdAlumnoPorCursoEtapaYGrupo(curso, etapa, grupo);
@@ -406,9 +401,6 @@ public class Paso2CrearGruposController
         try 
         {
             // Crear el objeto CursoEtapaGrupo con los parámetros recibidos
-            CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
-            IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, grupo);
-            cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
             IdCursoEtapa idCursoEtapa = new IdCursoEtapa(curso, etapa);
             CursoEtapa cursoEtapa = new CursoEtapa(idCursoEtapa);
 
