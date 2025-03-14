@@ -2,6 +2,7 @@ package es.iesjandula.school_manager_server.rest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import es.iesjandula.school_manager_server.dtos.AlumnoDto3;
 import es.iesjandula.school_manager_server.dtos.MatriculaDto;
@@ -33,7 +34,6 @@ import es.iesjandula.school_manager_server.repositories.IAlumnoRepository;
 import es.iesjandula.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.school_manager_server.repositories.ICursoEtapaRepository;
-import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaGrupoRepository;
 import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.school_manager_server.utils.Constants;
@@ -54,9 +54,6 @@ public class Paso2CrearGruposController
     @Autowired
     private IDatosBrutoAlumnoMatriculaRepository iDatosBrutoAlumnoMatriculaRepository;
 
-    @Autowired
-    private IDatosBrutoAlumnoMatriculaGrupoRepository iDatosBrutoAlumnoMatriculaGrupoRepository;
-    
     @Autowired
     private IAlumnoRepository iAlumnoRepository;
     
@@ -261,18 +258,18 @@ public class Paso2CrearGruposController
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
-    
+
     /**
      * Endpoint para obtener la lista de alumnos pendientes por asignar o ya
      * asignados a un grupo específico de un curso y etapa.
-     * 
+     *
      * Este método recibe los parámetros del curso, la etapa y el grupo, y luego
      * recupera
      * una lista de alumnos pendientes y también asignados a ese grupo especifico,
      * si hay algún
      * error en el proceso, se captura la excepción y se devuelve un mensaje de
      * error adecuado.
-     * 
+     *
      * @param curso - El curso para el que se solicita la lista de alumnos.
      * @param etapa - La etapa para la cual se solicita la lista de alumnos.
      * @param grupo - El grupo específico dentro del curso y etapa que se está
@@ -281,15 +278,15 @@ public class Paso2CrearGruposController
      *         pendientes de asignar, o una excepción personalizada si ocurre algún
      *         error durante la operación.
      */
-    
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnos")
     public ResponseEntity<?> obtenerAlumnos(
             @RequestHeader(value = "curso", required = true) Integer curso,
             @RequestHeader(value = "etapa", required = true) String etapa,
-            @RequestHeader(value = "grupo", required = true) Character grupo) 
+            @RequestHeader(value = "grupo", required = true) Character grupo)
     {
-        try 
+        try
         {
             // Crear el objeto CursoEtapaGrupo con los parámetros recibidos
             CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
@@ -297,11 +294,24 @@ public class Paso2CrearGruposController
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
 
             // Crear la lista de Alumnos a devolver
-            List<AlumnoDto2> alumnosPendientesDeAsignarYAsignados = this.iDatosBrutoAlumnoMatriculaGrupoRepository
-                    .findDistinctAlumnosByCursoEtapaGrupo(curso, etapa, grupo);
+            List<Integer> idsDeAlumnosDelGrupo = this.iMatriculaRepository
+                    .encontrarIdAlumnoPorCursoEtapaYGrupo(curso, etapa, grupo);
+
+            List<AlumnoDto2> alumnosEnGrupo = new ArrayList<>();
+
+            for (Integer idAlumno : idsDeAlumnosDelGrupo){
+                AlumnoDto2 alumnoDto2 = new AlumnoDto2();
+                Optional<Alumno> alumnoEncontrado = this.iAlumnoRepository.findById(idAlumno);
+                if (alumnoEncontrado.isPresent()){
+                    alumnoDto2.setNombre(alumnoEncontrado.get().getNombre());
+                    alumnoDto2.setApellidos(alumnoEncontrado.get().getApellidos());
+                    alumnoDto2.setGrupo(grupo);
+                }
+                alumnosEnGrupo.add(alumnoDto2);
+            }
 
             // Si la lista esta vacía
-            if (alumnosPendientesDeAsignarYAsignados.isEmpty()) 
+            if (alumnosEnGrupo.isEmpty())
             {
                 // Lanzar excepcion y mostrar log con mensaje de Error
                 String msgError = "ERROR - Lista sin alumnos encontrados";
@@ -313,17 +323,17 @@ public class Paso2CrearGruposController
             log.info("INFO - Lista con nombres y apellidos de los alumnos asignados y pendientes de asignar");
 
             // Devolver la lista de Alumnos
-            return ResponseEntity.status(200).body(alumnosPendientesDeAsignarYAsignados);
-        } 
-        catch (SchoolManagerServerException schoolManagerServerException) 
+            return ResponseEntity.status(200).body(alumnosEnGrupo);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Manejo de excepciones personalizadas
             log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
 
             // Devolver la excepción personalizada con código 1 y el mensaje de error
             return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
+        }
+        catch (Exception exception)
         {
             // Manejo de excepciones generales
             String msgError = "ERROR - No se pudo obtener la lista de alumnos";
@@ -336,7 +346,8 @@ public class Paso2CrearGruposController
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
-    
+
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnosTotales")
     public ResponseEntity<?> obtenerTodosAlumnos(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -427,7 +438,7 @@ public class Paso2CrearGruposController
                     // Asignar cada uno de los campos
                     alumno.setNombre(datosBrutoAlumnoMatriculaAsignaturaOpt.getNombre());
                     alumno.setApellidos(datosBrutoAlumnoMatriculaAsignaturaOpt.getApellidos());
-                    
+                    this.iAlumnoRepository.saveAndFlush(alumno);
                     // Crear registro de la Tabla Alumno
                     IdAsignatura idAsignatura = new IdAsignatura();
                     // Asignar cada uno de los campos
@@ -435,35 +446,37 @@ public class Paso2CrearGruposController
                     idAsignatura.setEtapa(etapa);
                     idAsignatura.setGrupo(grupo);
                     idAsignatura.setNombre(datosBrutoAlumnoMatriculaAsignaturaOpt.getAsignatura());
-                    
-                    Asignatura asignatura = new Asignatura();
-                    asignatura.setIdAsignatura(idAsignatura);
-                   
+
+                    // Buscar la asignatura existente
+                    Optional<Asignatura> optionalAsignatura = this.iAsignaturaRepository.findById(idAsignatura);
+                    Asignatura asignatura;
+                    if(optionalAsignatura.isPresent()){
+                        asignatura = optionalAsignatura.get(); //Si existe la asignamos
+                    } else {
+                        asignatura = new Asignatura();
+                        asignatura.setIdAsignatura(idAsignatura);
+                        asignatura.setMatriculas(new ArrayList<>()); //Si no la creamos con los datos de arriba y un array vacio para evitar nulos
+                    }
+
+                    // Crear la matricula
                     IdMatricula idMatricula = new IdMatricula();
                     idMatricula.setAsignatura(asignatura);
                     idMatricula.setAlumno(alumno);
 
                     Matricula matricula = new Matricula();
                     matricula.setIdMatricula(idMatricula);
-                    
-                    listaMatriculas.add(matricula);
 
-                    if(this.iAsignaturaRepository.findById(idAsignatura) != null) 
-                    {
-                    	
-                    	// Guardar el registro en la tabla Asignatura
-                    	this.iAsignaturaRepository.saveAndFlush(asignatura);
-                    }
-                    else 
-                    {
-                    	continue;
-                    }
+                    // Hay que añadir la matricula a la colección existente sin reemplazarla porque ahora que tiene cascade no se puede cambiar de golpe
+                    asignatura.getMatriculas().add(matricula);
+
+                    // Guardar la asignatura, lo que actualizará la colección de matriculas
+                    this.iAsignaturaRepository.saveAndFlush(asignatura);
 
                     datosBrutoAlumnoMatriculaAsignaturaOpt.setAsignado(true);
                     this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculaAsignaturaOpt);
                 }
                 // Guardar el registro en la tabla Alumno
-                this.iAlumnoRepository.saveAndFlush(alumno);
+
 
                 // Guardar el registro en la tabla Matricula
                 this.iMatriculaRepository.saveAllAndFlush(listaMatriculas);
@@ -513,10 +526,7 @@ public class Paso2CrearGruposController
     {
         try 
         {
-            // Optional DatosBrutoAlumnoMatriculaGrupo
-//            List<Optional<DatosBrutoAlumnoMatriculaGrupo>> datosBrutoAlumnoMatriculaGrupoAsignaturasOpt = this.iDatosBrutoAlumnoMatriculaGrupoRepository
-//                    .findAllByNombreAndApellidos(alumno.getNombre(), alumno.getApellidos());
-            
+
             List<MatriculaDto> listaAlumnosABorrar = this.iMatriculaRepository.encontrarAlumnoPorNombreYApellidos(alumnoDto.getNombre(), alumnoDto.getApellidos());
             
          // Crear registro de la Tabla Alumno
@@ -553,8 +563,12 @@ public class Paso2CrearGruposController
             	Matricula matricula = new Matricula();
             	matricula.setIdMatricula(idMatricula);
 
+                IdCursoEtapa idCursoEtapa = new IdCursoEtapa(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa());
+                CursoEtapa cursoEtapa = new CursoEtapa(idCursoEtapa);
+
+                Integer idAlumno = this.iMatriculaRepository.encontrarIdAlumnoPorCursoEtapaGrupoYNombre(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(),alumnoABorrar.getGrupo(),alumnoABorrar.getNombreAlumno());
             	// Eliminar el registro en la tabla Asignatura
-            	this.iMatriculaRepository.borrarPorTodo(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(), alumnoABorrar.getNombreAsignatura());
+            	this.iMatriculaRepository.borrarPorTodo(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(), alumnoABorrar.getNombreAsignatura(),idAlumno);
             	
             	if(this.iMatriculaRepository.numeroAsignaturasPorNombre(idAsignatura.getNombre()) < 1) 
             	{
@@ -562,18 +576,19 @@ public class Paso2CrearGruposController
             		// Eliminar el registro en la tabla Asignatura
             		this.iAsignaturaRepository.delete(asignatura);
             	}
-            	else 
-            	{
-            		continue;
-            	}
-            	
-            	DatosBrutoAlumnoMatricula datosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
-            	
-            	datosBrutoAlumnoMatricula.setAsignado(false);
-            	// Guardar el registro en la tabla DatosBrutoAlumnoMatricula
-            	this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatricula);
+
+
+                List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatricula = this.iDatosBrutoAlumnoMatriculaRepository.findByNombreAndApellidosAndCursoEtapa(alumnoABorrar.getNombreAlumno(),alumnoABorrar.getApellidosAlumno(),cursoEtapa);
+
+                for(DatosBrutoAlumnoMatricula datosAlumnoBorrado : datosBrutoAlumnoMatricula) {
+                    datosAlumnoBorrado.setAsignado(false);
+                }
+                // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
+                this.iDatosBrutoAlumnoMatriculaRepository.saveAllAndFlush(datosBrutoAlumnoMatricula);
+
             	
             }
+
             this.iAlumnoRepository.deleteByNombreAndApellidos(alumno.getNombre(), alumno.getApellidos());
             
             

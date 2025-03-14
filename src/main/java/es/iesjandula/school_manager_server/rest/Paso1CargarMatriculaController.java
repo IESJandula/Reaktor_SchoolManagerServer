@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
+import es.iesjandula.school_manager_server.dtos.AlumnoDto3;
+import es.iesjandula.school_manager_server.repositories.IAlumnoRepository;
+import es.iesjandula.school_manager_server.repositories.IAsignaturaRepository;
+import es.iesjandula.school_manager_server.repositories.IMatriculaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +37,15 @@ public class Paso1CargarMatriculaController
 
     @Autowired
     private IParseoDatosBrutos iParseoDatosBrutos;
+
+    @Autowired
+    private IAsignaturaRepository iAsignaturaRepository;
+
+    @Autowired
+    private IMatriculaRepository iMatriculaRepository;
+
+    @Autowired
+    private IAlumnoRepository iAlumnoRepository;
     
 
     /**
@@ -154,7 +167,7 @@ public class Paso1CargarMatriculaController
     	{
     		
     		List<CursoEtapaDto> listAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso(curso, etapa);
-    		
+
     		if(listAlumnoMatriculas.isEmpty()) 
     		{
     			String mensajeError = "No se ha encontrado datos para ese curso y etapa";
@@ -169,9 +182,17 @@ public class Paso1CargarMatriculaController
     		
     		CursoEtapa cursoEtapa = new CursoEtapa();
     		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
-    		
+
+            List<AlumnoDto3> alumnoDto3 = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(idCursoEtapa.getCurso(),idCursoEtapa.getEtapa());
+
     		this.iDatosBrutoAlumnoMatriculaRepository.deleteDistinctByCursoEtapa(cursoEtapa);
-    		
+            this.iMatriculaRepository.borrarPorCursoYEtapa(idCursoEtapa.getCurso(), idCursoEtapa.getEtapa());
+            for(AlumnoDto3 a : alumnoDto3){
+                this.iAlumnoRepository.deleteByNombreAndApellidos(a.getNombre(), a.getApellidos());
+            }
+
+            this.iAsignaturaRepository.borrarPorCursoYEtapa(idCursoEtapa.getCurso(), idCursoEtapa.getEtapa());
+
     		return ResponseEntity.ok().build();
     	}
     	catch (SchoolManagerServerException schoolManagerServerException) 

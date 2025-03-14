@@ -68,8 +68,10 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
     
     @Modifying
     @Transactional
-    List<DatosBrutoAlumnoMatricula> deleteDistinctByCursoEtapa
+    void deleteDistinctByCursoEtapa
     (
             @Param("curso") CursoEtapa cursoEtapa
     );
+
+
 }
