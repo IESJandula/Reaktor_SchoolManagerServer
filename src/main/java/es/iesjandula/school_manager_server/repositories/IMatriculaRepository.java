@@ -44,9 +44,9 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "FROM Matricula m "
 			+ "WHERE m.idMatricula.asignatura.idAsignatura.curso = :curso AND m.idMatricula.asignatura.idAsignatura.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.nombre = :nombre AND m.idMatricula.alumno.id = :idAlumno")
 	void borrarPorTodo(@Param("curso") int curso,
-							@Param("etapa") String etapa,
-							@Param("nombre") String nombre,
-							@Param("idAlumno") Integer idAlumno);
+					   @Param("etapa") String etapa,
+					   @Param("nombre") String nombre,
+					   @Param("idAlumno") Integer idAlumno);
 
 	@Query("SELECT DISTINCT m.idMatricula.alumno.id "
 			+ "FROM Matricula m "
@@ -54,8 +54,8 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "JOIN idM.asignatura a "
 			+ "WHERE idM.asignatura.idAsignatura.curso = :curso AND idM.asignatura.idAsignatura.etapa = :etapa AND idM.asignatura.idAsignatura.grupo = :grupo")
 	List<Integer> encontrarIdAlumnoPorCursoEtapaYGrupo(@Param("curso") Integer curso,
-										  @Param("etapa") String etapa,
-										  @Param("grupo") Character grupo);
+													   @Param("etapa") String etapa,
+													   @Param("grupo") Character grupo);
 
 	@Query("SELECT m.idMatricula.alumno.id "
 			+ "FROM Matricula m "

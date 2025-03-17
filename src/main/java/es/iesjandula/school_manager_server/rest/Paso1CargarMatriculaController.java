@@ -20,8 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.school_manager_server.dtos.CursoEtapaDto;
+import es.iesjandula.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.school_manager_server.interfaces.IParseoDatosBrutos;
+import es.iesjandula.school_manager_server.models.Asignatura;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
+import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
+import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.school_manager_server.utils.SchoolManagerServerException;
@@ -103,6 +107,33 @@ public class Paso1CargarMatriculaController
             this.iParseoDatosBrutos.parseoDatosBrutos(scanner, cursoEtapa);
 
             log.info("INFO - Se ha enviado todo correctamente");
+            
+            List<DatosBrutoAlumnoMatricula> listAsignaturas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAsignaturaByCursoEtapa(cursoEtapa);
+            
+            if(listAsignaturas.isEmpty()) 
+            {
+            	String mensajeError = "No se ha asignaturas para ese curso y etapa";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+            }
+            
+            IdAsignatura idAsignatura = new IdAsignatura();
+            
+            for(DatosBrutoAlumnoMatricula datosAsignatura: listAsignaturas) 
+            {
+            	
+            	idAsignatura.setCurso(curso);
+            	idAsignatura.setEtapa(etapa);
+            	idAsignatura.setNombre(datosAsignatura.getAsignatura());
+            	idAsignatura.setGrupo('N');
+            	
+            	Asignatura asignatura = new Asignatura();
+            	asignatura.setIdAsignatura(idAsignatura);
+            	
+            	this.iAsignaturaRepository.saveAndFlush(asignatura);
+            }
+            
 
             // Devolver OK informando que se ha insertado los registros
             return ResponseEntity.ok().build();
@@ -132,7 +163,7 @@ public class Paso1CargarMatriculaController
     /*Endpoint para que nos muestre los datos de los cursos que tienen matriculas*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/matriculas")
-    public ResponseEntity<?> obtenerDatosMatriculas()
+    public ResponseEntity<?> obtenerMatriculas()
     {
     	try 
     	{
@@ -193,6 +224,118 @@ public class Paso1CargarMatriculaController
 
             this.iAsignaturaRepository.borrarPorCursoYEtapa(idCursoEtapa.getCurso(), idCursoEtapa.getEtapa());
 
+    		return ResponseEntity.ok().build();
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
+    		
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+    	}
+    	
+    }
+    
+    /*Endpoint para que nos muestre los datos de las matriculas según un curso y una etapa*/
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/datosMatriculas")
+    public ResponseEntity<?> obtenerDatosMatriculas(@RequestHeader(value = "curso", required = true) Integer curso,
+			   										@RequestHeader(value = "etapa", required = true) String etapa)
+    {
+    	try 
+    	{
+    		
+    		List<DatosMatriculaDto> listDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarDatosMatriculaPorCursoYEtapa(curso, etapa);
+    		
+    		if(listDatosBrutoAlumnoMatriculas.isEmpty()) 
+    		{
+    			String mensajeError = "No se ha encontrado datos para ese curso y etapa";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+    		}
+    		
+    		return ResponseEntity.ok(listDatosBrutoAlumnoMatriculas);
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
+
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+    	}
+    	
+    }
+    
+    
+    /*Endpoint para que nos muestre los datos de las matriculas según un curso y una etapa*/
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/datosMatriculas")
+    public ResponseEntity<?> matricularAsignatura(@RequestHeader(value = "nombre") String nombre,
+												  @RequestHeader(value = "apellidos") String apellidos,
+												  @RequestHeader(value = "asignatura") String asignatura,
+												  @RequestHeader(value = "curso") Integer curso,
+												  @RequestHeader(value = "etapa") String etapa)
+    {
+    	try 
+    	{
+    		
+    		DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
+    		
+    		if(datosBrutoAlumnoMatriculas != null) 
+    		{
+    			String mensajeError = "Ya existe un alumno matriculado en esa asignatura";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+    		}
+    		
+    		IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
+    		idCursoEtapa.setCurso(curso);
+    		idCursoEtapa.setEtapa(etapa);
+    		
+    		CursoEtapa cursoEtapa = new CursoEtapa();
+    		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
+    		
+    		DatosBrutoAlumnoMatricula nuevosDatosBrutoAlumnoMatriculas = new DatosBrutoAlumnoMatricula();
+    		
+    		nuevosDatosBrutoAlumnoMatriculas.setNombre(nombre);
+    		nuevosDatosBrutoAlumnoMatriculas.setApellidos(apellidos);
+    		nuevosDatosBrutoAlumnoMatriculas.setAsignatura(asignatura);
+    		nuevosDatosBrutoAlumnoMatriculas.setCursoEtapa(cursoEtapa);
+    		
+    		this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(nuevosDatosBrutoAlumnoMatriculas);
+    		
+    		return ResponseEntity.ok(datosBrutoAlumnoMatriculas);
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
+    		
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+    	}
+    	
+    }
+    
+    /*Endpoint para que nos muestre los datos de las matriculas según un curso y una etapa*/
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/datosMatriculas")
+    public ResponseEntity<?> desmatricularAsignatura(@RequestHeader(value = "nombre") String nombre,
+										    		 @RequestHeader(value = "apellidos") String apellidos,
+										    		 @RequestHeader(value = "asignatura") String asignatura,
+										    		 @RequestHeader(value = "curso") Integer curso,
+										    		 @RequestHeader(value = "etapa") String etapa)
+    {
+    	try 
+    	{
+    		
+    		DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
+    		
+    		if(datosBrutoAlumnoMatriculas == null) 
+    		{
+    			String mensajeError = "No se ha encontrado un alumno con esos datos";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+    		}
+    		
+    		this.iDatosBrutoAlumnoMatriculaRepository.delete(datosBrutoAlumnoMatriculas);
+    		
     		return ResponseEntity.ok().build();
     	}
     	catch (SchoolManagerServerException schoolManagerServerException) 

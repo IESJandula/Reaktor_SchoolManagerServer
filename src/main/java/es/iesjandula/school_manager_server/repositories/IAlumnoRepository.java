@@ -25,6 +25,6 @@ public interface IAlumnoRepository extends JpaRepository<Alumno, Integer>
 	@Modifying
 	@Transactional
 	void deleteByNombreAndApellidos(@Param("nombre") String nombre,
-									  @Param("apellidos") String apellidos);
+									@Param("apellidos") String apellidos);
 	
 }

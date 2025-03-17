@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.school_manager_server.dtos.CursoEtapaDto;
+import es.iesjandula.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.school_manager_server.models.CursoEtapa;
 import es.iesjandula.school_manager_server.models.DatosBrutoAlumnoMatricula;
 
@@ -47,11 +48,8 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
            "WHERE d.cursoEtapa.idCursoEtapa.curso = :curso " +
            "AND d.cursoEtapa.idCursoEtapa.etapa = :etapa " +
            "GROUP BY d.nombre, d.apellidos")
-    List<AlumnoDto3> findDistinctAlumnosByCursoEtapa
-    (
-            @Param("curso") Integer curso, 
-            @Param("etapa") String etapa
-    );
+    List<AlumnoDto3> findDistinctAlumnosByCursoEtapa(@Param("curso") Integer curso, 
+    												 @Param("etapa") String etapa);
     
     @Query("SELECT DISTINCT new es.iesjandula.school_manager_server.dtos.CursoEtapaDto (c.idCursoEtapa.curso, c.idCursoEtapa.etapa) "
     		+ "FROM DatosBrutoAlumnoMatricula d "
@@ -68,10 +66,28 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
     
     @Modifying
     @Transactional
-    void deleteDistinctByCursoEtapa
-    (
-            @Param("curso") CursoEtapa cursoEtapa
-    );
+    void deleteDistinctByCursoEtapa(@Param("curso") CursoEtapa cursoEtapa);
+    
+    @Query("SELECT new es.iesjandula.school_manager_server.dtos.DatosMatriculaDto(d.nombre, d.apellidos, d.asignatura) "
+    		+ "FROM DatosBrutoAlumnoMatricula d "
+    		+ "JOIN d.cursoEtapa c "
+    		+ "WHERE c.idCursoEtapa.curso = :curso AND c.idCursoEtapa.etapa = :etapa")
+    List<DatosMatriculaDto> encontrarDatosMatriculaPorCursoYEtapa(@Param("curso") Integer curso, 
+																  @Param("etapa") String etapa);
+    
+    @Query("SELECT d "
+    		+ "FROM DatosBrutoAlumnoMatricula d "
+    		+ "JOIN d.cursoEtapa c "
+    		+ "WHERE d.nombre = :nombre AND d.apellidos = :apellidos AND d.asignatura = :asignatura AND c.idCursoEtapa.curso = :curso AND c.idCursoEtapa.etapa = :etapa")
+    DatosBrutoAlumnoMatricula encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(@Param("nombre") String nombre, 
+																						 	@Param("apellidos") String apellidos,
+																						 	@Param("asignatura") String asignatura,
+																						 	@Param("curso") Integer curso, 
+			 																				@Param("etapa") String etapa);
 
-
+//    @Query("SELEC ")
+//    List<DatosBrutoAlumnoMatricula> encontrarAsignatuasPorCursoYEtapa(@Param("curso") Integer curso, 
+//			  														  @Param("etapa") String etapa);
+    
+    List<DatosBrutoAlumnoMatricula> findDistinctAsignaturaByCursoEtapa(CursoEtapa cursoEtapa);
 }

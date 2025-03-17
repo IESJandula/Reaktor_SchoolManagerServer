@@ -30,4 +30,5 @@ public class Matricula {
     @EmbeddedId
     private IdMatricula idMatricula;
 
+
 }

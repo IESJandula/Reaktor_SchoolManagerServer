@@ -29,35 +29,39 @@ import org.springframework.transaction.annotation.Transactional;
 public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsignatura>
 {
 	
-	@Query("SELECT a FROM Asignatura a WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
-	List<Asignatura> findByCursoAndEtapa(@Param("curso") int curso, @Param("etapa") String etapa) ;
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
+	List<Asignatura> findByCursoAndEtapa(@Param("curso") int curso, 
+										 @Param("etapa") String etapa);
 	
-	@Query("SELECT a FROM Asignatura a WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre IN :nombres")
-	List<Asignatura> findAsignaturasByCursoEtapaAndNombres(
-	    @Param("curso") int curso, 
-	    @Param("etapa") String etapa, 
-	    @Param("nombres") List<String> nombres
-	);
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre IN :nombres")
+	List<Asignatura> findAsignaturasByCursoEtapaAndNombres(@Param("curso") int curso, 
+														   @Param("etapa") String etapa, 
+														   @Param("nombres") List<String> nombres);
 	
-	@Query("SELECT a FROM Asignatura a WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
-	Optional<Asignatura> findAsignaturasByCursoEtapaAndNombre(
-	    @Param("curso") int curso, 
-	    @Param("etapa") String etapa, 
-	    @Param("nombre") String nombre
-	);
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
+	Optional<Asignatura> findAsignaturasByCursoEtapaAndNombre(@Param("curso") int curso, 
+														      @Param("etapa") String etapa, 
+														      @Param("nombre") String nombre);
 
 	@Transactional
 	@Modifying
-	@Query("DELETE FROM Asignatura a WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
-	void borrarPorCursoYEtapa(@Param("curso") int curso, @Param("etapa") String etapa) ;
+	@Query("DELETE "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
+	void borrarPorCursoYEtapa(@Param("curso") int curso, 
+							  @Param("etapa") String etapa) ;
 	
-	/*
-	Optional<Asignatura> findByCursoAndEtapaAndNombre(
-		    @Param("curso") int curso, 
-		    @Param("etapa") String etapa, 
-		    @Param("nombre") String nombre
-		);
-	*/
-	
-	
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombre AND (a.idAsignatura.grupo = 'N' OR a.idAsignatura.grupo = :grupo)")
+	Optional<Asignatura> encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(@Param("curso") int curso, 
+																		@Param("etapa") String etapa, 
+																		@Param("nombre") String nombre,
+																		@Param("grupo") Character grupo);
 }
