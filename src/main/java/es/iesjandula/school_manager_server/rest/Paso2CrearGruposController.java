@@ -448,13 +448,19 @@ public class Paso2CrearGruposController
                     
                     if(optionalAsignatura.isPresent())
                     {
-                    	if(optionalAsignatura.get().getIdAsignatura().getGrupo() == 'N') 
+                    	Asignatura exitente = optionalAsignatura.get();
+                    	if(exitente.getIdAsignatura().getGrupo() == 'N') 
                     	{
                     		
-                    		this.iAsignaturaRepository.delete(optionalAsignatura.get());
+                    		this.iAsignaturaRepository.delete(exitente);
+                    		asignatura.setMatriculas(new ArrayList<>()); //Si no la creamos con los datos de arriba y un array vacio para evitar nulos
                     	}
+                    	else
+                    	{
+                    		asignatura.setMatriculas(exitente.getMatriculas());
+                    	}
+                    	
                         asignatura.setIdAsignatura(idAsignatura);
-                        asignatura.setMatriculas(new ArrayList<>()); //Si no la creamos con los datos de arriba y un array vacio para evitar nulos
                     } 
                     else 
                     {

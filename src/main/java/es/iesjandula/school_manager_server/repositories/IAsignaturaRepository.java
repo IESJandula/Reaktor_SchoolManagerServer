@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import es.iesjandula.school_manager_server.dtos.AsignaturaDto;
+import es.iesjandula.school_manager_server.dtos.AsignaturaHorasDto;
 import es.iesjandula.school_manager_server.models.Asignatura;
 import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,18 +31,13 @@ import org.springframework.transaction.annotation.Transactional;
 public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsignatura>
 {
 	
-	@Query("SELECT a "
+	@Query("SELECT new es.iesjandula.school_manager_server.dtos.AsignaturaDto(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre, a.horas, a.bloqueId.id, COUNT(m)) "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
-	List<Asignatura> findByCursoAndEtapa(@Param("curso") int curso, 
-										 @Param("etapa") String etapa);
-	
-	@Query("SELECT a "
-			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre IN :nombres")
-	List<Asignatura> findAsignaturasByCursoEtapaAndNombres(@Param("curso") int curso, 
-														   @Param("etapa") String etapa, 
-														   @Param("nombres") List<String> nombres);
+			+ "LEFT JOIN a.matriculas m "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa "
+			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre, a.horas, a.bloqueId.id")
+	List<AsignaturaDto> findByCursoAndEtapa(@Param("curso") Integer curso, 
+										    @Param("etapa") String etapa);
 	
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
@@ -64,4 +61,17 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 																		@Param("etapa") String etapa, 
 																		@Param("nombre") String nombre,
 																		@Param("grupo") Character grupo);
+	
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
+	Asignatura findNombreByCursoEtapaAndNombres(@Param("curso") int curso,
+												@Param("etapa") String etapa, 
+												@Param("nombres") String nombres);
+	
+	@Query("SELECT new es.iesjandula.school_manager_server.dtos.AsignaturaHorasDto(a.idAsignatura.nombre, a.horas) "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
+	List<AsignaturaHorasDto> findNombreAndHorasByCursoEtapaAndNombres(@Param("curso") Integer curso,
+																	  @Param("etapa") String etapa);
 }

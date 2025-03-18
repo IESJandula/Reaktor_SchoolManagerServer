@@ -1,9 +1,7 @@
 package es.iesjandula.school_manager_server.rest;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.school_manager_server.dtos.AsignaturaDto;
+import es.iesjandula.school_manager_server.dtos.AsignaturaHorasDto;
 import es.iesjandula.school_manager_server.models.Asignatura;
 import es.iesjandula.school_manager_server.models.Bloque;
 import es.iesjandula.school_manager_server.models.ids.IdAsignatura;
@@ -47,49 +46,40 @@ public class Paso3AsignaturasYBloquesController
     * @param etapa 			 - La etapa para la cual se solicita la lista de alumnos.
     * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
     */
-//	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-//	   @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
-//	   public ResponseEntity<?> obtenerAsignatura(@RequestHeader("curso") int curso, 
-//			   									  @RequestHeader("etapa") String etapa)
-//	   {
-//		   try 
-//		   {
-//				List<Asignatura> asignaturas = iAsignaturaRepository.findByCursoAndEtapa(curso, etapa);
-//				
-//				// Mapear a DTO y calcular el número de alumnos matriculados
-//				List<AsignaturaDto> asignaturasDto = asignaturas.stream().map(asignatura -> 
-//				{
-//					AsignaturaDto dto = new AsignaturaDto();
-//					dto.setNombre(asignatura.getIdAsignatura().getNombre());
-//					dto.setGrupo(asignatura.getIdAsignatura().getGrupo());
-//					dto.setEtapa(asignatura.getIdAsignatura().getEtapa());
-//					dto.setCurso(asignatura.getIdAsignatura().getCurso());
-//					// Numero total de alumnos en la asignatura
-//					dto.setNumeroDeAlumnos(asignatura.getMatriculas().size());
-//					
-//					// Calcular el número de alumnos en el grupo específico
-//					Map<String, Integer> numeroAlumnosEnGrupo = asignatura.getMatriculas().stream()
-//							.collect(Collectors.groupingBy(
-//									matricula -> matricula.getAsignatura().getId().getGrupo(),
-//									Collectors.summingInt(m -> 1)
-//							 )) ;
-//					dto.setNumeroAlumnosEnGrupo(numeroAlumnosEnGrupo);
-//					
-//					dto.setBloqueId(asignatura.getBloqueId() != null ? asignatura.getBloqueId().getId() : null);
-//					return dto ;
-//				}).collect(Collectors.toList());
-//				
-//				return ResponseEntity.status(200).body(asignaturasDto);
-//			} 
-//		   	catch (Exception exception) 
-//		   	{
-//				String msgError = "ERROR - No se pudo obtener la lista de asignaturas";
-//				log.error(msgError, exception);
-//				SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
-//				return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-//			}
-//		   
-//	   }
+	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+	   @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
+	   public ResponseEntity<?> obtenerAsignatura(@RequestHeader("curso") int curso, 
+			   									  @RequestHeader("etapa") String etapa)
+	   {
+		   try 
+		   {
+				List<AsignaturaDto> asignaturas = iAsignaturaRepository.findByCursoAndEtapa(curso, etapa);
+				
+				if(asignaturas.isEmpty())
+				{
+					String mensajeError = "No existen asignaturas con ese curso y etapa";
+					log.error(mensajeError);
+					throw new SchoolManagerServerException(1, mensajeError);
+				}
+				
+				
+				return ResponseEntity.status(200).body(asignaturas);
+		   } 
+		   catch (SchoolManagerServerException schoolManagerServerException) 
+		   {
+			   return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+		   }
+		   catch (Exception exception) 
+		   {
+			   
+			   String msgError = "Error al acceder a la base de datos";
+			   SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+			
+			   log.error(msgError, exception);
+			   return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+		   }
+		   
+	   }
 	   
 	   /**
 	    * Endpoint para crear un bloque y asignarlo a un conjunto de asignaturas
@@ -147,14 +137,16 @@ public class Paso3AsignaturasYBloquesController
 	   		return ResponseEntity.status(201).body(bloque.getId());
 	   		
 	   	}
-	   	catch (SchoolManagerServerException schoolManagerServerException) {
+	   	catch (SchoolManagerServerException schoolManagerServerException) 
+	   	{
 	           return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
 	   	}
 	   	catch (Exception exception)
 	   	{
 			String msgError = "ERROR - No se pudo crear el bloque";
-			log.error(msgError, exception);
 			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+			
+			log.error(msgError, exception);
 			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
 	   	}
 	   	
@@ -180,32 +172,117 @@ public class Paso3AsignaturasYBloquesController
 	   		// Buscamos el id de la asignatura
 			Optional<Asignatura> asignaturaOpt = iAsignaturaRepository.findById(idAsignatura);
 			
-			if (asignaturaOpt.isPresent())
+			if (!asignaturaOpt.isPresent())
 			{
-				Asignatura asignatura = asignaturaOpt.get();
+				String mensajeError = "No se han encontrado asignaturas con esos parametros";
+				log.error(mensajeError);
 				
-				// Desasociar la asignatura del bloque
-				Bloque bloque = asignatura.getBloqueId();
-				asignatura.setBloqueId(null) ;
-				this.iAsignaturaRepository.saveAndFlush(asignatura);
-				
-				if (bloque != null && bloque.getAsignaturas().isEmpty())
-				{
-					iBloqueRepository.delete(bloque);
-				}
+				throw new SchoolManagerServerException(1, mensajeError);
+			}
+			Asignatura asignatura = asignaturaOpt.get();
+			
+			// Desasociar la asignatura del bloque
+			Bloque bloque = asignatura.getBloqueId();
+			asignatura.setBloqueId(null) ;
+			
+			this.iAsignaturaRepository.saveAndFlush(asignatura);
+			
+			if (bloque != null && bloque.getAsignaturas().isEmpty())
+			{
+				iBloqueRepository.delete(bloque);
 			}
 			
 			log.info("INFO - Bloque eliminado con éxito");
 			return ResponseEntity.status(200).build();
 				
-		} 
+		}
+	   	catch (SchoolManagerServerException schoolManagerServerException) 
+	    {
+		    return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+	    }
 	   	catch (Exception exception) 
 	   	{
 			String msgError = "ERROR - Error en el servidor";
-			log.error(msgError, exception);
 			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+
+			log.error(msgError, exception);
 			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
 		} 
 	   	
 	   }
+	   
+	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+	   @RequestMapping(method = RequestMethod.GET, value = "/horas")
+	   public ResponseEntity<?> mostrarHoras(@RequestHeader("curso") Integer curso, 
+			   @RequestHeader("etapa") String etapa)
+	   {
+		   
+		   try
+		   {
+			   List<AsignaturaHorasDto> listAsignatuasHoras = this.iAsignaturaRepository.findNombreAndHorasByCursoEtapaAndNombres(curso, etapa);
+			   
+			   if(listAsignatuasHoras.isEmpty())
+			   {
+				   String mensajeError = "No se ha encontrado una asignatura con ese nombre y para ese curso y etapa";
+				   log.error(mensajeError);
+				   throw new SchoolManagerServerException(1, mensajeError);
+			   }
+			   
+			   return ResponseEntity.ok(listAsignatuasHoras);
+		   }
+		   catch (SchoolManagerServerException schoolManagerServerException) 
+		   {
+			   return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+		   }
+		   catch (Exception exception) 
+		   {
+			   String msgError = "ERROR - Error en el servidor";
+			   SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+			   
+			   log.error(msgError, exception);
+			   return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+		   } 
+	   }
+
+	   
+	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+	   @RequestMapping(method = RequestMethod.PUT, value = "/horas")
+	   public ResponseEntity<?> asignarHoras(@RequestHeader("curso") Integer curso, 
+			  								 @RequestHeader("etapa") String etapa,
+			  								 @RequestHeader("nombreAsignatura") String nombreAsignatura,
+			  								 @RequestHeader("horas") Integer horas)
+	   {
+		   
+		   try
+		   {
+			   Asignatura asignatura = this.iAsignaturaRepository.findNombreByCursoEtapaAndNombres(curso, etapa, nombreAsignatura);
+			   
+			   if(asignatura == null)
+			   {
+				   String mensajeError = "No se ha encontrado una asignatura con ese nombre y para ese curso y etapa";
+				   log.error(mensajeError);
+				   throw new SchoolManagerServerException(1, mensajeError);
+			   }
+			   
+			   asignatura.setHoras(horas);
+			   
+			   this.iAsignaturaRepository.saveAndFlush(asignatura);
+			   
+			   return ResponseEntity.ok().build();
+		   }
+		   catch (SchoolManagerServerException schoolManagerServerException) 
+		   {
+			   return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+		   }
+		   catch (Exception exception) 
+	   	   {
+			   String msgError = "ERROR - Error en el servidor";
+			   SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+
+			   log.error(msgError, exception);
+			   return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+		   } 
+	   }
+	   
+	   
 	}
