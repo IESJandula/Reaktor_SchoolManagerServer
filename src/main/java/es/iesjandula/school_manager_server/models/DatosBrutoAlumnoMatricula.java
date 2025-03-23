@@ -64,6 +64,9 @@ public class DatosBrutoAlumnoMatricula
      */
     @Column(nullable = false,columnDefinition = "BOOLEAN DEFAULT false")
     private boolean asignado;
+    
+    @Column(length = 7)
+    private String estadoMatricula;
 
     /**
      * Relación con la entidad {@link CursoEtapa}.

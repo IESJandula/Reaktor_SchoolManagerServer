@@ -47,7 +47,7 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
            "FROM DatosBrutoAlumnoMatricula d " +
            "WHERE d.cursoEtapa.idCursoEtapa.curso = :curso " +
            "AND d.cursoEtapa.idCursoEtapa.etapa = :etapa " +
-           "GROUP BY d.nombre, d.apellidos")
+           "GROUP BY d.nombre, d.apellidos, d.asignado")
     List<AlumnoDto3> findDistinctAlumnosByCursoEtapa(@Param("curso") Integer curso, 
     												 @Param("etapa") String etapa);
     
@@ -68,7 +68,7 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
     @Transactional
     void deleteDistinctByCursoEtapa(@Param("curso") CursoEtapa cursoEtapa);
     
-    @Query("SELECT new es.iesjandula.school_manager_server.dtos.DatosMatriculaDto(d.nombre, d.apellidos, d.asignatura) "
+    @Query("SELECT new es.iesjandula.school_manager_server.dtos.DatosMatriculaDto(d.nombre, d.apellidos, d.asignatura, d.estadoMatricula) "
     		+ "FROM DatosBrutoAlumnoMatricula d "
     		+ "JOIN d.cursoEtapa c "
     		+ "WHERE c.idCursoEtapa.curso = :curso AND c.idCursoEtapa.etapa = :etapa")
@@ -76,7 +76,7 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
 																  @Param("etapa") String etapa);
     
     @Query("SELECT d "
-    		+ "FROM DatosBrutoAlumnoMatricula d "
+    		+ "FROM DatosBrutoAlumnoMatricula d " 
     		+ "JOIN d.cursoEtapa c "
     		+ "WHERE d.nombre = :nombre AND d.apellidos = :apellidos AND d.asignatura = :asignatura AND c.idCursoEtapa.curso = :curso AND c.idCursoEtapa.etapa = :etapa")
     DatosBrutoAlumnoMatricula encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(@Param("nombre") String nombre, 

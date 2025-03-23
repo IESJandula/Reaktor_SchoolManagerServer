@@ -535,7 +535,7 @@ public class Paso2CrearGruposController
 
             List<MatriculaDto> listaAlumnosABorrar = this.iMatriculaRepository.encontrarAlumnoPorNombreYApellidos(alumnoDto.getNombre(), alumnoDto.getApellidos());
             
-         // Crear registro de la Tabla Alumno
+            // Crear registro de la Tabla Alumno
             Alumno alumno = new Alumno();
             
             // Por cada asignatura del Alumno
@@ -574,14 +574,20 @@ public class Paso2CrearGruposController
                 CursoEtapa cursoEtapa = new CursoEtapa(idCursoEtapa);
 
                 Integer idAlumno = this.iMatriculaRepository.encontrarIdAlumnoPorCursoEtapaGrupoYNombre(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(),alumnoABorrar.getGrupo(),alumnoABorrar.getNombreAlumno());
-            	// Eliminar el registro en la tabla Asignatura
+//            	Eliminar el registro en la tabla Asignatura
             	this.iMatriculaRepository.borrarPorTodo(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(), alumnoABorrar.getNombreAsignatura(),idAlumno);
             	
+//            	Si es el ultimo alumno
             	if(this.iMatriculaRepository.numeroAsignaturasPorNombre(idAsignatura.getNombre()) < 1) 
             	{
             		
             		// Eliminar el registro en la tabla Asignatura
             		this.iAsignaturaRepository.delete(asignatura);
+            		
+            		idAsignatura.setGrupo('N');
+            		asignatura.setIdAsignatura(idAsignatura);
+//            		Volvemos a crear la asignatura con el grupo a "null"
+            		this.iAsignaturaRepository.saveAndFlush(asignatura);
             	}
 
 
@@ -622,8 +628,8 @@ public class Paso2CrearGruposController
 
             // Devolver una excepción personalizada con código 1, el mensaje de error y la
             // excepcion general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
-                    1, msgError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+            
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }

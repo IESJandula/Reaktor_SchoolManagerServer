@@ -46,7 +46,7 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
             String lineaCampos = scanner.nextLine();
         
             // Array con valores de los campos
-            String[] valoresCampos = lineaCampos.split(Constants.CSV_DELIMITER);
+            String[] valoresCampos = lineaCampos.split(Constants.CSV_DELIMITER, -1);
         
             while(scanner.hasNext())
             {
@@ -54,7 +54,7 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                 String lineaRegistro = scanner.nextLine();
                 
                 // Array con valores del registro
-                String[] valoresRegistro = lineaRegistro.split(Constants.CSV_DELIMITER);
+                String[] valoresRegistro = lineaRegistro.split(Constants.CSV_DELIMITER, -1);
                 
                 // Apellidos del Alumno -> Martinez Guerbos
                 String apellidosAlumno = valoresRegistro[0].trim().replace("\"", "") ;
@@ -67,7 +67,7 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                 for (int i = 1; i < valoresCampos.length; i++)
                 {
                     // Si tiene algun valor el campo de registro de la asignatura 
-                    if(i + 1 < valoresRegistro.length && valoresRegistro[i+1] != null && !"".equals(valoresRegistro[i+1].trim()))
+                    if(i + 1 < valoresRegistro.length)
                     {
                         // Crear registro
                         DatosBrutoAlumnoMatricula datosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
@@ -78,27 +78,22 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                         // Añadir nombre del alumno al registro -> Pablo
                         datosBrutoAlumnoMatricula.setNombre(nombreAlumno);
                     	
-                        if(valoresRegistro[i + 1].trim().equals("MATR")) {
-                        	
-                        	// Obtener a que campo de asignatura corresponde
-                        	String asignatura = valoresCampos[i].trim();
-                        	
-                        	// Añadir asignatura matriculada al registro -> LENGUA
-                        	datosBrutoAlumnoMatricula.setAsignatura(asignatura.toUpperCase());
-                        	
-                        	// Añadir curso al registro -> 2DAM
-                        	datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
+                        // Obtener a que campo de asignatura corresponde
+                        String asignatura = valoresCampos[i].trim().replace("\"", "");
+                        
+                        // Añadir asignatura matriculada al registro -> LENGUA
+                        datosBrutoAlumnoMatricula.setAsignatura(asignatura.toUpperCase());
+                        
+                        // Añadir curso al registro -> 2DAM
+                        datosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
+                        
+                        if(valoresRegistro[i + 1].trim().equals("")) 
+                        {
+                        	datosBrutoAlumnoMatricula.setEstadoMatricula("NO_MATR");;
                         }
-                        else if (valoresRegistro[i + 1].trim().equals("SUPCA") || valoresRegistro[i + 1].trim().equals("APRO")  ||
-                        		valoresRegistro[i + 1].trim().equals("CONV") || valoresRegistro[i + 1].trim().equals("PEND")) {
-							
-                        	continue;
-						}
-                        else {
-                        	String mensajeError = "El Csv no tiene el formato correcto";
-                			
-                			log.error(mensajeError);
-                			throw new SchoolManagerServerException(6, mensajeError);
+                        else 
+                        {
+                        	datosBrutoAlumnoMatricula.setEstadoMatricula(valoresRegistro[i + 1]);
                         }
                         listaDatosBrutoAlumnoMatriculas.add(datosBrutoAlumnoMatricula);
                     }
