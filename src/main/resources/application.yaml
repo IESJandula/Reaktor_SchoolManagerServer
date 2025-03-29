@@ -1,5 +1,5 @@
 spring:
-  jpa.hibernate.ddl-auto: update
+  jpa.hibernate.ddl-auto: none
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_schoolManagerServer?createDatabaseIfNotExist=true
     username: root
@@ -20,7 +20,7 @@ spring:
       max-file-size: 10MB   # Tamaño máximo permitido para cada archivo
       max-request-size: 10MB  # Tamaño máximo permitido para toda la solicitud (incluyendo todos los archivos)
 server:
-   port: 8086
+   port: 8087
 
 logging:
   file:
