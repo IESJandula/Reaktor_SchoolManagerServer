@@ -15,5 +15,7 @@ public class DatosMatriculaDto
 	private String apellidos;
 	
 	private String asignatura;
+	
+	private String estadoMatricula;
 
 }
