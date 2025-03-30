@@ -79,7 +79,7 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                         datosBrutoAlumnoMatricula.setNombre(nombreAlumno);
                     	
                         // Obtener a que campo de asignatura corresponde
-                        String asignatura = valoresCampos[i].trim().replace("\"", "");
+                        String asignatura = valoresCampos[i].trim().replaceAll("[.\"]", "");
                         
                         // Añadir asignatura matriculada al registro -> LENGUA
                         datosBrutoAlumnoMatricula.setAsignatura(asignatura.toUpperCase());

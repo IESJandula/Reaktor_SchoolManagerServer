@@ -266,19 +266,20 @@ public class Paso1CargarMatriculaController
     
     /*Endpoint para que nos muestre los datos de las matriculas según un curso y una etapa*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.POST, value = "/datosMatriculas")
+    @RequestMapping(method = RequestMethod.PUT, value = "/datosMatriculas")
     public ResponseEntity<?> matricularAsignatura(@RequestHeader(value = "nombre") String nombre,
 												  @RequestHeader(value = "apellidos") String apellidos,
 												  @RequestHeader(value = "asignatura") String asignatura,
 												  @RequestHeader(value = "curso") Integer curso,
-												  @RequestHeader(value = "etapa") String etapa)
+												  @RequestHeader(value = "etapa") String etapa,
+												  @RequestHeader(value = "estado") String estado)
     {
     	try 
     	{
     		
     		DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
     		
-    		if(datosBrutoAlumnoMatriculas != null) 
+    		if(datosBrutoAlumnoMatriculas.getEstadoMatricula() == "MATR") 
     		{
     			String mensajeError = "Ya existe un alumno matriculado en esa asignatura";
     			
@@ -293,48 +294,13 @@ public class Paso1CargarMatriculaController
     		CursoEtapa cursoEtapa = new CursoEtapa();
     		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
     		
-    		DatosBrutoAlumnoMatricula nuevosDatosBrutoAlumnoMatriculas = new DatosBrutoAlumnoMatricula();
+    		datosBrutoAlumnoMatriculas.setNombre(nombre);
+    		datosBrutoAlumnoMatriculas.setApellidos(apellidos);
+    		datosBrutoAlumnoMatriculas.setAsignatura(asignatura);
+    		datosBrutoAlumnoMatriculas.setCursoEtapa(cursoEtapa);
+    		datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
     		
-    		nuevosDatosBrutoAlumnoMatriculas.setNombre(nombre);
-    		nuevosDatosBrutoAlumnoMatriculas.setApellidos(apellidos);
-    		nuevosDatosBrutoAlumnoMatriculas.setAsignatura(asignatura);
-    		nuevosDatosBrutoAlumnoMatriculas.setCursoEtapa(cursoEtapa);
-    		
-    		this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(nuevosDatosBrutoAlumnoMatriculas);
-    		
-    		return ResponseEntity.ok(datosBrutoAlumnoMatriculas);
-    	}
-    	catch (SchoolManagerServerException schoolManagerServerException) 
-    	{
-    		
-    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-    	}
-    	
-    }
-    
-    /*Endpoint para que nos muestre los datos de las matriculas según un curso y una etapa*/
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.DELETE, value = "/datosMatriculas")
-    public ResponseEntity<?> desmatricularAsignatura(@RequestHeader(value = "nombre") String nombre,
-										    		 @RequestHeader(value = "apellidos") String apellidos,
-										    		 @RequestHeader(value = "asignatura") String asignatura,
-										    		 @RequestHeader(value = "curso") Integer curso,
-										    		 @RequestHeader(value = "etapa") String etapa)
-    {
-    	try 
-    	{
-    		
-    		DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
-    		
-    		if(datosBrutoAlumnoMatriculas == null) 
-    		{
-    			String mensajeError = "No se ha encontrado un alumno con esos datos";
-    			
-    			log.error(mensajeError);
-    			throw new SchoolManagerServerException(6, mensajeError);
-    		}
-    		
-    		this.iDatosBrutoAlumnoMatriculaRepository.delete(datosBrutoAlumnoMatriculas);
+    		this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculas);
     		
     		return ResponseEntity.ok().build();
     	}
@@ -345,5 +311,4 @@ public class Paso1CargarMatriculaController
     	}
     	
     }
-
 }

@@ -45,8 +45,7 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
      */
     @Query("SELECT new es.iesjandula.school_manager_server.dtos.AlumnoDto3(d.nombre, d.apellidos, d.asignado) " +
            "FROM DatosBrutoAlumnoMatricula d " +
-           "WHERE d.cursoEtapa.idCursoEtapa.curso = :curso " +
-           "AND d.cursoEtapa.idCursoEtapa.etapa = :etapa " +
+           "WHERE d.cursoEtapa.idCursoEtapa.curso = :curso AND d.cursoEtapa.idCursoEtapa.etapa = :etapa AND d.estadoMatricula = 'MATR'" +
            "GROUP BY d.nombre, d.apellidos, d.asignado")
     List<AlumnoDto3> findDistinctAlumnosByCursoEtapa(@Param("curso") Integer curso, 
     												 @Param("etapa") String etapa);
