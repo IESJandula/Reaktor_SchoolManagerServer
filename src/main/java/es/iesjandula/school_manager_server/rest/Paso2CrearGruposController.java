@@ -443,7 +443,10 @@ public class Paso2CrearGruposController
                     idAsignatura.setNombre(datosBrutoAlumnoMatriculaAsignaturaOpt.getAsignatura());
 
                     // Buscar la asignatura existente
-                    Optional<Asignatura> optionalAsignatura = this.iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, idAsignatura.getNombre(), grupo);
+                    Optional<Asignatura> optionalAsignatura = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, idAsignatura.getNombre(), grupo);
+                    if (!optionalAsignatura.isPresent()) {
+                        optionalAsignatura = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, idAsignatura.getNombre(), 'N');
+                    }
                     Asignatura asignatura = new Asignatura();
                     
                     if(optionalAsignatura.isPresent())

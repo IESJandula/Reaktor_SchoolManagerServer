@@ -1,5 +1,5 @@
 spring:
-  jpa.hibernate.ddl-auto: none
+  jpa.hibernate.ddl-auto: update
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_schoolManagerServer?createDatabaseIfNotExist=true
     username: root
