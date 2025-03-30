@@ -3,6 +3,7 @@ package es.iesjandula.school_manager_server.rest;
 import java.util.List;
 import java.util.Optional;
 
+import es.iesjandula.school_manager_server.dtos.AsignaturaDtoSinGrupo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -80,6 +81,52 @@ public class Paso3AsignaturasYBloquesController
 		   }
 		   
 	   }
+
+	/**
+	 * Endpoint para obtener las asignaturas de los cursos etapas.
+	 *
+	 * Este método recibe los parámetros del curso y la etapa y luego recupera una lista
+	 * de asignaturas mostrando su nombre, el nº de horas, el nº de alumnos tanto en general
+	 * como en los distintos grupos.
+	 *
+	 * @param curso 		     - El curso para el que se solicita la lista de alumnos.
+	 * @param etapa 			 - La etapa para la cual se solicita la lista de alumnos.
+	 * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
+	 */
+	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+	@RequestMapping(method = RequestMethod.GET, value = "/asignaturasUnicas")
+	public ResponseEntity<?> obtenerAsignaturasUnicas(@RequestHeader("curso") int curso,
+											   @RequestHeader("etapa") String etapa)
+	{
+		try
+		{
+			List<AsignaturaDtoSinGrupo> asignaturas = iAsignaturaRepository.findByCursoAndEtapaDistinct(curso, etapa);
+
+			if(asignaturas.isEmpty())
+			{
+				String mensajeError = "No existen asignaturas con ese curso y etapa";
+				log.error(mensajeError);
+				throw new SchoolManagerServerException(1, mensajeError);
+			}
+
+
+			return ResponseEntity.status(200).body(asignaturas);
+		}
+		catch (SchoolManagerServerException schoolManagerServerException)
+		{
+			return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+		}
+		catch (Exception exception)
+		{
+
+			String msgError = "Error al acceder a la base de datos";
+			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+
+			log.error(msgError, exception);
+			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+		}
+
+	}
 	   
 	   /**
 	    * Endpoint para crear un bloque y asignarlo a un conjunto de asignaturas

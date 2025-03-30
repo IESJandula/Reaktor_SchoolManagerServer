@@ -3,6 +3,7 @@ package es.iesjandula.school_manager_server.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import es.iesjandula.school_manager_server.dtos.AsignaturaDtoSinGrupo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -38,7 +39,14 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre, a.horas, a.bloqueId.id")
 	List<AsignaturaDto> findByCursoAndEtapa(@Param("curso") Integer curso, 
 										    @Param("etapa") String etapa);
-	
+	@Query("SELECT new es.iesjandula.school_manager_server.dtos.AsignaturaDtoSinGrupo(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas) "
+			+ "FROM Asignatura a "
+			+ "LEFT JOIN a.matriculas m "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa "
+			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas")
+	List<AsignaturaDtoSinGrupo> findByCursoAndEtapaDistinct(@Param("curso") Integer curso,
+															@Param("etapa") String etapa);
+
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombre")

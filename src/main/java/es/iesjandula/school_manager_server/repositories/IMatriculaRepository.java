@@ -81,5 +81,13 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 							   @Param("etapa") String etapa,
 							   @Param("grupo") Character grupo);
 
+	@Query("SELECT COUNT(DISTINCT m.idMatricula.alumno.id) "
+			+ "FROM Matricula m "
+			+ "WHERE m.idMatricula.asignatura.idAsignatura.curso = :curso AND m.idMatricula.asignatura.idAsignatura.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.grupo = :grupo AND m.idMatricula.asignatura.idAsignatura.nombre = :asignatura")
+	Long numeroAlumnosPorGrupoYAsignatura(@Param("curso") Integer curso,
+										  @Param("etapa") String etapa,
+										  @Param("grupo") Character grupo,
+										  @Param("asignatura") String asignatura);
+
 
 }

@@ -681,4 +681,50 @@ public class Paso2CrearGruposController
             return ResponseEntity.status(500).body(schoolManagerServerException);
         }
     }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/numeroAlumnosEnAsignatura")
+    public ResponseEntity<?> obtenerCantidadAlumnosEnGrupoPorAsignatura(@RequestHeader(value = "curso", required = true) Integer curso,
+                                                           @RequestHeader(value = "etapa", required = true) String etapa,
+                                                           @RequestHeader(value = "grupo", required = true) Character grupo,
+                                                                        @RequestHeader(value = "asignatura", required = true) String asignatura)
+    {
+        try
+        {
+            List<Character> listaGrupos = iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapaChar(curso,etapa);
+
+            // Si no esta ese grupo lanzar excepcion
+            if (!listaGrupos.contains(grupo)) {
+                log.error("ERROR - Grupo vacio");
+                throw new SchoolManagerServerException(404, "ERROR - No se ha encontrado ningún grupo con esa letra");
+            }
+
+            // Alumnos en el grupo
+            Long numAlumnos = iMatriculaRepository.numeroAlumnosPorGrupoYAsignatura(curso,etapa,grupo,asignatura);
+
+            // Devolver la lista
+            log.info("INFO - Lista de los cursos etapas");
+            return ResponseEntity.status(200).body(numAlumnos);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            // Manejo de excepciones personalizadas
+            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
+
+            // Devolver la excepción personalizada con código 1 y el mensaje de error
+            return ResponseEntity.status(404).body(schoolManagerServerException);
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String msgError = "ERROR - No se pudo cargar el numero de alumnos";
+            log.error(msgError, exception);
+
+            // Devolver la excepción personalizada con código 1, el mensaje de error y la
+            // excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
+                    1, msgError, exception);
+            return ResponseEntity.status(500).body(schoolManagerServerException);
+        }
+    }
 }
