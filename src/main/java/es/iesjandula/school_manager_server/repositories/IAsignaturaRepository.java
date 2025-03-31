@@ -32,13 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
 public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsignatura>
 {
 	
-	@Query("SELECT new es.iesjandula.school_manager_server.dtos.AsignaturaDto(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre, a.horas, a.bloqueId.id, COUNT(m)) "
+	@Query("SELECT DISTINCT new es.iesjandula.school_manager_server.dtos.AsignaturaDto(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id) "
 			+ "FROM Asignatura a "
 			+ "LEFT JOIN a.matriculas m "
 			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa "
-			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre, a.horas, a.bloqueId.id")
+			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id")
 	List<AsignaturaDto> findByCursoAndEtapa(@Param("curso") Integer curso, 
 										    @Param("etapa") String etapa);
+	
 	@Query("SELECT new es.iesjandula.school_manager_server.dtos.AsignaturaDtoSinGrupo(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas) "
 			+ "FROM Asignatura a "
 			+ "LEFT JOIN a.matriculas m "

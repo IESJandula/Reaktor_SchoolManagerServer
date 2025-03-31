@@ -12,15 +12,12 @@ public class AsignaturaDto
 
 	private Integer curso;
 
-	private String etapa ;
+	private String etapa;
 	
-	private Character grupo ;
-
 	private String nombre;
 	
 	private Integer horas;
 	
-	private Long bloqueId ;
+	private Long bloqueId;
 	
-	private Long numeroDeAlumnos;
 }
