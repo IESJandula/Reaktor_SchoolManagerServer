@@ -62,7 +62,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "JOIN m.idMatricula idM "
 			+ "JOIN idM.asignatura a "
 			+ "WHERE idM.asignatura.idAsignatura.curso = :curso AND idM.asignatura.idAsignatura.etapa = :etapa AND idM.asignatura.idAsignatura.grupo = :grupo AND idM.alumno.nombre = :nombre")
-	Integer encontrarIdAlumnoPorCursoEtapaGrupoYNombre(@Param("curso") Integer curso,
+	List<Integer> encontrarIdAlumnoPorCursoEtapaGrupoYNombre(@Param("curso") Integer curso,
 													   @Param("etapa") String etapa,
 													   @Param("grupo") Character grupo,
 													   @Param("nombre") String nombre);

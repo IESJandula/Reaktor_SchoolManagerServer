@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping(value = "/crearGrupos")
-public class Paso2CrearGruposController 
+public class Paso3CrearGruposController 
 {
     @Autowired
     private ICursoEtapaRepository iCursoEtapaRepository;
@@ -485,8 +485,11 @@ public class Paso2CrearGruposController
                     datosBrutoAlumnoMatriculaAsignaturaOpt.setAsignado(true);
                     this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculaAsignaturaOpt);
                     
-                    // Guardar el registro en la tabla Matricula
-                    this.iMatriculaRepository.saveAndFlush(matricula);
+                    if(datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("MATR") || datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("PEND")) {
+                    	
+                    	// Guardar el registro en la tabla Matricula
+                    	this.iMatriculaRepository.saveAndFlush(matricula);
+                    }
                 }
 
             }
@@ -576,9 +579,14 @@ public class Paso2CrearGruposController
                 IdCursoEtapa idCursoEtapa = new IdCursoEtapa(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa());
                 CursoEtapa cursoEtapa = new CursoEtapa(idCursoEtapa);
 
-                Integer idAlumno = this.iMatriculaRepository.encontrarIdAlumnoPorCursoEtapaGrupoYNombre(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(),alumnoABorrar.getGrupo(),alumnoABorrar.getNombreAlumno());
-//            	Eliminar el registro en la tabla Asignatura
-            	this.iMatriculaRepository.borrarPorTodo(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(), alumnoABorrar.getNombreAsignatura(),idAlumno);
+                List<Integer> listIdAlumno = this.iMatriculaRepository.encontrarIdAlumnoPorCursoEtapaGrupoYNombre(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(),alumnoABorrar.getGrupo(),alumnoABorrar.getNombreAlumno());
+                
+                for(Integer idAlumno : listIdAlumno)
+                {
+                	
+//            		Eliminar el registro en la tabla Asignatura
+                	this.iMatriculaRepository.borrarPorTodo(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(), alumnoABorrar.getNombreAsignatura(),idAlumno);
+                }
             	
 //            	Si es el ultimo alumno
             	if(this.iMatriculaRepository.numeroAsignaturasPorNombre(idAsignatura.getNombre()) < 1) 
@@ -634,97 +642,6 @@ public class Paso2CrearGruposController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
             
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }
-
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/numeroAlumnos")
-    public ResponseEntity<?> obtenerCantidadAlumnosEnGrupo(@RequestHeader(value = "curso", required = true) Integer curso,
-                                                           @RequestHeader(value = "etapa", required = true) String etapa,
-                                                           @RequestHeader(value = "grupo", required = true) Character grupo)
-    {
-        try
-        {
-            List<Character> listaGrupos = iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapaChar(curso,etapa);
-
-            // Si no esta ese grupo lanzar excepcion
-            if (!listaGrupos.contains(grupo)) {
-                log.error("ERROR - Grupo vacio");
-                throw new SchoolManagerServerException(404, "ERROR - No se ha encontrado ningún grupo con esa letra");
-            }
-
-            // Alumnos en el grupo
-            Long numAlumnos = iMatriculaRepository.numeroAlumnosPorGrupo(curso,etapa,grupo);
-
-            // Devolver la lista
-            log.info("INFO - Lista de los cursos etapas");
-            return ResponseEntity.status(200).body(numAlumnos);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            // Manejo de excepciones personalizadas
-            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
-
-            // Devolver la excepción personalizada con código 1 y el mensaje de error
-            return ResponseEntity.status(404).body(schoolManagerServerException);
-        }
-        catch (Exception exception)
-        {
-            // Manejo de excepciones generales
-            String msgError = "ERROR - No se pudo cargar el numero de alumnos";
-            log.error(msgError, exception);
-
-            // Devolver la excepción personalizada con código 1, el mensaje de error y la
-            // excepción general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
-                    1, msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException);
-        }
-    }
-
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/numeroAlumnosEnAsignatura")
-    public ResponseEntity<?> obtenerCantidadAlumnosEnGrupoPorAsignatura(@RequestHeader(value = "curso", required = true) Integer curso,
-                                                           @RequestHeader(value = "etapa", required = true) String etapa,
-                                                           @RequestHeader(value = "grupo", required = true) Character grupo,
-                                                                        @RequestHeader(value = "asignatura", required = true) String asignatura)
-    {
-        try
-        {
-            List<Character> listaGrupos = iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapaChar(curso,etapa);
-
-            // Si no esta ese grupo lanzar excepcion
-            if (!listaGrupos.contains(grupo)) {
-                log.error("ERROR - Grupo vacio");
-                throw new SchoolManagerServerException(404, "ERROR - No se ha encontrado ningún grupo con esa letra");
-            }
-
-            // Alumnos en el grupo
-            Long numAlumnos = iMatriculaRepository.numeroAlumnosPorGrupoYAsignatura(curso,etapa,grupo,asignatura);
-
-            // Devolver la lista
-            log.info("INFO - Lista de los cursos etapas");
-            return ResponseEntity.status(200).body(numAlumnos);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            // Manejo de excepciones personalizadas
-            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
-
-            // Devolver la excepción personalizada con código 1 y el mensaje de error
-            return ResponseEntity.status(404).body(schoolManagerServerException);
-        }
-        catch (Exception exception)
-        {
-            // Manejo de excepciones generales
-            String msgError = "ERROR - No se pudo cargar el numero de alumnos";
-            log.error(msgError, exception);
-
-            // Devolver la excepción personalizada con código 1, el mensaje de error y la
-            // excepción general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
-                    1, msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException);
         }
     }
 }
