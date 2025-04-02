@@ -26,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/asignaturasYBloques")
+@RequestMapping(value = "/schoolManager/asignaturasYBloques")
 public class Paso2AsignaturasYBloquesController 
 {
 	@Autowired

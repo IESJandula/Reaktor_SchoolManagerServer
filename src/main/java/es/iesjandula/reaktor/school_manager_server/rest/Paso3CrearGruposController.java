@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/crearGrupos")
+@RequestMapping(value = "/schoolManager/crearGrupos")
 public class Paso3CrearGruposController 
 {
     @Autowired

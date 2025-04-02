@@ -19,7 +19,7 @@ import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerExce
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping(value = "/crearReducciones")
+@RequestMapping(value = "/schoolManager/crearReducciones")
 @Slf4j
 public class Paso6Reducciones 
 {
@@ -35,6 +35,8 @@ public class Paso6Reducciones
 	{
 		try 
 		{
+			
+			
 			
 			Optional<Reduccion> reduccion = this.iReduccionRepository.findById(nombre);
 			
