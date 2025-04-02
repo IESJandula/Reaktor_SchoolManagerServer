@@ -84,9 +84,25 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
 																						 	@Param("curso") Integer curso, 
 			 																				@Param("etapa") String etapa);
 
-//    @Query("SELEC ")
-//    List<DatosBrutoAlumnoMatricula> encontrarAsignatuasPorCursoYEtapa(@Param("curso") Integer curso, 
-//			  														  @Param("etapa") String etapa);
-    
     List<DatosBrutoAlumnoMatricula> findDistinctAsignaturaByCursoEtapa(CursoEtapa cursoEtapa);
+    
+   
+//	@Query("DELETE "
+//			+ "FROM DatosBrutoAlumnoMatricula d "
+//			+ "WHERE d.nombre = :nombre AND d.apellidos = :apellidos AND d.asignatura = :asignatura AND c.idCursoEtapa.curso = :curso AND c.idCursoEtapa.etapa = :etapa")
+//	void borrarPorCursoYEtapa(@Param("nombre") String nombre, 
+//	 						  @Param("apellidos") String apellidos,
+//	 						  @Param("asignatura") String asignatura,
+//	 						  @Param("curso") Integer curso, 
+//	 						  @Param("etapa") String etapa);
+    
+    @Transactional
+   	@Modifying
+    void deleteByNombreAndApellidosAndAsignaturaAndEstadoMatriculaAndCursoEtapa(@Param("nombre") String nombre, 
+																			 	@Param("apellidos") String apellidos,
+																			 	@Param("asignatura") String asignatura,
+																			 	@Param("estadoMatricula") String estadoMatricula,
+																			 	@Param("cursoEtapa") CursoEtapa cursoEtapa);
+
+
 }

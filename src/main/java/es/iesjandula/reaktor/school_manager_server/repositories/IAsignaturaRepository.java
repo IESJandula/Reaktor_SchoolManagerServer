@@ -52,8 +52,8 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
 	List<Optional<Asignatura>> findAsignaturasByCursoEtapaAndNombre(@Param("curso") int curso, 
-														      @Param("etapa") String etapa, 
-														      @Param("nombre") String nombre);
+														      		@Param("etapa") String etapa, 
+														      		@Param("nombre") String nombre);
 
 	@Transactional
 	@Modifying
@@ -61,7 +61,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
 	void borrarPorCursoYEtapa(@Param("curso") int curso, 
-							  @Param("etapa") String etapa) ;
+							  @Param("etapa") String etapa);
 	
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
@@ -75,8 +75,8 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
 	List<Asignatura> findNombreByCursoEtapaAndNombres(@Param("curso") int curso,
-												@Param("etapa") String etapa, 
-												@Param("nombres") String nombres);
+													  @Param("etapa") String etapa, 
+													  @Param("nombres") String nombres);
 	
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaHorasDto(a.idAsignatura.nombre, a.horas) "
 			+ "FROM Asignatura a "

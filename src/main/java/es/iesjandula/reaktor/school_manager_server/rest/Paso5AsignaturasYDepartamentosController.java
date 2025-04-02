@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping(value = "/asignaturasYDepartamentos")
-public class Paso4AsignaturasYDepartamentosController 
+public class Paso5AsignaturasYDepartamentosController 
 {
 
 }

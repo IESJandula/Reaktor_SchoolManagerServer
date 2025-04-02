@@ -1,20 +1,29 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
+import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto;
 
 /**
- * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link Reduccion}.
+ * Interfaz que define los métodos para acceder y manipular los datos de la
+ * entidad {@link Reduccion}.
  * ----------------------------------------------------------------------------------------------------------------------
- * Esta interfaz extiende {@link JpaRepository}, lo que facilita la ejecución de operaciones CRUD sobre la tabla correspondiente
- * a la entidad {@link Reduccion}. La clave primaria de la entidad {@link Reduccion} está compuesta por un {@link String}, que
+ * Esta interfaz extiende {@link JpaRepository}, lo que facilita la ejecución de
+ * operaciones CRUD sobre la tabla correspondiente
+ * a la entidad {@link Reduccion}. La clave primaria de la entidad
+ * {@link Reduccion} está compuesta por un {@link String}, que
  * representa el {@code nombre} de la reducción.
  * ----------------------------------------------------------------------------------------------------------------------
  */
 @Repository
-public interface IReduccionRepository extends JpaRepository<Reduccion, String>
-{
+public interface IReduccionRepository extends JpaRepository<Reduccion, String> {
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto(r.nombre, r.horas, r.decideDireccion) "
+			+ "FROM Reduccion r")
+	List<ReduccionDto> encontrarTodasReducciones();
 
 }

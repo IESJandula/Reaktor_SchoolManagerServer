@@ -106,7 +106,7 @@ public class Paso1CargarMatriculaController
             // Llamar al Service IParseoDatosBrutos para realizar parseo
             this.iParseoDatosBrutos.parseoDatosBrutos(scanner, cursoEtapa);
 
-            log.info("INFO - Se ha enviado todo correctamente");
+            log.info("INFO - La matricula "+ idCursoEtapa.getCurso() + " - " + idCursoEtapa.getEtapa() +" se ha cargado correctamente");
             
             List<DatosBrutoAlumnoMatricula> listAsignaturas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAsignaturaByCursoEtapa(cursoEtapa);
             
@@ -294,11 +294,12 @@ public class Paso1CargarMatriculaController
     		CursoEtapa cursoEtapa = new CursoEtapa();
     		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
     		
-    		datosBrutoAlumnoMatriculas.setNombre(nombre);
-    		datosBrutoAlumnoMatriculas.setApellidos(apellidos);
-    		datosBrutoAlumnoMatriculas.setAsignatura(asignatura);
-    		datosBrutoAlumnoMatriculas.setCursoEtapa(cursoEtapa);
-    		datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
+			datosBrutoAlumnoMatriculas.setNombre(nombre);
+			datosBrutoAlumnoMatriculas.setNombre(nombre);
+			datosBrutoAlumnoMatriculas.setApellidos(apellidos);
+			datosBrutoAlumnoMatriculas.setAsignatura(asignatura);
+			datosBrutoAlumnoMatriculas.setCursoEtapa(cursoEtapa);
+			datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
     		
     		this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculas);
     		
@@ -311,4 +312,104 @@ public class Paso1CargarMatriculaController
     	}
     	
     }
+    
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/datosMatriculas")
+    public ResponseEntity<?> matricularAlumno(@RequestHeader(value = "nombre") String nombre,
+											  @RequestHeader(value = "apellidos") String apellidos,
+											  @RequestHeader(value = "asignatura") String asignatura,
+											  @RequestHeader(value = "curso") Integer curso,
+											  @RequestHeader(value = "etapa") String etapa,
+											  @RequestHeader(value = "estado") String estado)
+    {
+    	try 
+    	{
+    		
+    		DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
+    		
+    		if(datosBrutoAlumnoMatriculas != null) 
+    		{
+    			String mensajeError = "Ya existe un alumno matriculado con ese nombre y esas asignaturas";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+    		}
+    		
+    		IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
+    		idCursoEtapa.setCurso(curso);
+    		idCursoEtapa.setEtapa(etapa);
+    		
+    		CursoEtapa cursoEtapa = new CursoEtapa();
+    		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
+    		
+    		DatosBrutoAlumnoMatricula nuevosDatosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
+    		
+    		nuevosDatosBrutoAlumnoMatricula.setNombre(nombre);
+    		nuevosDatosBrutoAlumnoMatricula.setNombre(nombre);
+    		nuevosDatosBrutoAlumnoMatricula.setApellidos(apellidos);
+    		nuevosDatosBrutoAlumnoMatricula.setAsignatura(asignatura);
+    		nuevosDatosBrutoAlumnoMatricula.setCursoEtapa(cursoEtapa);
+    		nuevosDatosBrutoAlumnoMatricula.setEstadoMatricula(estado);
+    		
+    		this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(nuevosDatosBrutoAlumnoMatricula);
+    		
+    		return ResponseEntity.ok().build();
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
+    		
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+    	}
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/datosMatriculas")
+    public ResponseEntity<?> desmatricularAlumno(@RequestHeader(value = "nombre") String nombre,
+									    		 @RequestHeader(value = "apellidos") String apellidos,
+									    		 @RequestHeader(value = "asignatura") String asignatura,
+									    		 @RequestHeader(value = "curso") Integer curso,
+									    		 @RequestHeader(value = "etapa") String etapa,
+									    		 @RequestHeader(value = "estado") String estado)
+    {
+    	try 
+    	{
+    		
+    		DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
+    		
+    		if(datosBrutoAlumnoMatriculas == null) 
+    		{
+    			String mensajeError = "No existe un alumno matriculado con ese nombre y esas asignaturas";
+    			
+    			log.error(mensajeError);
+    			throw new SchoolManagerServerException(6, mensajeError);
+    		}
+    		
+    		IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
+    		idCursoEtapa.setCurso(curso);
+    		idCursoEtapa.setEtapa(etapa);
+    		
+    		CursoEtapa cursoEtapa = new CursoEtapa();
+    		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
+    		
+    		DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaABorrar = new DatosBrutoAlumnoMatricula();
+    		
+    		datosBrutoAlumnoMatriculaABorrar.setNombre(nombre);
+    		datosBrutoAlumnoMatriculaABorrar.setApellidos(apellidos);
+    		datosBrutoAlumnoMatriculaABorrar.setAsignatura(asignatura);
+    		datosBrutoAlumnoMatriculaABorrar.setCursoEtapa(cursoEtapa);
+    		datosBrutoAlumnoMatriculaABorrar.setEstadoMatricula(estado);
+    		datosBrutoAlumnoMatriculaABorrar.setAsignado(false);
+    		
+    		this.iDatosBrutoAlumnoMatriculaRepository.deleteByNombreAndApellidosAndAsignaturaAndEstadoMatriculaAndCursoEtapa(datosBrutoAlumnoMatriculaABorrar.getNombre(),
+    				datosBrutoAlumnoMatriculaABorrar.getApellidos(), datosBrutoAlumnoMatriculaABorrar.getAsignatura(), datosBrutoAlumnoMatriculaABorrar.getEstadoMatricula(), cursoEtapa);
+    		
+    		return ResponseEntity.ok().build();
+    	}
+    	catch (SchoolManagerServerException schoolManagerServerException) 
+    	{
+    		
+    		return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+    	}
+    }
+    
 }
