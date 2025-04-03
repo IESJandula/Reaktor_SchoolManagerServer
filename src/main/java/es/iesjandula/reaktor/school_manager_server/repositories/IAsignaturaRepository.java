@@ -83,4 +83,11 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
 	List<AsignaturaHorasDto> findNombreAndHorasByCursoEtapaAndNombres(@Param("curso") Integer curso,
 																	  @Param("etapa") String etapa);
+	
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
+	Asignatura encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
+											  @Param("etapa") String etapa, 
+											  @Param("nombres") String nombres);
 }
