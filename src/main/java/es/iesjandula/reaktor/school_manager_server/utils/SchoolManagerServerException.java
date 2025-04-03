@@ -6,7 +6,6 @@ import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
 /**
  * Clase personalizada de excepción que extiende {@link Exception}.
@@ -16,7 +15,6 @@ import lombok.NoArgsConstructor;
  * -----------------------------------------------------------------------------------------------------------------
  */
 @AllArgsConstructor
-@NoArgsConstructor
 public class SchoolManagerServerException extends Exception
 {
 	/**
@@ -32,19 +30,6 @@ public class SchoolManagerServerException extends Exception
 	
 	// Excepción original que puede ser asociada a esta excepción personalizada.
 	private Exception exception;
-	
-	/**
-	 * Constructor de la excepción con solo un mensaje.
-	 * -----------------------------------------------------------------------------------------------------------------
-	 * Este constructor permite crear una excepción con un solo mensaje. Además, imprime el mensaje en consola.
-	 * -----------------------------------------------------------------------------------------------------------------
-	 * @param msg - El mensaje que se asociará con la excepción.
-	 */
-	public SchoolManagerServerException(String msg)
-	{
-		this.msg = msg;
-		System.out.println(msg);
-	}
 	
 	/**
 	 * Constructor de la excepción con código y mensaje.

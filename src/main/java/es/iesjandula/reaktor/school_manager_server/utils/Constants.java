@@ -18,19 +18,39 @@ public class Constants
     public static final String CSV_DELIMITER = ",";
 
     /** 
-     * Ruta de acceso a la carpeta de recursos dentro de src/main/resources/.
-     * <p>Se utiliza el separador de archivos del sistema operativo para garantizar la compatibilidad.</p>
-     */
-    public static final String CSV_ROUTES = "src" + File.separator + "main" + File.separator + "resources" + File.separator;
-
-    /** 
      * Letra por defecto para el grupo .
      * <p>Indica el grupo base asignado, comenzando con 'A'.</p>
      */
     public static final char GROUP = 'A';
     
-    public static final String NOMBRE_FICHERO_DEPARTAMENTO = "departamentos.csv";
+	/*********************************************************/
+	/******************* Ficheros y carpetas *****************/
+	/*********************************************************/
+	
+	/** Nombre de la carpeta de configuracion */
+	public static final String SCHOOL_MANAGER_SERVER_CONFIG      = "school_manager_server_config" ;
+	
+	/** Nombre de la carpeta de configuracion al ejecutarse */
+	public static final String SCHOOL_MANAGER_SERVER_CONFIG_EXEC = "school_manager_config_exec" ;
 
-    public static final String NOMBRE_FICHERO_ASIGNATURAS= "asignaturas.csv";
+	/** Fichero con los cursos y etapas */
+	public static final String FICHERO_CURSOS_ETAPAS 	  		 = SCHOOL_MANAGER_SERVER_CONFIG_EXEC + File.separator + "cursos_etapas.csv";
+	
+	/** Fichero con los cursos y etapas */
+	public static final String FICHERO_DEPARTAMENTOS 	  		 = SCHOOL_MANAGER_SERVER_CONFIG_EXEC + File.separator + "departamentos.csv";
+	
+	/*********************************************************/
+	/****************** Modo DDL - Create ********************/
+	/*********************************************************/
 
+	public static final String MODO_DDL_CREATE = "create";
+	
+	/*********************************************************/
+	/******************* Códigos de error ********************/
+	/*********************************************************/
+	
+	// Carga de datos
+	public static final int ERR_CODE_PROCESANDO_CURSO_ETAPA   = 200 ;
+	public static final int ERR_CODE_PROCESANDO_DEPARTAMENTOS = 201 ;
+	public static final int ERR_CODE_CIERRE_READER 			  = 202 ;
 }
