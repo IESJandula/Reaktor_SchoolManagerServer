@@ -194,11 +194,12 @@ public class Paso2AsignaturasYBloquesController
 			{
 				iBloqueRepository.delete(bloque);
 			}
-			else {
+			else 
+			{
 				log.info("Queda bloques por eliminar");
 			}
 			
-			log.info("INFO - Bloque "+ bloque +" eliminado con éxito");
+			log.info("INFO - Bloque "+ bloque.getId() +" eliminado con éxito");
 			return ResponseEntity.status(200).build();
 				
 		}
