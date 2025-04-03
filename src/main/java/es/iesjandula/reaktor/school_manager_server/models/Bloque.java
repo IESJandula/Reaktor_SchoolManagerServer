@@ -10,8 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
  * Entidad - Bloque
@@ -24,7 +25,8 @@ import lombok.NoArgsConstructor;
  * <li>La clase tiene una relación de uno a muchos con la entidad "Asignatura", representando el bloque de materias.</li>
  * </ul>
  */
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity

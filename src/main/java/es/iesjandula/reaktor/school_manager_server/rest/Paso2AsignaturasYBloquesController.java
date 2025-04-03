@@ -6,7 +6,6 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -18,7 +17,6 @@ import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaHorasDto;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.Bloque;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IBloqueRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
@@ -163,40 +161,45 @@ public class Paso2AsignaturasYBloquesController
 	    * para luego settear a null el campo bloque_id y eliminar la asignatura del bloque de 
 	    * modo que dicho bloque quedará eliminado
 	    * 
-	    * @param  idAsignatura 	 - JSON que contiene el curso, la etapa y el nombre de la asignatura.
+	    * @param  idAsignaturaDto 	 - JSON que contiene el curso, la etapa y el nombre de la asignatura.
 	    * @return ResponseEntity<?> - Respuesta del endpoint que no devolverá nada
 	    */
 	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
 	   @RequestMapping(method = RequestMethod.DELETE, value = "/bloques")
-	   public ResponseEntity<?> eliminarBloque(@RequestBody IdAsignatura idAsignatura)
+	   public ResponseEntity<?> eliminarBloque(@RequestHeader(value = "curso", required = true) Integer curso,
+			   								   @RequestHeader(value = "etapa", required = true) String etapa,
+			   								   @RequestHeader(value = "nombre", required = true) String nombre)
 	   {
 	   	try 
 	   	{
 	   		
 	   		// Buscamos el id de la asignatura
-			Optional<Asignatura> asignaturaOpt = iAsignaturaRepository.findById(idAsignatura);
+			Asignatura asignaturaDto = iAsignaturaRepository.encontrarPorCursoYEtapaYNombre(curso, etapa, nombre);
 			
-			if (!asignaturaOpt.isPresent())
+			if (asignaturaDto == null)
 			{
 				String mensajeError = "No se han encontrado asignaturas con esos parametros";
 				log.error(mensajeError);
 				
 				throw new SchoolManagerServerException(1, mensajeError);
 			}
-			Asignatura asignatura = asignaturaOpt.get();
 			
 			// Desasociar la asignatura del bloque
-			Bloque bloque = asignatura.getBloqueId();
-			asignatura.setBloqueId(null) ;
+			Bloque bloque = asignaturaDto.getBloqueId();
+			asignaturaDto.setBloqueId(null) ;
 			
-			this.iAsignaturaRepository.saveAndFlush(asignatura);
+			this.iAsignaturaRepository.saveAndFlush(asignaturaDto);
 			
 			if (bloque != null && bloque.getAsignaturas().isEmpty())
 			{
 				iBloqueRepository.delete(bloque);
 			}
+			else 
+			{
+				log.info("Queda bloques por eliminar");
+			}
 			
-			log.info("INFO - Bloque eliminado con éxito");
+			log.info("INFO - Bloque "+ bloque.getId() +" eliminado con éxito");
 			return ResponseEntity.status(200).build();
 				
 		}
@@ -218,7 +221,7 @@ public class Paso2AsignaturasYBloquesController
 	   @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
 	   @RequestMapping(method = RequestMethod.GET, value = "/horas")
 	   public ResponseEntity<?> mostrarHoras(@RequestHeader("curso") Integer curso, 
-			   @RequestHeader("etapa") String etapa)
+			   								 @RequestHeader("etapa") String etapa)
 	   {
 		   
 		   try
