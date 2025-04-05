@@ -3,6 +3,7 @@ package es.iesjandula.reaktor.school_manager_server.rest;
 import java.util.List;
 import java.util.Optional;
 
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,9 +36,7 @@ public class Paso6Reducciones
 	{
 		try 
 		{
-			
-			
-			
+
 			Optional<Reduccion> reduccion = this.iReduccionRepository.findById(nombre);
 			
 			if(reduccion.isPresent()) 
@@ -46,10 +45,13 @@ public class Paso6Reducciones
 				log.error(mensajeError);
 				throw new SchoolManagerServerException(1, mensajeError);
 			}
-			
+
+			IdReduccion idReduccion = new IdReduccion();
+			idReduccion.setNombre(nombre);
+			idReduccion.setHoras(horas);
+
 			Reduccion nuevaReduccion = new Reduccion();
-			nuevaReduccion.setNombre(nombre);
-			nuevaReduccion.setHoras(horas);
+			nuevaReduccion.setIdReduccion(idReduccion);
 			nuevaReduccion.setDecideDireccion(decideDireccion);
 			
 			this.iReduccionRepository.saveAndFlush(nuevaReduccion);
@@ -70,8 +72,6 @@ public class Paso6Reducciones
 		    log.error(mensajeError, exception);
 		    return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
-		
-		
 	}
 	
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -117,16 +117,19 @@ public class Paso6Reducciones
 		{
 			Optional<Reduccion> reduccion = this.iReduccionRepository.findById(nombre);
 			
-			if(!reduccion.isPresent()) 
+			if(reduccion.isEmpty())
 			{
 				String mensajeError = "No existe una reducción con ese nombre";
 				log.error(mensajeError);
 				throw new SchoolManagerServerException(1, mensajeError);
 			}
+
+			IdReduccion idReduccioABorrar = new IdReduccion();
+			idReduccioABorrar.setNombre(nombre);
+			idReduccioABorrar.setHoras(horas);
 			
 			Reduccion reduccionABorrar = new Reduccion();
-			reduccionABorrar.setNombre(nombre);
-			reduccionABorrar.setHoras(horas);
+			reduccionABorrar.setIdReduccion(idReduccioABorrar);
 			reduccionABorrar.setDecideDireccion(decideDireccion);
 			
 			this.iReduccionRepository.delete(reduccionABorrar);
@@ -147,7 +150,5 @@ public class Paso6Reducciones
 		    log.error(mensajeError, exception);
 		    return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
-		
 	}
-
 }

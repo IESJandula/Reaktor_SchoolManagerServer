@@ -1,13 +1,10 @@
 package es.iesjandula.reaktor.school_manager_server;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos;
 
 /**
  * Clase principal que inicia la aplicación Spring Boot.
@@ -23,9 +20,6 @@ import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos
 @ComponentScan(basePackages = { "es.iesjandula" })
 public class SchoolManagerServerApplication
 {
-	@Autowired
-	IParseoDatosBrutos iParseoDatosBrutos;
-	
 	/**
 	 * Método principal que se utiliza para arrancar la aplicación Spring Boot.
 	 * -----------------------------------------------------------------------------------------------------------------

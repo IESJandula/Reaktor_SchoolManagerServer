@@ -1,6 +1,10 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import es.iesjandula.reaktor.school_manager_server.models.Departamento;
@@ -15,5 +19,13 @@ import es.iesjandula.reaktor.school_manager_server.models.Departamento;
 @Repository
 public interface IDepartamentoRepository extends JpaRepository<Departamento, String>
 {
+	
+	/**
+     * Busca un Departamento por su nombre.
+     * @param nombre Nombre del departamento.
+     * @return Departamento encontrado o null si no existe.
+     */
+    @Query("SELECT d FROM Departamento d WHERE d.nombre = :nombre")
+    Optional<Departamento> findByNombre(@Param("nombre") String nombre);
 
 }

@@ -2,11 +2,8 @@ package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.List;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,18 +23,8 @@ import lombok.NoArgsConstructor;
 @Table(name = "Reduccion")
 public class Reduccion 
 {
-	/**
-	 * Nombre de la reducción. Este es un identificador único de la reducción.
-	 */
-	@Id
-	@Column(length = 100)
-	private String nombre;
-	
-	/**
-	 * Número de horas que se reducen para el profesor. Este valor es obligatorio.
-	 */
-	@Column(nullable = false)
-	private int horas;
+	@EmbeddedId
+	private IdReduccion idReduccion;
 	
 	/**
 	 * Indica si la reducción ha sido decidida por la dirección. Este valor es opcional.

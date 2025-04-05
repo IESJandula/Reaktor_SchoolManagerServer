@@ -5,11 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
-public class NombreAsignaturaDto 
+@AllArgsConstructor
+public class AsignaturaConDepartamentoDto
 {
-	
-	private String  nombreAsignaturas;
 
+    private String nombre;
+
+    private int plantilla;
+
+    private Long horas;
 }

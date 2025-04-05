@@ -3,6 +3,7 @@ package es.iesjandula.reaktor.school_manager_server.repositories;
 import java.util.List;
 import java.util.Optional;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,6 +15,7 @@ import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDtoSinGrupo;
 import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaHorasDto;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 
 /**
@@ -90,4 +92,31 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	Asignatura encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
 											  @Param("etapa") String etapa, 
 											  @Param("nombres") String nombres);
+	
+	@Query("SELECT DISTINCT idC "
+			+ "FROM CursoEtapaGrupo c "
+			+ "JOIN c.idCursoEtapaGrupo idC")
+	List<CursoEtapaGrupo> distinctCursoEtapaGrupo();
+	
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.grupo = :grupo")
+	List<Asignatura> asignaturasPorCursoEtapaGrupo(@Param("curso") int curso, 
+												   @Param("etapa") String etapa, 
+												   @Param("grupo") Character grupo);
+	
+	
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.grupo = :grupo AND a.idAsignatura.nombre = :nombre")
+	Optional<Asignatura> findAsignaturasByCursoEtapaGrupoAndNombre(@Param("curso") int curso,
+																   @Param("etapa") String etapa, 
+																   @Param("grupo") Character grupo, 
+																   @Param("nombre") String nombre);
+
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto(a.departamentoPropietario.nombre, a.departamentoPropietario.plantilla, SUM(a.horas)) " +
+			"FROM Asignatura a " +
+			"GROUP BY a.departamentoPropietario.nombre")
+	List<AsignaturaConDepartamentoDto> encontrarAsignaturasConDepartamento();
+
 }

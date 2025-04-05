@@ -22,7 +22,7 @@ import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto;
  */
 @Repository
 public interface IReduccionRepository extends JpaRepository<Reduccion, String> {
-	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto(r.nombre, r.horas, r.decideDireccion) "
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto(r.idReduccion.nombre, r.idReduccion.horas, r.decideDireccion) "
 			+ "FROM Reduccion r")
 	List<ReduccionDto> encontrarTodasReducciones();
 
