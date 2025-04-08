@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.configurations;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 @EnableWebMvc
+@ComponentScan(basePackages = { "es.iesjandula" })
 public class CORSConfig implements WebMvcConfigurer
 {
 	/** URL permitida de CORS */
@@ -26,7 +28,7 @@ public class CORSConfig implements WebMvcConfigurer
 	@Override
 	public void addCorsMappings(CorsRegistry registry)
 	{
-		registry.addMapping("/**").allowedOrigins(urlCors).allowedMethods("GET", "POST", "PUT", "DELETE")
+		registry.addMapping("/**").allowedOrigins(urlCors).allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH" , "OPTIONS")
 				.allowedHeaders("*");
 	}
 }

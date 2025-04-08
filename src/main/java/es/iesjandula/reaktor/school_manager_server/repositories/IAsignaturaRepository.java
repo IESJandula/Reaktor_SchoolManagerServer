@@ -100,7 +100,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.grupo = :grupo")
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.grupo = :grupo AND a.departamentoPropietario is null")
 	List<Asignatura> asignaturasPorCursoEtapaGrupo(@Param("curso") int curso, 
 												   @Param("etapa") String etapa, 
 												   @Param("grupo") Character grupo);
