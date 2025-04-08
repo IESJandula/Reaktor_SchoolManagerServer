@@ -453,12 +453,14 @@ public class Paso3CrearGruposController
                     	Asignatura exitente = optionalAsignatura.get();
                     	if(exitente.getIdAsignatura().getGrupo() == 'N') 
                     	{
-                    		
+                    		asignatura.setHoras(exitente.getHoras());
+                            log.error(String.valueOf(optionalAsignatura.get().getHoras()));
                     		this.iAsignaturaRepository.delete(exitente);
                     		asignatura.setMatriculas(new ArrayList<>()); //Si no la creamos con los datos de arriba y un array vacio para evitar nulos
                     	}
                     	else
                     	{
+                            asignatura.setHoras(exitente.getHoras());
                     		asignatura.setMatriculas(exitente.getMatriculas());
                     	}
                     	
@@ -567,37 +569,39 @@ public class Paso3CrearGruposController
             	
             	Asignatura asignatura = new Asignatura();
             	asignatura.setIdAsignatura(idAsignatura);
-            	
-            	IdMatricula idMatricula = new IdMatricula();
-            	idMatricula.setAlumno(alumno);
-            	idMatricula.setAsignatura(asignatura);
-            	
-            	Matricula matricula = new Matricula();
-            	matricula.setIdMatricula(idMatricula);
+                asignatura.setHoras(alumnoABorrar.getHoras());
+
+                IdMatricula idMatricula = new IdMatricula();
+                idMatricula.setAlumno(alumno);
+                idMatricula.setAsignatura(asignatura);
+
+                Matricula matricula = new Matricula();
+                matricula.setIdMatricula(idMatricula);
 
                 IdCursoEtapa idCursoEtapa = new IdCursoEtapa(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa());
                 CursoEtapa cursoEtapa = new CursoEtapa(idCursoEtapa);
 
                 List<Integer> listIdAlumno = this.iMatriculaRepository.encontrarIdAlumnoPorCursoEtapaGrupoYNombre(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(),alumnoABorrar.getGrupo(),alumnoABorrar.getNombreAlumno());
-                
+
                 for(Integer idAlumno : listIdAlumno)
                 {
-                	
+
 //            		Eliminar el registro en la tabla Asignatura
-                	this.iMatriculaRepository.borrarPorTodo(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(), alumnoABorrar.getNombreAsignatura(),idAlumno);
+                    this.iMatriculaRepository.borrarPorTodo(alumnoABorrar.getCurso(),alumnoABorrar.getEtapa(), alumnoABorrar.getNombreAsignatura(),idAlumno);
                 }
-            	
+
 //            	Si es el ultimo alumno
-            	if(this.iMatriculaRepository.numeroAsignaturasPorNombre(idAsignatura.getNombre()) < 1) 
+                if(this.iMatriculaRepository.numeroAsignaturasPorNombre(idAsignatura.getNombre()) < 1)
             	{
-            		
-            		// Eliminar el registro en la tabla Asignatura
-            		this.iAsignaturaRepository.delete(asignatura);
-            		
-            		idAsignatura.setGrupo('N');
-            		asignatura.setIdAsignatura(idAsignatura);
+
+                    // Eliminar el registro en la tabla Asignatura
+                    this.iAsignaturaRepository.delete(asignatura);
+
+                    idAsignatura.setGrupo('N');
+                    asignatura.setIdAsignatura(idAsignatura);
+                    asignatura.setHoras(alumnoABorrar.getHoras());
 //            		Volvemos a crear la asignatura con el grupo a "null"
-            		this.iAsignaturaRepository.saveAndFlush(asignatura);
+                    this.iAsignaturaRepository.saveAndFlush(asignatura);
             	}
 
 

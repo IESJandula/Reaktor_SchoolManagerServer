@@ -305,7 +305,7 @@ public class Paso5AsignaturasYDepartamentosController
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PATCH, value = "/asignaturas/quitarDepartamentos")
-    public ResponseEntity<?> quitarDepartamentosDeAsignatura(@RequestParam("curso") int curso,
+    public ResponseEntity<?> quitarAsignaturasDeDepartamentos(@RequestParam("curso") int curso,
                                                              @RequestParam("etapa") String etapa,
                                                              @RequestParam("grupo") Character grupo,
                                                              @RequestParam("nombre") String nombre)
@@ -367,7 +367,7 @@ public class Paso5AsignaturasYDepartamentosController
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PATCH, value = "/asignaturas/asignarDepartamentos")
-    public ResponseEntity<?> asignarDepartamentosAAsignatura(@RequestParam("curso") int curso,
+    public ResponseEntity<?> asignarAsignaturasADepartamentos(@RequestParam("curso") int curso,
                                                              @RequestParam("etapa") String etapa,
                                                              @RequestParam("grupo") Character grupo,
                                                              @RequestParam("nombre") String nombre,

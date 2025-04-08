@@ -22,4 +22,6 @@ public class MatriculaDto
 	
 	private String nombreAsignatura;
 
+	private int horas;
+
 }

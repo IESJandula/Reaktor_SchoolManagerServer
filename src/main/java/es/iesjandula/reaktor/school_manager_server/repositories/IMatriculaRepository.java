@@ -24,7 +24,7 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricula>
 {
 	
-	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto(alu.nombre, alu.apellidos, a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre) "
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto(alu.nombre, alu.apellidos, a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre, a.horas) "
 			+ "FROM Matricula m "
 			+ "JOIN m.idMatricula idM "
 			+ "JOIN idM.alumno alu "
