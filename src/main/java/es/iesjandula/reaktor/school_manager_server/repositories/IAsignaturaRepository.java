@@ -117,7 +117,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto(a.departamentoPropietario.nombre, a.departamentoPropietario.plantilla, a.horas, (depto.plantilla*18), SUM(a.horas), ((depto.plantilla*18) - SUM(a.horas)) as desfase) " +
 			"FROM Asignatura a " +
 			"JOIN a.departamentoPropietario depto " +
-			"GROUP BY a.departamentoPropietario.nombre, a.departamentoPropietario.plantilla, a.horas")
+			"GROUP BY a.departamentoPropietario.nombre")
 	List<AsignaturaConDepartamentoDto> encontrarAsignaturasConDepartamento();
 
 }

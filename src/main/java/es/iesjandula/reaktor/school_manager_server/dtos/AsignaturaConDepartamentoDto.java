@@ -18,9 +18,9 @@ public class AsignaturaConDepartamentoDto
 
     private int horasNecesarias;
 
-    private Long horasTotales;
+    private long horasTotales;
 
-    private Long desfase;
+    private long desfase;
 
 
 }

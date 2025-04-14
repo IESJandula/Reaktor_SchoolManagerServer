@@ -459,7 +459,6 @@ public class Paso3CrearGruposController
                     	if(exitente.getIdAsignatura().getGrupo() == 'N') 
                     	{
                     		asignatura.setHoras(exitente.getHoras());
-                            log.error(String.valueOf(optionalAsignatura.get().getHoras()));
                     		this.iAsignaturaRepository.delete(exitente);
                     		asignatura.setMatriculas(new ArrayList<>()); //Si no la creamos con los datos de arriba y un array vacio para evitar nulos
                     	}
