@@ -9,10 +9,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class CursoEtapaGrupoDto 
 {
-	private int curso;
+	/** Curso */
+	private int curso ;
 	
-	private String etapa;
+	/** Etapa */
+	private String etapa ;
 	
+	/** Grupo */
 	private Character grupo;
 
+	/** Booleano a true si es horario matutino */
+	private Boolean horarioMatutino ;
 }

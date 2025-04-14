@@ -172,7 +172,8 @@ public class Paso5AsignaturasYDepartamentosController
                     new CursoEtapaGrupoDto(
                             cursoEtapaGrupo.getIdCursoEtapaGrupo().getCurso(),
                             cursoEtapaGrupo.getIdCursoEtapaGrupo().getEtapa(),
-                            cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo()
+                            cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo(),
+                            cursoEtapaGrupo.getHorarioMatutino()
                     )).collect(Collectors.toList());
 
             return ResponseEntity.ok(cursoEtapaGrupoDto);

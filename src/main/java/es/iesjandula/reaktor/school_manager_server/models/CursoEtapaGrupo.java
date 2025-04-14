@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -34,5 +35,9 @@ public class CursoEtapaGrupo
     @EmbeddedId
     private IdCursoEtapaGrupo idCursoEtapaGrupo;
 
-   
+	/**
+	 * Indica si el grupo es matutino.
+	 */
+	@Column(length = 1)
+	private Boolean horarioMatutino;
 }

@@ -14,10 +14,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto2;
 import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto3;
+import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto;
 import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
@@ -162,6 +164,9 @@ public class Paso3CrearGruposController
             // Asignar el id al registro de Curso Etapa
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
 
+            // Asignamos por defecto el horario matutino a true
+            cursoEtapaGrupo.setHorarioMatutino(true);
+
             // Insertar en BD
             this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo);
 
@@ -218,10 +223,10 @@ public class Paso3CrearGruposController
             cursoEtapa.setIdCursoEtapa(idCursoEtapa);
 
             // Obtener la lista de grupos según curso y etapa
-            List<String> grupos = this.iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapa(curso, etapa);
+            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapa(curso, etapa);
 
             // Si la lista está vacía, lanzar una excepción
-            if (grupos.isEmpty()) 
+            if (cursosEtapasGrupos.isEmpty()) 
             {
                 // Lanzar excepcion y mostrar log con mensaje de Error
                 String msgError = "ERROR - No se encontraron grupos para el curso {} y etapa {}";
@@ -233,8 +238,8 @@ public class Paso3CrearGruposController
             // Log de información antes de la respuesta
             log.info("INFO - Se han encontrado los siguientes grupos para el curso: {} y etapa: {}", curso, etapa);
 
-            // Devolver la lista de grupos encontrados
-            return ResponseEntity.status(200).body(grupos);
+            // Devolver la lista de cursos, etapas y grupos encontrados
+            return ResponseEntity.status(200).body(cursosEtapasGrupos);
         } 
         catch (SchoolManagerServerException schoolManagerServerException) 
         {

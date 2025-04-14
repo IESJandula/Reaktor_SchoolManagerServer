@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.rest;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
 
@@ -87,7 +88,7 @@ public class Paso1CargarMatriculaController
             }
 
             // Convertir MultipartFile a String
-            String archivoCsvReadable = new String(archivoCsv.getBytes());
+            String archivoCsvReadable = new String(archivoCsv.getBytes(), StandardCharsets.UTF_8);
 
             // Declarar Scanner para realizar lectura del fichero
             Scanner scanner = new Scanner(archivoCsvReadable);
