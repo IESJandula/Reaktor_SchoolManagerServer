@@ -1,10 +1,14 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorReduccionesDto;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccion;
+
+import java.util.List;
 
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link ProfesorReduccion}.
@@ -16,5 +20,9 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccio
 @Repository
 public interface IProfesorReduccionRepository extends JpaRepository<ProfesorReduccion, IdProfesorReduccion>
 {
+
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ProfesorReduccionesDto(pR.idProfesorReduccion.profesor.nombre, pR.idProfesorReduccion.profesor.apellidos, pR.idProfesorReduccion.reduccion.idReduccion.nombre, pR.idProfesorReduccion.reduccion.idReduccion.horas)" +
+            "FROM ProfesorReduccion pR")
+    List<ProfesorReduccionesDto> encontrarTodosProfesoresReducciones();
 
 }

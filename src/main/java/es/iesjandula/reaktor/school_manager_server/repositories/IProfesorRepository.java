@@ -17,4 +17,6 @@ import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 public interface IProfesorRepository extends JpaRepository<Profesor, String>
 {
 
+    Profesor findByNombreAndApellidos(String nombre, String apellidos);
+
 }

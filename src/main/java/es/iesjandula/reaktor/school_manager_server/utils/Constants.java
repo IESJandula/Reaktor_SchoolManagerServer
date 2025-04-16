@@ -54,6 +54,14 @@ public class Constants
 	public static final int ERR_CODE_PROCESANDO_DEPARTAMENTOS = 201 ;
 	public static final int ERR_CODE_CIERRE_READER 			  = 202 ;
 	public static final int ERR_CODE_IO_EXCEPTION             = 203 ;
+	public final static int ERROR_CONEXION_FIREBASE = 101;
+
+	// Usuarios/Profesores
+	public final static int PROFESOR_NO_ENCONTRADO = 40;
+
+	// Errores Generales/De Conexión
+	public final static int TIMEOUT_CONEXION_FIREBASE = 102;
+	public final static int IO_EXCEPTION_FIREBASE = 103;
 
 	/** Errores del Generador */
 
