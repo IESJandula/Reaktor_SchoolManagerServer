@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -93,7 +94,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 											  @Param("etapa") String etapa, 
 											  @Param("nombres") String nombres);
 	
-	@Query("SELECT DISTINCT idC "
+	@Query("SELECT DISTINCT c "
 			+ "FROM CursoEtapaGrupo c "
 			+ "JOIN c.idCursoEtapaGrupo idC")
 	List<CursoEtapaGrupo> distinctCursoEtapaGrupo();
