@@ -159,6 +159,15 @@ public class Paso6Reducciones
 				throw new SchoolManagerServerException(1, mensajeError);
 			}
 
+			ProfesorReduccion profesorReduccion = this.iProfesorReduccionRepository.encontrarProfesorReduccion(nombre, horas);
+
+			if(profesorReduccion != null)
+			{
+				String mensajeError = "No se puede borrar la reducción porque está asignada";
+				log.error(mensajeError);
+				throw new SchoolManagerServerException(1, mensajeError);
+			}
+
 			idReduccioABorrar.setNombre(nombre);
 			idReduccioABorrar.setHoras(horas);
 			

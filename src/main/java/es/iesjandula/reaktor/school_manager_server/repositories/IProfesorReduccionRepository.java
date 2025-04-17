@@ -21,8 +21,13 @@ import java.util.List;
 public interface IProfesorReduccionRepository extends JpaRepository<ProfesorReduccion, IdProfesorReduccion>
 {
 
-    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ProfesorReduccionesDto(pR.idProfesorReduccion.profesor.nombre, pR.idProfesorReduccion.profesor.apellidos, pR.idProfesorReduccion.reduccion.idReduccion.nombre, pR.idProfesorReduccion.reduccion.idReduccion.horas)" +
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ProfesorReduccionesDto(pR.idProfesorReduccion.profesor.nombre, pR.idProfesorReduccion.profesor.apellidos, pR.idProfesorReduccion.reduccion.idReduccion.nombre, pR.idProfesorReduccion.reduccion.idReduccion.horas, pR.idProfesorReduccion.profesor.email)" +
             "FROM ProfesorReduccion pR")
     List<ProfesorReduccionesDto> encontrarTodosProfesoresReducciones();
+
+    @Query("SELECT pR " +
+            "FROM ProfesorReduccion pR " +
+            "WHERE pR.idProfesorReduccion.reduccion.idReduccion.nombre = :nombre AND pR.idProfesorReduccion.reduccion.idReduccion.horas = :horas")
+    ProfesorReduccion encontrarProfesorReduccion(String nombre, Integer horas);
 
 }

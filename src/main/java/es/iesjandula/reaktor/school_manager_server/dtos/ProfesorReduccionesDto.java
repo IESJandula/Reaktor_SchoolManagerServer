@@ -16,4 +16,6 @@ public class ProfesorReduccionesDto
     private String nombreReduccion;
 
     private Integer horas;
+
+    private String email;
 }
