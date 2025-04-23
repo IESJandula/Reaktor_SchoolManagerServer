@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,7 +110,7 @@ public class InicializacionSistema
         try
         {
             // Leer el archivo CSV desde la carpeta de recursos
-            reader = new BufferedReader(new FileReader(ResourceUtils.getFile(Constants.FICHERO_CURSOS_ETAPAS))) ;
+            reader = new BufferedReader(new FileReader(ResourceUtils.getFile(Constants.FICHERO_CURSOS_ETAPAS), Charset.forName("UTF-8"))) ;
             
             // Nos saltamos la primera línea
             reader.readLine() ;
@@ -177,7 +178,7 @@ public class InicializacionSistema
         try
         {
             // Leer el archivo CSV desde la carpeta de recursos
-            reader = new BufferedReader(new FileReader(ResourceUtils.getFile(Constants.FICHERO_DEPARTAMENTOS))) ;
+            reader = new BufferedReader(new FileReader(ResourceUtils.getFile(Constants.FICHERO_DEPARTAMENTOS), Charset.forName("UTF-8"))) ;
             
             // Nos saltamos la primera línea
             reader.readLine() ;

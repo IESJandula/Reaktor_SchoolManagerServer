@@ -14,8 +14,6 @@ public class AsignaturaConDepartamentoDto
 
     private int plantilla;
 
-    private int horas;
-
     private int horasNecesarias;
 
     private long horasTotales;

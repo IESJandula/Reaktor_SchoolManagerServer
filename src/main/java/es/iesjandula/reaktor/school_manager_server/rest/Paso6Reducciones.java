@@ -234,10 +234,10 @@ public class Paso6Reducciones
 	 */
 	private List<Profesor> buscarProfesor(DtoUsuarioExtended usuario) throws SchoolManagerServerException
 	{
-		List<Profesor> listProfesor = new ArrayList<>();
+		List<Profesor> listProfesor = this.iProfesorRepository.findAll();
 
 		// Si el role es administrador ...
-		if (usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+		if (listProfesor.isEmpty())
 		{
 				// Si no lo encontramos, le pedimos a Firebase que nos lo dé
 				listProfesor = this.buscarProfesorEnFirebase(usuario.getJwt());
