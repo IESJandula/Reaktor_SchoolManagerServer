@@ -651,4 +651,59 @@ public class Paso3CrearGruposController
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/turnoHorario")
+    public ResponseEntity<?> actualizarTurnoHorario(@RequestHeader(value = "curso", required = true) Integer curso,
+                                                    @RequestHeader(value = "etapa", required = true) String etapa,
+                                                    @RequestHeader(value = "grupo", required = true) Character grupo,
+                                                    @RequestHeader(value = "esHorarioMatutino", required = true) Boolean esHorarioMatutino) 
+    {
+        try
+        {
+            Optional<CursoEtapaGrupo> cursoEtapaGrupoOptional = this.iCursoEtapaGrupoRepository.findById(new IdCursoEtapaGrupo(curso, etapa, grupo)) ;
+
+            if (!cursoEtapaGrupoOptional.isPresent())
+            {
+                String mensajeError = "ERROR en la actualización del turno horario - No se encontró el curso " + curso + " " + etapa + " " + grupo ;
+
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.CURSO_ETAPA_GRUPO_NO_ENCONTRADO, mensajeError);
+            }
+
+            CursoEtapaGrupo cursoEtapaGrupo = cursoEtapaGrupoOptional.get() ;
+
+            // Actualizamos el turno horario
+            cursoEtapaGrupo.setHorarioMatutino(esHorarioMatutino) ;
+
+            // Guardamos el curso etapa grupo
+            this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo) ;
+
+            // Log de información antes de la respuesta
+            log.info("INFO - Turno horario actualizado correctamente {} {} {} {}", curso, etapa, grupo, esHorarioMatutino) ;
+
+            // Devolvemos mensaje de OK
+            return ResponseEntity.ok().build() ;
+        }
+        catch (SchoolManagerServerException schoolManagerServerException) 
+        {
+            // Manejo de excepciones personalizadas
+            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
+
+            // Devolver la excepción personalizada y el mensaje de error
+            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+        } 
+        catch (Exception exception) 
+        {
+            // Manejo de excepciones generales
+            String msgError = "ERROR - No se pudo actualizar el turno horario para el curso " + curso + " " + etapa + " " + grupo ;
+            log.error(msgError, exception);
+
+            // Devolver una excepción personalizada con código 1, el mensaje de error y la
+            // excepcion general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, msgError, exception);
+            
+            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 }

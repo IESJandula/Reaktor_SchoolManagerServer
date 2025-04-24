@@ -49,21 +49,46 @@ public class Constants
 	/******************* Códigos de error ********************/
 	/*********************************************************/
 	
-	// Carga de datos
+	/************* ERRORES - Lógica de negocio ***************/
+
+	/** Error - No se encontró el profesor */
+	public final static int PROFESOR_NO_ENCONTRADO 			= 40 ;
+
+	/** Error - No se encontró el curso etapa grupo */
+	public final static int CURSO_ETAPA_GRUPO_NO_ENCONTRADO = 41 ;
+
+	/** Error - No se encontró la asignatura */
+	public final static int ASIGNATURA_NO_ENCONTRADA 		= 42 ;
+
+	/************* ERRORES - Generales/De Conexión ***************/
+
+	/** Error genérico */
+	public static final int ERROR_GENERICO 					= 100;
+
+	/** Error de conexión con Firebase */
+	public final static int ERROR_CONEXION_FIREBASE 		= 101;
+
+	/** Timeout de conexión con Firebase */
+	public final static int TIMEOUT_CONEXION_FIREBASE 		= 102;
+
+	/** IO Exception de Firebase */
+	public final static int IO_EXCEPTION_FIREBASE 			= 103;
+
+	/************* ERRORES - Carga de datos ***************/
+
+	/** Error - Procesando curso etapa */	
 	public static final int ERR_CODE_PROCESANDO_CURSO_ETAPA   = 200 ;
+
+	/** Error - Procesando departamentos */
 	public static final int ERR_CODE_PROCESANDO_DEPARTAMENTOS = 201 ;
+
+	/** Error - Cierre de lector */
 	public static final int ERR_CODE_CIERRE_READER 			  = 202 ;
+
+	/** Error - IO Exception */
 	public static final int ERR_CODE_IO_EXCEPTION             = 203 ;
-	public final static int ERROR_CONEXION_FIREBASE = 101;
 
-	// Usuarios/Profesores
-	public final static int PROFESOR_NO_ENCONTRADO = 40;
-
-	// Errores Generales/De Conexión
-	public final static int TIMEOUT_CONEXION_FIREBASE = 102;
-	public final static int IO_EXCEPTION_FIREBASE = 103;
-
-	/** Errores del Generador */
+	/************* Errores del Generador de horario ***************/
 
 	/** Error - Horario no más ampliable */
 	public static final int ERR_CODE_HORARIO_NO_MAS_AMPLIABLE = 300 ;
@@ -73,7 +98,6 @@ public class Constants
 
 	/** Error - Superado el límite de restricciones que se pueden asignar a esta asignatura por sus horas */
 	public static final int ERR_CODE_SUPERADO_LIMITE_RESTRICC = 302 ;
-
 
 
 	/******************************************************/
@@ -202,4 +226,6 @@ public class Constants
 	/** Número máximo de ocurrencias por día en FP */
 	/** Si no se pone 2, el sistema no logra encontrar un horario final completo */
     public static final int NUMERO_MAXIMO_OCURRENCIAS_POR_DIA_FP 		  = 2 ;
+
+
 }
