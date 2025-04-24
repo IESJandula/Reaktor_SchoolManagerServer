@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CursoEtapaGrupoDto 
+public class 
+CursoEtapaGrupoDto 
 {
 	/** Curso */
 	private int curso ;
@@ -20,4 +21,7 @@ public class CursoEtapaGrupoDto
 
 	/** Booleano a true si es horario matutino */
 	private Boolean horarioMatutino ;
+
+	/** Booleano a true si es ESO o Bachillerato */
+	private Boolean esBachillerato ;
 }

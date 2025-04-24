@@ -60,6 +60,15 @@ public class Constants
 	/** Error - No se encontró la asignatura */
 	public final static int ASIGNATURA_NO_ENCONTRADA 		= 42 ;
 
+	/** Error - No se encontró el curso etapa */
+	public final static int CURSO_ETAPA_NO_ENCONTRADO 		= 43 ;
+
+	/** Error - No se encontró ningun curso */
+	public final static int SIN_CURSOS_ETAPAS_ENCONTRADOS 	= 44 ;
+
+	/** Error - No se encontró ningun alumno */
+	public final static int SIN_ALUMNOS_ENCONTRADOS 		= 45 ;
+
 	/************* ERRORES - Generales/De Conexión ***************/
 
 	/** Error genérico */

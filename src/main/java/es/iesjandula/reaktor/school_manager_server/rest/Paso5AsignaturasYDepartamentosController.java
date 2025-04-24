@@ -173,7 +173,8 @@ public class Paso5AsignaturasYDepartamentosController
                             cursoEtapaGrupo.getIdCursoEtapaGrupo().getCurso(),
                             cursoEtapaGrupo.getIdCursoEtapaGrupo().getEtapa(),
                             cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo(),
-                            cursoEtapaGrupo.getHorarioMatutino()
+                            cursoEtapaGrupo.getHorarioMatutino(),
+                            cursoEtapaGrupo.getEsoBachillerato()
                     )).collect(Collectors.toList());
 
             return ResponseEntity.ok(cursoEtapaGrupoDto);

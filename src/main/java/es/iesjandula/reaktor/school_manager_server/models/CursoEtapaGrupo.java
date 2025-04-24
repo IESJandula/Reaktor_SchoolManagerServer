@@ -40,4 +40,12 @@ public class CursoEtapaGrupo
 	 */
 	@Column(length = 1)
 	private Boolean horarioMatutino;
+
+    /**
+     * Indica si el grupo es ESO o Bachillerato.
+     */
+    @Column(length = 1)
+    private Boolean esoBachillerato;
+    
+    
 }

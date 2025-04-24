@@ -27,8 +27,10 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
+import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,6 +39,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(value = "/schoolManager/cargarMatriculas")
 public class Paso1CargarMatriculaController 
 {
+	@Autowired
+	private CursoEtapaService cursoEtapaService ;
+
     @Autowired
     private IDatosBrutoAlumnoMatriculaRepository iDatosBrutoAlumnoMatriculaRepository;
 
@@ -93,21 +98,13 @@ public class Paso1CargarMatriculaController
             // Declarar Scanner para realizar lectura del fichero
             Scanner scanner = new Scanner(archivoCsvReadable);
 
-            // Registro cursoEtapa
-            CursoEtapa cursoEtapa = new CursoEtapa();
-            IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
-
-            // Asignar los campos al id de cursoEtapa
-            idCursoEtapa.setCurso(curso);
-            idCursoEtapa.setEtapa(etapa);
-
-            // Asignar id al registro cursoEtapa
-            cursoEtapa.setIdCursoEtapa(idCursoEtapa);
+            // Obtenemos el cursoEtapa
+            CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
 
             // Llamar al Service IParseoDatosBrutos para realizar parseo
             this.iParseoDatosBrutos.parseoDatosBrutos(scanner, cursoEtapa);
 
-            log.info("INFO - La matricula "+ idCursoEtapa.getCurso() + " - " + idCursoEtapa.getEtapa() +" se ha cargado correctamente");
+            log.info("INFO - La matricula "+ curso + " - " + etapa + " se ha cargado correctamente");
             
             List<DatosBrutoAlumnoMatricula> listAsignaturas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAsignaturaByCursoEtapa(cursoEtapa);
             
@@ -168,7 +165,6 @@ public class Paso1CargarMatriculaController
     {
     	try 
     	{
-    		
     		List<CursoEtapaDto> listCursoEtapa = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso();
     		
     		if(listCursoEtapa.isEmpty()) 
@@ -208,22 +204,18 @@ public class Paso1CargarMatriculaController
     			throw new SchoolManagerServerException(6, mensajeError);
     		}
     		
-    		IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
-    		idCursoEtapa.setCurso(curso);
-    		idCursoEtapa.setEtapa(etapa);
-    		
-    		CursoEtapa cursoEtapa = new CursoEtapa();
-    		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
+            // Obtenemos el cursoEtapa
+            CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
 
-            List<AlumnoDto3> alumnoDto3 = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(idCursoEtapa.getCurso(),idCursoEtapa.getEtapa());
+            List<AlumnoDto3> alumnoDto3 = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
 
     		this.iDatosBrutoAlumnoMatriculaRepository.deleteDistinctByCursoEtapa(cursoEtapa);
-            this.iMatriculaRepository.borrarPorCursoYEtapa(idCursoEtapa.getCurso(), idCursoEtapa.getEtapa());
+            this.iMatriculaRepository.borrarPorCursoYEtapa(curso, etapa);
             for(AlumnoDto3 a : alumnoDto3){
                 this.iAlumnoRepository.deleteByNombreAndApellidos(a.getNombre(), a.getApellidos());
             }
 
-            this.iAsignaturaRepository.borrarPorCursoYEtapa(idCursoEtapa.getCurso(), idCursoEtapa.getEtapa());
+            this.iAsignaturaRepository.borrarPorCursoYEtapa(curso, etapa);
 
     		return ResponseEntity.ok().build();
     	}
@@ -288,13 +280,9 @@ public class Paso1CargarMatriculaController
     			throw new SchoolManagerServerException(6, mensajeError);
     		}
     		
-    		IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
-    		idCursoEtapa.setCurso(curso);
-    		idCursoEtapa.setEtapa(etapa);
-    		
-    		CursoEtapa cursoEtapa = new CursoEtapa();
-    		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
-    		
+			// Obtenemos el cursoEtapa
+			CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
+			
 			datosBrutoAlumnoMatriculas.setNombre(nombre);
 			datosBrutoAlumnoMatriculas.setNombre(nombre);
 			datosBrutoAlumnoMatriculas.setApellidos(apellidos);
@@ -336,13 +324,9 @@ public class Paso1CargarMatriculaController
     			throw new SchoolManagerServerException(6, mensajeError);
     		}
     		
-    		IdCursoEtapa idCursoEtapa = new IdCursoEtapa();
-    		idCursoEtapa.setCurso(curso);
-    		idCursoEtapa.setEtapa(etapa);
-    		
-    		CursoEtapa cursoEtapa = new CursoEtapa();
-    		cursoEtapa.setIdCursoEtapa(idCursoEtapa);
-    		
+			// Obtenemos el cursoEtapa
+			CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
+			
     		DatosBrutoAlumnoMatricula nuevosDatosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
     		
     		nuevosDatosBrutoAlumnoMatricula.setNombre(nombre);

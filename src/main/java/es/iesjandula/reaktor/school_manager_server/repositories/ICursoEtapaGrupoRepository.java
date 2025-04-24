@@ -42,7 +42,7 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
      * @param etapa 		- La etapa para la que se desea obtener los grupos.
      * @return List<String> - Los grupos correspondientes al curso y etapa proporcionados.
      */
-    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto(c.idCursoEtapaGrupo.curso, c.idCursoEtapaGrupo.etapa, c.idCursoEtapaGrupo.grupo, c.horarioMatutino) "
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto(c.idCursoEtapaGrupo.curso, c.idCursoEtapaGrupo.etapa, c.idCursoEtapaGrupo.grupo, c.horarioMatutino, c.esoBachillerato) "
     		+ "FROM CursoEtapaGrupo c "
     		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa")
     public List<CursoEtapaGrupoDto> findGrupoByCursoAndEtapa(@Param("curso") int curso, @Param("etapa") String etapa);

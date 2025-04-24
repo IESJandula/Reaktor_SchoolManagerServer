@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto;
+import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 import es.iesjandula.reaktor.school_manager_server.models.Matricula;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 
@@ -89,5 +91,13 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 										  @Param("grupo") Character grupo,
 										  @Param("asignatura") String asignatura);
 
-
+	@Query("SELECT m.idMatricula.alumno "
+			+ "FROM Matricula m JOIN m.idMatricula idM "
+			+ 				   "JOIN idM.asignatura a "
+			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.grupo = :grupo AND idM.alumno.nombre = :nombreAlumno AND idM.alumno.apellidos = :apellidosAlumno")
+	Optional<Alumno> buscarAlumnoPorCursoEtapaNombreApellidos(@Param("curso") Integer curso,
+															  @Param("etapa") String etapa,
+															  @Param("grupo") Character grupo,
+															  @Param("nombreAlumno") String nombreAlumno,
+															  @Param("apellidosAlumno") String apellidosAlumno) ;
 }

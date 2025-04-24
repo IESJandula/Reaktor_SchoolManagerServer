@@ -132,11 +132,17 @@ public class InicializacionSistema
                 // Extrae el valor de la etapa (columna 1)
                 String etapa = valores[1];    
 
-                // Crea un objeto compuesto IdCursoEtapa
+                // Extrae el valor de la columna 2
+                boolean esoBachillerato = Boolean.parseBoolean(valores[2]);
+
+                // Creamos un objeto compuesto IdCursoEtapa
                 IdCursoEtapa idCursoEtapa = new IdCursoEtapa(curso, etapa);
 
-                // Asocia el identificador al objeto CursoEtapa
+                // Asociamos el identificador al objeto CursoEtapa
                 cursoEtapa.setIdCursoEtapa(idCursoEtapa);
+
+                // Asociamos el valor de esoBachillerato al objeto CursoEtapa
+                cursoEtapa.setEsoBachillerato(esoBachillerato);
 
     			// Añadimos a la lista
                 cursosEtapas.add(cursoEtapa) ;

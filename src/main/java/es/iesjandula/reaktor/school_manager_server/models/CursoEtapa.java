@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -35,10 +36,9 @@ public class CursoEtapa
     private IdCursoEtapa idCursoEtapa;
 
     /**
-     * Lista de registros de alumnos matriculados en el curso y etapa correspondientes.
-     * <p>La clase tiene una relación de uno a muchos con la entidad {@link DatosBrutoAlumnoMatricula}. Esta relación se mapea
-     * a través de la propiedad "cursoEtapa" en la clase {@link DatosBrutoAlumnoMatricula}.</p>
+     * Indica si el curso y etapa pertenece a ESO o Bachillerato.
+     * <p>Este campo se mapea como la columna "esoBachillerato" de la tabla "Curso_Etapa".</p>
      */
-    //@OneToMany(mappedBy = "cursoEtapa")
-    //private List<DatosBrutoAlumnoMatricula> datosBrutosAlumnosMatriculados;
+    @Column(name = "esoBachillerato")
+    private boolean esoBachillerato ;
 }

@@ -174,9 +174,9 @@ public class Paso2AsignaturasYBloquesController
 	   	{
 	   		
 	   		// Buscamos el id de la asignatura
-			Asignatura asignaturaDto = iAsignaturaRepository.encontrarPorCursoYEtapaYNombre(curso, etapa, nombre);
+			Asignatura asignatura = iAsignaturaRepository.encontrarPorCursoYEtapaYNombre(curso, etapa, nombre);
 			
-			if (asignaturaDto == null)
+			if (asignatura == null)
 			{
 				String mensajeError = "No se han encontrado asignaturas con esos parametros";
 				log.error(mensajeError);
@@ -185,10 +185,10 @@ public class Paso2AsignaturasYBloquesController
 			}
 			
 			// Desasociar la asignatura del bloque
-			Bloque bloque = asignaturaDto.getBloqueId();
-			asignaturaDto.setBloqueId(null) ;
+			Bloque bloque = asignatura.getBloqueId();
+			asignatura.setBloqueId(null) ;
 			
-			this.iAsignaturaRepository.saveAndFlush(asignaturaDto);
+			this.iAsignaturaRepository.saveAndFlush(asignatura);
 			
 			if (bloque != null && bloque.getAsignaturas().isEmpty())
 			{
@@ -199,7 +199,13 @@ public class Paso2AsignaturasYBloquesController
 				log.info("Queda bloques por eliminar");
 			}
 			
-			log.info("INFO - Bloque "+ bloque.getId() +" eliminado con éxito");
+			Long bloqueId = -1l ;
+			if (bloque != null)
+			{
+				bloqueId = bloque.getId();
+			}
+			
+			log.info("INFO - Bloque "+ bloqueId +" eliminado con éxito");
 			return ResponseEntity.status(200).build();
 				
 		}

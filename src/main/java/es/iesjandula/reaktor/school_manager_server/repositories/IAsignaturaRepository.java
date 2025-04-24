@@ -37,7 +37,6 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	
 	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDto(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id) "
 			+ "FROM Asignatura a "
-			+ "LEFT JOIN a.matriculas m "
 			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa "
 			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id")
 	List<AsignaturaDto> findByCursoAndEtapa(@Param("curso") Integer curso, 
@@ -45,7 +44,6 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDtoSinGrupo(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas) "
 			+ "FROM Asignatura a "
-			+ "LEFT JOIN a.matriculas m "
 			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa "
 			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas")
 	List<AsignaturaDtoSinGrupo> findByCursoAndEtapaDistinct(@Param("curso") Integer curso,

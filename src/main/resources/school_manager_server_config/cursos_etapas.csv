@@ -1,19 +1,19 @@
-Curso,Etapa
-1,ESO
-2,ESO
-3,ESO
-4,ESO
-1,Bachillerato
-2,Bachillerato
-1,FPB Informática
-2,FPB Informática
-1,CFGM TECO
-2,CFGM TECO
-1,CFGM SMR
-2,CFGM SMR
-1,CFGS DAM
-2,CFGS DAM
-1,CFGS DAW
-2,CFGS DAW
-1,CFGS MI
-2,CFGS MI
+Curso,Etapa,esoBachillerato
+1,ESO,true
+2,ESO,true
+3,ESO,true
+4,ESO,true
+1,Bachillerato,true
+2,Bachillerato,true
+1,FPB Informática,false
+2,FPB Informática,false
+1,CFGM TECO,false
+2,CFGM TECO,false
+1,CFGM SMR,false
+2,CFGM SMR,false
+1,CFGS DAM,false
+2,CFGS DAM,false
+1,CFGS DAW,false
+2,CFGS DAW,false
+1,CFGS MI,false
+2,CFGS MI,false
