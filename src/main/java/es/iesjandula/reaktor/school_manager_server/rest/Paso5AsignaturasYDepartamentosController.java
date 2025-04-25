@@ -271,7 +271,8 @@ public class Paso5AsignaturasYDepartamentosController
                             asignatura.getIdAsignatura().getEtapa(),
                             asignatura.getIdAsignatura().getGrupo(),
                             (asignatura.getDepartamentoPropietario() != null) ? asignatura.getDepartamentoPropietario().getNombre() : null,
-                            (asignatura.getDepartamentoReceptor() != null) ? asignatura.getDepartamentoReceptor().getNombre() : null
+                            (asignatura.getDepartamentoReceptor() != null) ? asignatura.getDepartamentoReceptor().getNombre() : null,
+                            asignatura.getHoras()
                     )
             ).collect(Collectors.toList());
 

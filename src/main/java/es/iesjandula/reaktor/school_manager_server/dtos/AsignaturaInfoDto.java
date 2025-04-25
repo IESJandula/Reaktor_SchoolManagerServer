@@ -14,4 +14,5 @@ public class AsignaturaInfoDto {
     private Character grupo;
     private String departamentoPropietario;
     private String departamentoDonante;
+    private Integer horas;
 }

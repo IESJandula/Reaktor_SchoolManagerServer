@@ -113,7 +113,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 																   @Param("grupo") Character grupo, 
 																   @Param("nombre") String nombre);
 
-	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto(a.departamentoPropietario.nombre, a.departamentoPropietario.plantilla, (depto.plantilla*18), SUM(a.horas), ((depto.plantilla*18) - SUM(a.horas)) as desfase) " +
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto(a.departamentoPropietario.nombre, a.departamentoPropietario.plantilla, (depto.plantilla*18), SUM(a.horas), (SUM(a.horas) - (depto.plantilla*18)) as desfase) " +
 			"FROM Asignatura a " +
 			"JOIN a.departamentoPropietario depto " +
 			"GROUP BY a.departamentoPropietario.nombre")
