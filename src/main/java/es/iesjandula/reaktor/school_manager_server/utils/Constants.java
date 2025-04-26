@@ -38,6 +38,9 @@ public class Constants
 	
 	/** Fichero con los cursos y etapas */
 	public static final String FICHERO_DEPARTAMENTOS 	  		 = SCHOOL_MANAGER_SERVER_CONFIG_EXEC + File.separator + "departamentos.csv";
+
+	/** Fichero con los dias, tramos y tipo de horario */
+	public static final String FICHERO_DIAS_TRAMOS_TIPO_HORARIO  = SCHOOL_MANAGER_SERVER_CONFIG_EXEC + File.separator + "dias_tramos_tipo_horario.csv";
 	
 	/*********************************************************/
 	/****************** Modo DDL - Create ********************/
@@ -235,6 +238,4 @@ public class Constants
 	/** Número máximo de ocurrencias por día en FP */
 	/** Si no se pone 2, el sistema no logra encontrar un horario final completo */
     public static final int NUMERO_MAXIMO_OCURRENCIAS_POR_DIA_FP 		  = 2 ;
-
-
 }

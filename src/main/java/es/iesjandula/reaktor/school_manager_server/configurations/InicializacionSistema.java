@@ -21,8 +21,11 @@ import es.iesjandula.reaktor.base.utils.BaseException;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.Departamento;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdDiasTramosTipoHorario;
+import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IDiasTramosRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import jakarta.annotation.PostConstruct;
@@ -37,6 +40,9 @@ public class InicializacionSistema
     
 	@Autowired
 	private IDepartamentoRepository iDepartamentoRepository ;
+	
+	@Autowired
+	private IDiasTramosRepository iDiasTramosRepository ;
 	
 	@Value("${spring.jpa.hibernate.ddl-auto}")
 	private String modoDdl;
@@ -68,6 +74,9 @@ public class InicializacionSistema
 
 			// Parseamos los departamentos
 			this.cargarDepartamentosDesdeCSVInternal() ;
+
+			// Parseamos los dias, tramos y tipo de horario
+			this.cargarDiasTramosTipoHorarioDesdeCSVInternal() ;
 		}
 	}
 	
@@ -227,6 +236,80 @@ public class InicializacionSistema
         {
             this.iDepartamentoRepository.saveAllAndFlush(departamentos) ;
         }
+	}
+	
+	/**
+	 * Carga dias, tramos y tipo de horario desde CSV - Internal
+	 * @throws SchoolManagerServerException excepción mientras se leían los dias, tramos y tipo de horario
+	 */
+	private void cargarDiasTramosTipoHorarioDesdeCSVInternal() throws SchoolManagerServerException
+	{
+		// Inicializamos la lista de dias, tramos y tipo de horario
+		List<DiasTramosTipoHorario> diasTramosTipoHorarioList = new ArrayList<DiasTramosTipoHorario>() ;
+		
+		BufferedReader reader = null ;
+		
+		try
+		{
+			// Leer el archivo CSV desde la carpeta de recursos
+			reader = new BufferedReader(new FileReader(ResourceUtils.getFile(Constants.FICHERO_DIAS_TRAMOS_TIPO_HORARIO), Charset.forName("UTF-8"))) ;
+			
+			// Nos saltamos la primera línea
+			reader.readLine() ;	
+			
+			// Leemos la segunda línea que ya tiene datos
+			String linea = reader.readLine() ;
+			
+			while (linea != null)
+			{
+				// Leemos la línea y la spliteamos
+				String[] valores = linea.split(Constants.CSV_DELIMITER) ;
+
+				// Obtenemos los valores de los dias y tramos en formato número y descriptivo, y el tipo de horario
+				int dia 		   = Integer.parseInt(valores[0]) ;
+				String diasDesc    = valores[1] ;
+				int tramo 		   = Integer.parseInt(valores[2]) ;
+				String tramosDesc  = valores[3] ;
+				String tipoHorario = valores[4] ;
+
+				// Creamos un objeto compuesto IdDiasTramosTipoHorario
+				IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dia, tramo, tipoHorario) ;
+
+				// Creamos un objeto DiasTramosTipoHorario
+				DiasTramosTipoHorario diasTramosTipoHorario = new DiasTramosTipoHorario() ;
+
+				// Asociamos el identificador al objeto DiasTramosTipoHorario
+				diasTramosTipoHorario.setIdDiasTramosTipoHorario(idDiasTramosTipoHorario) ;
+
+				// Asociamos los valores descriptivos al objeto DiasTramosTipoHorario
+				diasTramosTipoHorario.setDiasDesc(diasDesc) ;
+				diasTramosTipoHorario.setTramosDesc(tramosDesc) ;
+
+				// Añadimos a la lista
+				diasTramosTipoHorarioList.add(diasTramosTipoHorario) ;
+
+				// Leemos la siguiente línea
+				linea = reader.readLine() ;
+			}	
+
+		}
+		catch (IOException ioException)
+		{
+			String errorString = "IOException mientras se leía línea de dias, tramos y tipo de horario" ;
+			
+			log.error(errorString, ioException) ;
+			throw new SchoolManagerServerException(Constants.ERR_CODE_PROCESANDO_CURSO_ETAPA, errorString, ioException) ;
+		}
+		finally
+		{
+			this.cerrarFlujo(reader) ;
+		}
+
+		// Guardamos los dias, tramos y tipo de horario en la base de datos
+		if (!diasTramosTipoHorarioList.isEmpty())
+		{
+			this.iDiasTramosRepository.saveAllAndFlush(diasTramosTipoHorarioList) ;
+		}
 	}
 	
 	/**
