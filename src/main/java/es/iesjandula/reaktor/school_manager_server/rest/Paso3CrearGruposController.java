@@ -393,14 +393,14 @@ public class Paso3CrearGruposController
      * y etapa.
      * 
      * Este método asigna los alumnos, que son recibidos como una lista de objetos
-     * `AlumnoDto`,
+     * `AlumnoDto2`,
      * a un grupo específico dentro de un curso y etapa determinados. Si el alumno
      * ya existe en
      * la tabla `DatosBrutoAlumnoMatricula`, se transfiere el alumno al grupo
      * especificado y
      * luego se elimina de la tabla `DatosBrutoAlumnoMatricula`.
      * 
-     * @param alumnos - Lista de objetos `AlumnoDto` que contiene los datos de los
+     * @param alumnos - Lista de objetos `AlumnoDto2` que contiene los datos de los
      *                alumnos a asignar.
      * @param curso   - El identificador del curso al que pertenecen los alumnos.
      * @param etapa   - La etapa educativa asociada al curso.
@@ -422,14 +422,10 @@ public class Paso3CrearGruposController
             // Validamos y obtenemos el curso y etapa
             CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
 
-            // Por cada alumno buscarlo en DatosBrutosAlumnoMatricula y añadirlos a DatosBrutosAlumnoMatriculaGrupo
+            // Por cada alumno proporcionado en la lista de entrada se buscan en el repo de DatosBrutosAlumnoMatricula
             for (AlumnoDto2 alumnoDatosBrutos : alumnos) 
             {
-                if (alumnoDatosBrutos.getGrupo() != grupo && alumnoDatosBrutos.getGrupo() != null) 
-                {
-                    continue;
-                }
-                
+
                 // Buscar los registros del alumno en DatosBrutosAlumnoMatricula
                 List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatriculaAsignaturasOpt = 
                     this.iDatosBrutoAlumnoMatriculaRepository.findByNombreAndApellidosAndCursoEtapa(alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos(),cursoEtapa);
