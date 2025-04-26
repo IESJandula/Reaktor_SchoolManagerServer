@@ -1,56 +1,44 @@
 package es.iesjandula.reaktor.school_manager_server.models.ids;
 
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo; // Import necesario
+import jakarta.persistence.*; // Import necesario
 import java.io.Serializable;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 /**
- * Clase que representa la clave primaria compuesta para la entidad {@link Asignatura}.
+ * Clase Embeddable que representa la clave primaria compuesta para la entidad {@link Asignatura}.
  * -----------------------------------------------------------------------------------------------------------------
- * La clase {@link IdAsignatura} es utilizada como clave primaria compuesta para la entidad {@link Asignatura}. 
- * Esta clave primaria consta de varios atributos que identifican de manera única una asignatura en un curso, etapa 
- * y grupo determinado.
+ * Esta clase se utiliza con la anotación @EmbeddedId en la entidad Asignatura.
+ * Contiene los campos que forman la clave primaria: la relación con CursoEtapaGrupo
+ * y el nombre de la asignatura.
  * -----------------------------------------------------------------------------------------------------------------
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 @Embeddable
 public class IdAsignatura implements Serializable
 {
-	/**
-	 * Serialización de la clase para persistencia.
-	 */
-	private static final long serialVersionUID = 1L;
+	/** Serialización de la clase para persistencia */
+	private static final long serialVersionUID = 2L;
 
 	/**
-	 * Año o número del curso al que pertenece la asignatura.
+	 * Relación con CursoEtapaGrupo que forma parte de la clave primaria.
+	 * Mapeada aquí dentro de la clase Embeddable.
 	 */
-	@Column
-	private int curso;
-	
-	/**
-	 * Etapa educativa a la que pertenece la asignatura (por ejemplo, "Primaria", "Secundaria").
-	 */
-	@Column(length = 50)
-	private String etapa;
-	
-	/**
-	 * Grupo al que pertenece la asignatura (por ejemplo, "A", "B").
-	 */
-	@Column
-	private Character grupo;
+    @ManyToOne
+    @JoinColumns({
+        @JoinColumn(name = "curso", referencedColumnName = "curso"),
+        @JoinColumn(name = "etapa", referencedColumnName = "etapa"),
+        @JoinColumn(name = "grupo", referencedColumnName = "grupo")
+    })
+	private CursoEtapaGrupo cursoEtapaGrupo ;
 
-	
-	/**
-	 * Nombre de la asignatura (por ejemplo, "Matemáticas", "Física").
-	 */
+	/** Nombre de la asignatura que forma parte de la clave primaria */
 	@Column(length = 100)
-	private String nombre;
-
-
+	private String nombre ;
 }

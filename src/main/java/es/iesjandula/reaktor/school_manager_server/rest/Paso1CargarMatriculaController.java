@@ -22,15 +22,18 @@ import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,6 +59,9 @@ public class Paso1CargarMatriculaController
 
     @Autowired
     private IAlumnoRepository iAlumnoRepository;
+
+	@Autowired
+	private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
     
 
     /**
@@ -115,16 +121,23 @@ public class Paso1CargarMatriculaController
     			log.error(mensajeError);
     			throw new SchoolManagerServerException(6, mensajeError);
             }
-            
-            IdAsignatura idAsignatura = new IdAsignatura();
+
+			CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+				
+			cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, Constants.SIN_GRUPO_ASIGNADO));
+			
+			// Borramos el cursoEtapa si ya existen diferentes grupos
+			this.iCursoEtapaGrupoRepository.borrarPorCursoEtapa(curso, etapa) ;
+			
+			// Guardamos el cursoEtapaGrupo
+			this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo) ;
             
             for(DatosBrutoAlumnoMatricula datosAsignatura: listAsignaturas) 
-            {
-            	
-            	idAsignatura.setCurso(curso);
-            	idAsignatura.setEtapa(etapa);
-            	idAsignatura.setNombre(datosAsignatura.getAsignatura());
-            	idAsignatura.setGrupo('N');
+            {            	
+				IdAsignatura idAsignatura = new IdAsignatura();
+
+            	idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo) ;
+				idAsignatura.setNombre(datosAsignatura.getAsignatura());
             	
             	Asignatura asignatura = new Asignatura();
             	asignatura.setIdAsignatura(idAsignatura);
@@ -132,7 +145,6 @@ public class Paso1CargarMatriculaController
             	this.iAsignaturaRepository.saveAndFlush(asignatura);
             }
             
-
             // Devolver OK informando que se ha insertado los registros
             return ResponseEntity.ok().build();
         } 

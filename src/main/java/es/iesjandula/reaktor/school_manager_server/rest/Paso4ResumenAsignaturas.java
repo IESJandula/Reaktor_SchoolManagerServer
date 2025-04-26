@@ -41,7 +41,7 @@ public class Paso4ResumenAsignaturas
     {
         try
         {
-            List<Character> listaGrupos = iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapaChar(curso,etapa);
+            List<Character> listaGrupos = iCursoEtapaGrupoRepository.buscaLetrasGruposDeCursoEtapas(curso,etapa);
 
             // Si no esta ese grupo lanzar excepcion
             if (!listaGrupos.contains(grupo)) {
@@ -87,7 +87,7 @@ public class Paso4ResumenAsignaturas
     {
         try
         {
-            List<Character> listaGrupos = iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapaChar(curso,etapa);
+            List<Character> listaGrupos = iCursoEtapaGrupoRepository.buscaLetrasGruposDeCursoEtapas(curso,etapa);
 
             // Si no esta ese grupo lanzar excepcion
             if (!listaGrupos.contains(grupo)) {

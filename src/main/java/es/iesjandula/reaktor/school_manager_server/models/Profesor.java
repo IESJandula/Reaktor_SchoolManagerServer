@@ -2,6 +2,8 @@ package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.List;
 
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
+import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -12,6 +14,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Entidad - Profesor
@@ -26,6 +29,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Entity
 @Table(name = "Profesor")
+@Slf4j
 public class Profesor 
 {
 	/**
@@ -58,11 +62,46 @@ public class Profesor
 	 * Lista de asignaturas que el profesor imparte. Relación de uno a muchos con la entidad {@link Impartir}.
 	 */
 	@OneToMany(mappedBy = "profesor")
-	private List<Impartir> impartires;
+	private List<Impartir> impartir;
 	
 	/**
 	 * Lista de reducciones de horas que el profesor tiene. Relación de uno a muchos con la entidad {@link ProfesorReduccion}.
 	 */
 	@OneToMany(mappedBy = "profesor")
 	private List<ProfesorReduccion> profesorReducciones;
+
+	/**
+	 * Indica la conciliación del profesor que puede ser:
+	 * - SIN_CONCILIACION
+	 * - ENTRAR_DESPUES_SEGUNDA_HORA
+	 * - SALIR_ANTES_QUINTA_HORA
+	 */
+	@Column(length = 100)
+	private String conciliacion ;
+
+	/**
+	 * Establece la conciliación del profesor.
+	 * @param conciliacion - La conciliación del profesor.
+	 * @throws SchoolManagerServerException - Si la conciliación no es válida.
+	 */
+	public void setConciliacion(String conciliacion) throws SchoolManagerServerException
+	{
+		if (conciliacion != null)
+		{
+			boolean esValida = conciliacion.equals(Constants.CONCILIACION_SIN_CONCILIACION) 		   ||
+							   conciliacion.equals(Constants.CONCILIACION_ENTRAR_DESPUES_SEGUNDA_HORA) ||
+							   conciliacion.equals(Constants.CONCILIACION_SALIR_ANTES_QUINTA_HORA) ;
+			if (esValida)
+			{
+				this.conciliacion = conciliacion;
+			}
+			else
+			{
+				String mensajeError = "La conciliación no es válida.";
+
+				log.error(mensajeError) ;
+				throw new SchoolManagerServerException(Constants.ERROR_CONCILIACION_NO_VALIDA, mensajeError);
+			}
+		}
+	}
 }

@@ -150,10 +150,10 @@ public class Paso3CrearGruposController
             CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
 
             // Numero de veces repetido el Curso Etapa en la BD
-            int contador = this.iCursoEtapaGrupoRepository.findCountByCursoAndEtapa(curso, etapa);
+            int contador = this.iCursoEtapaGrupoRepository.cuentaCursoEtapaGruposCreados(curso, etapa);
 
             // Asignar la letra A
-            char grupo = Constants.GROUP;
+            char grupo = Constants.GRUPO_INICIAL ;
 
             // Asignar la letra según el numero de veces que este repetido en BD
             for (int i = 0; i < contador; i++) 
@@ -231,7 +231,7 @@ public class Paso3CrearGruposController
         try 
         {
             // Obtener la lista de grupos según curso y etapa
-            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.findGrupoByCursoAndEtapa(curso, etapa);
+            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.buscaCursoEtapaGruposCreados(curso, etapa);
 
             // Si la lista está vacía, lanzar una excepción
             if (cursosEtapasGrupos.isEmpty()) 
@@ -511,10 +511,12 @@ public class Paso3CrearGruposController
                 String nombreAsignatura = matriculaDtoAlumnoABorrar.getNombreAsignatura();
                 
             	IdAsignatura idAsignatura = new IdAsignatura() ;
-            	idAsignatura.setCurso(curso);
-            	idAsignatura.setEtapa(etapa);
-            	idAsignatura.setGrupo(grupo);
-            	idAsignatura.setNombre(nombreAsignatura);
+
+                CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();    
+                cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, grupo));
+
+                idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo);
+                idAsignatura.setNombre(nombreAsignatura);
             	
             	Asignatura asignatura = new Asignatura();
             	asignatura.setIdAsignatura(idAsignatura);
@@ -539,7 +541,7 @@ public class Paso3CrearGruposController
                     // Eliminar el registro en la tabla Asignatura
                     this.iAsignaturaRepository.delete(asignatura);
 
-                    idAsignatura.setGrupo('N');
+                    idAsignatura.getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(Constants.SIN_GRUPO_ASIGNADO);
                     asignatura.setIdAsignatura(idAsignatura);
                     asignatura.setHoras(matriculaDtoAlumnoABorrar.getHoras());
 
@@ -701,7 +703,7 @@ public class Paso3CrearGruposController
         else
         {
             // Buscamos la asignatura por su nombre, curso, etapa y grupo N
-            optionalAsignatura = this.iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, nombreAsignatura, 'N');
+            optionalAsignatura = this.iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, nombreAsignatura, Constants.SIN_GRUPO_ASIGNADO);
 
             // Si existe, la asignamos
             if (optionalAsignatura.isPresent())
@@ -713,7 +715,7 @@ public class Paso3CrearGruposController
                 this.iAsignaturaRepository.delete(asignatura);
 
                 // Cambiamos el valor por el del grupo
-                asignatura.getIdAsignatura().setGrupo(grupo) ;
+                asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(grupo) ;
 
                 // Guardamos la asignatura
                 this.iAsignaturaRepository.saveAndFlush(asignatura) ;
@@ -724,9 +726,10 @@ public class Paso3CrearGruposController
                 IdAsignatura idAsignatura = new IdAsignatura();
 
                 // Asignamos cada uno de los campos
-                idAsignatura.setCurso(curso);
-                idAsignatura.setEtapa(etapa);
-                idAsignatura.setGrupo(grupo);
+                CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+                cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, grupo));
+
+                idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo);
                 idAsignatura.setNombre(nombreAsignatura);
 
                 // Indicamos si es ESO o Bachillerato

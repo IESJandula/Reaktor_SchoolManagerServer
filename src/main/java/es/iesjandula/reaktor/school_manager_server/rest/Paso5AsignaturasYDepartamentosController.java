@@ -21,6 +21,7 @@ import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Departamento;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -33,6 +34,9 @@ public class Paso5AsignaturasYDepartamentosController
 
     @Autowired
     private IAsignaturaRepository iAsignaturaRepository;
+
+    @Autowired
+    private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
 
     /**
      * Endpoint para obtener todos los departamentos.
@@ -159,7 +163,7 @@ public class Paso5AsignaturasYDepartamentosController
     {
         try
         {
-            List<CursoEtapaGrupo> cursoEtapaGrupos = iAsignaturaRepository.distinctCursoEtapaGrupo();
+            List<CursoEtapaGrupo> cursoEtapaGrupos = this.iCursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGrupos();
 
             if (cursoEtapaGrupos.isEmpty())
             {
@@ -267,9 +271,9 @@ public class Paso5AsignaturasYDepartamentosController
             List<AsignaturaInfoDto> asignaturasDto = asignaturas.stream().map(asignatura ->
                     new AsignaturaInfoDto(
                             asignatura.getIdAsignatura().getNombre(),
-                            asignatura.getIdAsignatura().getCurso(),
-                            asignatura.getIdAsignatura().getEtapa(),
-                            asignatura.getIdAsignatura().getGrupo(),
+                            asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getCurso(),
+                            asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getEtapa(),
+                            asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo(),
                             (asignatura.getDepartamentoPropietario() != null) ? asignatura.getDepartamentoPropietario().getNombre() : null,
                             (asignatura.getDepartamentoReceptor() != null) ? asignatura.getDepartamentoReceptor().getNombre() : null,
                             asignatura.getHoras()

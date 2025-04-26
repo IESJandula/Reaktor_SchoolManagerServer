@@ -11,6 +11,9 @@ import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 
+import jakarta.transaction.Transactional;
+import org.springframework.data.jpa.repository.Modifying;
+
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link CursoEtapaGrupo}.
  * -----------------------------------------------------------------------------------------------------------------
@@ -21,6 +24,13 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 @Repository
 public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrupo, IdCursoEtapaGrupo>
 {
+
+
+    @Query("SELECT c "
+            + "FROM CursoEtapaGrupo c "
+            + "WHERE c.idCursoEtapaGrupo.grupo <> es.iesjandula.reaktor.school_manager_server.utils.Constants.SIN_GRUPO_ASIGNADO")
+    public List<CursoEtapaGrupo> buscarTodosLosCursosEtapasGrupos();
+
     /**
      * Cuenta el número de elementos en la tabla {@link CursoEtapaGrupo} que corresponden a un curso y etapa 
      * específicos.
@@ -31,9 +41,8 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
      */
     @Query("SELECT COUNT(c) "
     		+ "FROM CursoEtapaGrupo c "
-    		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa")
-    public int findCountByCursoAndEtapa(@Param("curso") int curso, 
-    									@Param("etapa") String etapa);
+    		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> es.iesjandula.reaktor.school_manager_server.utils.Constants.SIN_GRUPO_ASIGNADO")
+    public int cuentaCursoEtapaGruposCreados(@Param("curso") int curso, @Param("etapa") String etapa);
     
     /**
      * Obtiene una lista de los grupos que corresponden a un curso y etapa específicos.
@@ -44,8 +53,8 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
      */
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto(c.idCursoEtapaGrupo.curso, c.idCursoEtapaGrupo.etapa, c.idCursoEtapaGrupo.grupo, c.horarioMatutino, c.esoBachillerato) "
     		+ "FROM CursoEtapaGrupo c "
-    		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa")
-    public List<CursoEtapaGrupoDto> findGrupoByCursoAndEtapa(@Param("curso") int curso, @Param("etapa") String etapa);
+    		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> es.iesjandula.reaktor.school_manager_server.utils.Constants.SIN_GRUPO_ASIGNADO")
+    public List<CursoEtapaGrupoDto> buscaCursoEtapaGruposCreados(@Param("curso") int curso, @Param("etapa") String etapa);
 
     /**
      * Obtiene una lista de los grupos que corresponden a un curso y etapa específicos.
@@ -56,9 +65,17 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
      */
     @Query("SELECT c.idCursoEtapaGrupo.grupo "
             + "FROM CursoEtapaGrupo c "
+            + "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> es.iesjandula.reaktor.school_manager_server.utils.Constants.SIN_GRUPO_ASIGNADO")
+    public List<Character> buscaLetrasGruposDeCursoEtapas(@Param("curso") int curso, @Param("etapa") String etapa);
+
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM CursoEtapaGrupo c "
             + "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa")
-    public List<Character> findGrupoByCursoAndEtapaChar(@Param("curso") int curso,
-                                                 @Param("etapa") String etapa);
+    public void borrarPorCursoEtapa(@Param("curso") Integer curso,
+                                    @Param("etapa") String etapa) ;
+
+    
 
 
 }

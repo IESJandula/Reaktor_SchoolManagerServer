@@ -48,4 +48,11 @@ public class CursoEtapaGrupo
     private Boolean esoBachillerato;
     
     
+    /**
+     * @return El curso, etapa y grupo como una cadena de caracteres
+     */
+    public String getCursoEtapaGrupoString()
+    {
+        return this.idCursoEtapaGrupo.getCurso() + this.idCursoEtapaGrupo.getEtapa() + this.idCursoEtapaGrupo.getGrupo() ;
+    }
 }

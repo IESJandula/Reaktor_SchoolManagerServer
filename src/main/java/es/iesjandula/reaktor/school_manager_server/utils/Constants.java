@@ -18,10 +18,18 @@ public class Constants
     public static final String CSV_DELIMITER = ",";
 
     /** 
-     * Letra por defecto para el grupo .
+     * Letra para el grupo inicial inicial
      * <p>Indica el grupo base asignado, comenzando con 'A'.</p>
      */
-    public static final char GROUP = 'A';
+    public static final char GRUPO_INICIAL 	    = 'A' ;
+
+	/**
+	 * Letra para el grupo sin grupo asignado
+	 * <p>Indica que no hay grupo asignado, comenzando con 'Z'.</p>
+	 */
+	public static final char SIN_GRUPO_ASIGNADO = 'Z' ;
+
+
     
 	/*********************************************************/
 	/******************* Ficheros y carpetas *****************/
@@ -72,6 +80,12 @@ public class Constants
 	/** Error - No se encontró ningun alumno */
 	public final static int SIN_ALUMNOS_ENCONTRADOS 		= 45 ;
 
+	/** Error - La conciliación no es válida */
+	public static final int ERROR_CONCILIACION_NO_VALIDA 	= 46 ;
+
+	/** Error - El tipo de horario no es válido */
+	public static final int ERROR_TIPO_HORARIO_NO_VALIDO    = 47 ;
+
 	/************* ERRORES - Generales/De Conexión ***************/
 
 	/** Error genérico */
@@ -111,6 +125,18 @@ public class Constants
 	/** Error - Superado el límite de restricciones que se pueden asignar a esta asignatura por sus horas */
 	public static final int ERR_CODE_SUPERADO_LIMITE_RESTRICC = 302 ;
 
+	/******************************************************/
+	/*************** Constantes - Conciliaciones **********/
+	/******************************************************/
+
+	/** Conciliación - Sin conciliación */
+	public static final String CONCILIACION_SIN_CONCILIACION 			= "SIN_CONCILIACION" ;
+
+	/** Conciliación - Entrar después de la segunda hora */
+	public static final String CONCILIACION_ENTRAR_DESPUES_SEGUNDA_HORA = "ENTRAR_DESPUES_SEGUNDA_HORA" ;
+
+	/** Conciliación - Salir antes de la quinta hora */
+	public static final String CONCILIACION_SALIR_ANTES_QUINTA_HORA 	= "SALIR_ANTES_QUINTA_HORA" ;
 
 	/******************************************************/
 	/******************************************************/
@@ -193,6 +219,17 @@ public class Constants
 	public static final int TRAMO_HORARIO_SEXTA_HORA   = 5 ;
 
 	/******************************************************/
+	/******************** Tipos de horarios **************/
+	/******************************************************/
+
+	/** Tipo de horario - Matutino */
+	public static final String HORARIO_MATUTINO   = "MATUTINO" ;
+
+	/** Tipo de horario - Vespertino */
+	public static final String HORARIO_VESPERTINO = "VESPERTINO" ;
+
+
+	/******************************************************/
 	/******************** Threads *************************/
 	/******************************************************/
 
@@ -238,4 +275,6 @@ public class Constants
 	/** Número máximo de ocurrencias por día en FP */
 	/** Si no se pone 2, el sistema no logra encontrar un horario final completo */
     public static final int NUMERO_MAXIMO_OCURRENCIAS_POR_DIA_FP 		  = 2 ;
+
+    
 }

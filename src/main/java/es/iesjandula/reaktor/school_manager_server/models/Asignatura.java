@@ -1,9 +1,12 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
-import java.util.List;
-
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,10 +15,10 @@ import lombok.NoArgsConstructor;
  * Entidad - Asignatura
  * -----------------------------------------------------------------------------------------------------------------
  * Esta clase representa la entidad "Asignatura" en la base de datos.
- * <p>Utiliza las anotaciones de JPA para definir cómo se mapea a la tabla "Asignatura" en la base de datos.</p>
+ * <p>Utiliza una clave primaria compuesta definida en {@link IdAsignatura} y mapeada mediante {@link EmbeddedId}.</p> 
  * -----------------------------------------------------------------------------------------------------------------
  * <ul>
- * <li>La clase tiene un identificador compuesto (IdAsignatura) que se define mediante la anotación {@link EmbeddedId}.</li>
+ * <li>La clase tiene un identificador compuesto {@link IdAsignatura} mapeado con {@link EmbeddedId}.</li> 
  * <li>Se establece una relación con la entidad "Departamento" tanto para el departamento propietario como receptor de la asignatura.</li>
  * <li>La clase también se asocia con un "Bloque" que representa el bloque de la asignatura.</li>
  * <li>Además, existe una relación de uno a muchos con la entidad "Matricula", representando las matrículas asociadas a la asignatura.</li>
@@ -29,8 +32,7 @@ import lombok.NoArgsConstructor;
 public class Asignatura 
 {
     /**
-     * Identificador compuesto de la asignatura.
-     * <p>Este campo es una clave primaria compuesta que se encuentra en la clase {@link IdAsignatura}.</p>
+     * Identificador compuesto de la asignatura, embebido desde IdAsignatura.
      */
     @EmbeddedId
     private IdAsignatura idAsignatura;

@@ -26,7 +26,7 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricula>
 {
 	
-	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto(alu.nombre, alu.apellidos, a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.grupo, a.idAsignatura.nombre, a.horas) "
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto(alu.nombre, alu.apellidos, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo, a.idAsignatura.nombre, a.horas) "
 			+ "FROM Matricula m "
 			+ "JOIN m.idMatricula idM "
 			+ "JOIN idM.alumno alu "
@@ -44,7 +44,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 	@Transactional
 	@Query("DELETE "
 			+ "FROM Matricula m "
-			+ "WHERE m.idMatricula.asignatura.idAsignatura.curso = :curso AND m.idMatricula.asignatura.idAsignatura.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.nombre = :nombre AND m.idMatricula.alumno.id = :idAlumno")
+			+ "WHERE m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.nombre = :nombre AND m.idMatricula.alumno.id = :idAlumno")
 	void borrarPorTodo(@Param("curso") int curso,
 					   @Param("etapa") String etapa,
 					   @Param("nombre") String nombre,
@@ -54,7 +54,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "FROM Matricula m "
 			+ "JOIN m.idMatricula idM "
 			+ "JOIN idM.asignatura a "
-			+ "WHERE idM.asignatura.idAsignatura.curso = :curso AND idM.asignatura.idAsignatura.etapa = :etapa AND idM.asignatura.idAsignatura.grupo = :grupo")
+			+ "WHERE idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
 	List<Integer> encontrarIdAlumnoPorCursoEtapaYGrupo(@Param("curso") Integer curso,
 													   @Param("etapa") String etapa,
 													   @Param("grupo") Character grupo);
@@ -63,7 +63,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "FROM Matricula m "
 			+ "JOIN m.idMatricula idM "
 			+ "JOIN idM.asignatura a "
-			+ "WHERE idM.asignatura.idAsignatura.curso = :curso AND idM.asignatura.idAsignatura.etapa = :etapa AND idM.asignatura.idAsignatura.grupo = :grupo AND idM.alumno.nombre = :nombre")
+			+ "WHERE idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND idM.alumno.nombre = :nombre")
 	List<Integer> encontrarIdAlumnoPorCursoEtapaGrupoYNombre(@Param("curso") Integer curso,
 													   @Param("etapa") String etapa,
 													   @Param("grupo") Character grupo,
@@ -72,20 +72,20 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 	@Modifying
 	@Query("DELETE " +
 			"FROM Matricula m " +
-			"WHERE m.idMatricula.asignatura.idAsignatura.curso = :curso AND m.idMatricula.asignatura.idAsignatura.etapa = :etapa")
+			"WHERE m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
 	void borrarPorCursoYEtapa(@Param("curso") Integer curso,
 							  @Param("etapa") String etapa);
 
 	@Query("SELECT COUNT(DISTINCT m.idMatricula.alumno.id) "
 			+ "FROM Matricula m "
-			+ "WHERE m.idMatricula.asignatura.idAsignatura.curso = :curso AND m.idMatricula.asignatura.idAsignatura.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.grupo = :grupo")
+			+ "WHERE m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
 	Long numeroAlumnosPorGrupo(@Param("curso") Integer curso,
 							   @Param("etapa") String etapa,
 							   @Param("grupo") Character grupo);
 
 	@Query("SELECT COUNT(DISTINCT m.idMatricula.alumno.id) "
 			+ "FROM Matricula m "
-			+ "WHERE m.idMatricula.asignatura.idAsignatura.curso = :curso AND m.idMatricula.asignatura.idAsignatura.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.grupo = :grupo AND m.idMatricula.asignatura.idAsignatura.nombre = :asignatura")
+			+ "WHERE m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND m.idMatricula.asignatura.idAsignatura.nombre = :asignatura")
 	Long numeroAlumnosPorGrupoYAsignatura(@Param("curso") Integer curso,
 										  @Param("etapa") String etapa,
 										  @Param("grupo") Character grupo,
@@ -94,7 +94,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 	@Query("SELECT m.idMatricula.alumno "
 			+ "FROM Matricula m JOIN m.idMatricula idM "
 			+ 				   "JOIN idM.asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.grupo = :grupo AND idM.alumno.nombre = :nombreAlumno AND idM.alumno.apellidos = :apellidosAlumno")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND idM.alumno.nombre = :nombreAlumno AND idM.alumno.apellidos = :apellidosAlumno")
 	Optional<Alumno> buscarAlumnoPorCursoEtapaNombreApellidos(@Param("curso") Integer curso,
 															  @Param("etapa") String etapa,
 															  @Param("grupo") Character grupo,

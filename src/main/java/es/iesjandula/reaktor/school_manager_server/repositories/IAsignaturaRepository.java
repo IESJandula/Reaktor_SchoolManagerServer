@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Optional;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -35,23 +34,23 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsignatura>
 {
 	
-	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDto(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id) "
+	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDto(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id) "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa "
-			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa "
+			+ "GROUP BY a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id")
 	List<AsignaturaDto> findByCursoAndEtapa(@Param("curso") Integer curso, 
 										    @Param("etapa") String etapa);
 	
-	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDtoSinGrupo(a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas) "
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDtoSinGrupo(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas) "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa "
-			+ "GROUP BY a.idAsignatura.curso, a.idAsignatura.etapa, a.idAsignatura.nombre, a.horas")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa "
+			+ "GROUP BY a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas")
 	List<AsignaturaDtoSinGrupo> findByCursoAndEtapaDistinct(@Param("curso") Integer curso,
 															@Param("etapa") String etapa);
 
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
 	List<Optional<Asignatura>> findAsignaturasByCursoEtapaAndNombre(@Param("curso") int curso, 
 														      		@Param("etapa") String etapa, 
 														      		@Param("nombre") String nombre);
@@ -60,13 +59,13 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Modifying
 	@Query("DELETE "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
 	void borrarPorCursoYEtapa(@Param("curso") int curso, 
 							  @Param("etapa") String etapa);
 	
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombre AND a.idAsignatura.grupo = :grupo")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
 	Optional<Asignatura> encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(@Param("curso") int curso, 
 																		@Param("etapa") String etapa, 
 																		@Param("nombre") String nombre,
@@ -74,20 +73,20 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
 	List<Asignatura> findNombreByCursoEtapaAndNombres(@Param("curso") int curso,
 													  @Param("etapa") String etapa, 
 													  @Param("nombres") String nombres);
 	
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaHorasDto(a.idAsignatura.nombre, a.horas) "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
 	List<AsignaturaHorasDto> findNombreAndHorasByCursoEtapaAndNombres(@Param("curso") Integer curso,
 																	  @Param("etapa") String etapa);
 	
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
 	Asignatura encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
 											  @Param("etapa") String etapa, 
 											  @Param("nombres") String nombres);
@@ -99,7 +98,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.grupo = :grupo AND a.departamentoPropietario is null")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND a.departamentoPropietario is null")
 	List<Asignatura> asignaturasPorCursoEtapaGrupo(@Param("curso") int curso, 
 												   @Param("etapa") String etapa, 
 												   @Param("grupo") Character grupo);
@@ -107,7 +106,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.curso = :curso AND a.idAsignatura.etapa = :etapa AND a.idAsignatura.grupo = :grupo AND a.idAsignatura.nombre = :nombre")
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND a.idAsignatura.nombre = :nombre")
 	Optional<Asignatura> findAsignaturasByCursoEtapaGrupoAndNombre(@Param("curso") int curso,
 																   @Param("etapa") String etapa, 
 																   @Param("grupo") Character grupo, 
@@ -118,5 +117,4 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			"JOIN a.departamentoPropietario depto " +
 			"GROUP BY a.departamentoPropietario.nombre")
 	List<AsignaturaConDepartamentoDto> encontrarAsignaturasConDepartamento();
-
 }
