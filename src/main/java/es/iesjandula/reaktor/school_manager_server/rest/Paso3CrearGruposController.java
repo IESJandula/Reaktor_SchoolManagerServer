@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.*;
+import es.iesjandula.reaktor.school_manager_server.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.HttpStatus;
@@ -17,17 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto2;
-import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto3;
-import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto;
-import es.iesjandula.reaktor.school_manager_server.models.Alumno;
-import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
-import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
-import es.iesjandula.reaktor.school_manager_server.models.Matricula;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
@@ -521,6 +512,7 @@ public class Paso3CrearGruposController
             	Asignatura asignatura = new Asignatura();
             	asignatura.setIdAsignatura(idAsignatura);
                 asignatura.setHoras(matriculaDtoAlumnoABorrar.getHoras());
+                asignatura.setEsoBachillerato(matriculaDtoAlumnoABorrar.isEsoBachillerato());
 
                 IdCursoEtapa idCursoEtapa = new IdCursoEtapa(matriculaDtoAlumnoABorrar.getCurso(),matriculaDtoAlumnoABorrar.getEtapa());
                 CursoEtapa cursoEtapa = new CursoEtapa();
@@ -531,7 +523,7 @@ public class Paso3CrearGruposController
 
                 for(Integer idAlumno : listIdAlumno)
                 {
-//            		Eliminar el registro en la tabla Asignatura
+//            		Eliminar el registro en la tabla Matricula
                     this.iMatriculaRepository.borrarPorTodo(matriculaDtoAlumnoABorrar.getCurso(),matriculaDtoAlumnoABorrar.getEtapa(), matriculaDtoAlumnoABorrar.getNombreAsignatura(),idAlumno);
                 }
 
@@ -544,6 +536,9 @@ public class Paso3CrearGruposController
                     idAsignatura.getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(Constants.SIN_GRUPO_ASIGNADO);
                     asignatura.setIdAsignatura(idAsignatura);
                     asignatura.setHoras(matriculaDtoAlumnoABorrar.getHoras());
+                    Bloque bloque = new Bloque();
+                    bloque.setId(matriculaDtoAlumnoABorrar.getBloque());
+                    asignatura.setBloqueId(bloque);
 
 //            		Volvemos a crear la asignatura con el grupo a "null"
                     this.iAsignaturaRepository.saveAndFlush(asignatura);
@@ -722,6 +717,9 @@ public class Paso3CrearGruposController
             }
             else // Si llegamos aquí, es porque no existe la asignatura
             {
+                // Buscamos la asignatura para obtener las horas y los bloques
+                HorasYBloquesDto asignaturaExistente = this.iAsignaturaRepository.encontrarAsignaturaPorCursoEtapaNombre(curso, etapa, nombreAsignatura);
+
                 // Creamos una instancia del la clave primaria de la asignatura
                 IdAsignatura idAsignatura = new IdAsignatura();
 
@@ -737,6 +735,15 @@ public class Paso3CrearGruposController
 
                 // Asignamos la clave primaria a la asignatura
                 asignatura.setIdAsignatura(idAsignatura);
+
+                // Asignamos las horas
+                asignatura.setHoras(asignaturaExistente.getHoras());
+
+                // Creamos una instancia del bloque
+                Bloque bloque = new Bloque();
+                bloque.setId(asignaturaExistente.getBloques());
+
+                asignatura.setBloqueId(bloque);
 
                 // Guardamos la asignatura
                 this.iAsignaturaRepository.saveAndFlush(asignatura) ;

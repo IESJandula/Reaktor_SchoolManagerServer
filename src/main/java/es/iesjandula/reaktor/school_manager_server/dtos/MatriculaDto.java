@@ -24,4 +24,8 @@ public class MatriculaDto
 
 	private int horas;
 
+	private boolean esoBachillerato;
+
+	private Long bloque;
+
 }

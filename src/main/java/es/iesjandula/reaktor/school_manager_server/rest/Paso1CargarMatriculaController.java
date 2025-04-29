@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Scanner;
 
+import es.iesjandula.reaktor.school_manager_server.models.*;
+import es.iesjandula.reaktor.school_manager_server.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,18 +22,9 @@ import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto3;
 import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos;
-import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
-import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
-import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
@@ -62,6 +55,9 @@ public class Paso1CargarMatriculaController
 
 	@Autowired
 	private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
+
+	@Autowired
+	private IBloqueRepository iBloqueRepository;
     
 
     /**
@@ -227,7 +223,16 @@ public class Paso1CargarMatriculaController
                 this.iAlumnoRepository.deleteByNombreAndApellidos(a.getNombre(), a.getApellidos());
             }
 
-            this.iAsignaturaRepository.borrarPorCursoYEtapa(curso, etapa);
+			List<Long> bloques = this.iAsignaturaRepository.encontrarBloquePorCursoEtapa(curso, etapa);
+
+			this.iAsignaturaRepository.borrarPorCursoYEtapa(curso, etapa);
+
+			Bloque bloque = new Bloque();
+			for (Long cantidadBloques : bloques) {
+				bloque.setId(cantidadBloques);
+				this.iBloqueRepository.delete(bloque);
+			}
+
 
     		return ResponseEntity.ok().build();
     	}
