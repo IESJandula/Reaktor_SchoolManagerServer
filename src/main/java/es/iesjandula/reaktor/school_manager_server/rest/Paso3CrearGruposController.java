@@ -26,7 +26,6 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
@@ -39,9 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping(value = "/schoolManager/crearGrupos")
 public class Paso3CrearGruposController 
 {
-    @Autowired
-    private ICursoEtapaRepository iCursoEtapaRepository;
-
     @Autowired
 	private CursoEtapaService cursoEtapaService ;
 
@@ -60,63 +56,12 @@ public class Paso3CrearGruposController
     @Autowired
     private IMatriculaRepository iMatriculaRepository;
 
-    /**
-	 * Endpoint para obtener los cursos etapas.
-	 * 
-	 * Este método obtiene mediante un get todos los cursos etapas guardados en base
-	 * de datos para despues mostrarlos en el front en un select.
-	 * 
-	 * @return ResponseEntity<?> - Respuesta con las lista de cursos y etapas.
-	 */
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/cursoEtapa")
-    public ResponseEntity<?> obtenerCursoEtapa() 
-    {
-        try 
-        {
-            // Lista usada para guardar los registros de la Tabla CursoEtapa
-            List<CursoEtapa> listaCursoEtapa = new ArrayList<>();
 
-            // Asignar los registros de la Tabla CursoEtapa
-            listaCursoEtapa = this.iCursoEtapaRepository.findAll();
-
-            // Si la lista esta vacia, lanzar excepcion
-            if (listaCursoEtapa.isEmpty()) 
-            {
-                String mensajeError = "ERROR - Sin cursos y etapas en la base de datos";
-
-                // Lanzar excepcion y mostrar log con mensaje diferente
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.SIN_CURSOS_ETAPAS_ENCONTRADOS, mensajeError);
-            }
-
-            // Devolver la lista
-            log.info("INFO - Lista de los cursos etapas");
-            return ResponseEntity.status(200).body(listaCursoEtapa);
-        } 
-        catch (SchoolManagerServerException schoolManagerServerException) 
-        {
-            // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
-        {
-            // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo cargar la lista";
-
-            log.error(mensajeError, exception) ;
-
-            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }
 
     /**
      * Endpoint para crear un nuevo grupo en el sistema basado en el curso y etapa
      * proporcionados.
-     * 
+     *
      * Este método asigna un nuevo grupo a un curso y etapa específicos,
      * asegurándose de que el nombre del grupo sea único
      * en función de la cantidad de veces que ya existe dicho curso y etapa en la
