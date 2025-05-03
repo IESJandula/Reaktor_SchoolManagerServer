@@ -119,8 +119,8 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
 	Optional<HorasYBloquesDto> encontrarAsignaturaPorCursoEtapaNombre(@Param("curso") int curso,
-															@Param("etapa") String etapa,
-															@Param("nombres") String nombres);
+																	  @Param("etapa") String etapa,
+																	  @Param("nombres") String nombres);
 
 	@Query("SELECT a.bloqueId.id " +
 			"FROM Asignatura a " +
@@ -130,6 +130,14 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 
 	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirAsignaturaDto(a.idAsignatura.nombre, a.horas, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo)" +
 			"FROM Asignatura a ")
-	List<ImpartirAsignaturaDto>  encontrarAsignaturasSinGrupo();
+	List<ImpartirAsignaturaDto>  encontrarAsignaturasPorDepartamento();
+
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.GrupoAsignaturaDto(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
+			"FROM Asignatura a " +
+			"WHERE a.idAsignatura.nombre = :nombres AND a.horas = :horas AND  a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+	List<GrupoAsignaturaDto> encontrarGrupoPorNombreAndHorasAndCursoAndEtapa(@Param("nombres") String nombres,
+																			 @Param("horas") Integer horas,
+																			 @Param("curso") Integer curso,
+																			 @Param("etapa") String etapa);
 
 }

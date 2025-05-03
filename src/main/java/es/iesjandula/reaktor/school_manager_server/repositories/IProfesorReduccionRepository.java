@@ -1,8 +1,10 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorReduccionesDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
@@ -29,5 +31,17 @@ public interface IProfesorReduccionRepository extends JpaRepository<ProfesorRedu
             "FROM ProfesorReduccion pR " +
             "WHERE pR.idProfesorReduccion.reduccion.idReduccion.nombre = :nombre AND pR.idProfesorReduccion.reduccion.idReduccion.horas = :horas")
     ProfesorReduccion encontrarProfesorReduccion(String nombre, Integer horas);
+
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto(pR.idProfesorReduccion.reduccion.idReduccion.nombre, pR.idProfesorReduccion.reduccion.idReduccion.horas) " +
+            "FROM ProfesorReduccion pR " +
+            "WHERE pR.idProfesorReduccion.profesor.email = :email")
+    List<ReduccionProfesoresDto> encontrarReudccionesPorProfesor(@Param("email") String email);
+
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto(pR.idProfesorReduccion.reduccion.idReduccion.nombre, pR.idProfesorReduccion.reduccion.idReduccion.horas) " +
+            "FROM ProfesorReduccion pR " +
+            "WHERE pR.idProfesorReduccion.profesor.email = :email AND pR.idProfesorReduccion.reduccion.idReduccion.nombre = :nombre AND pR.idProfesorReduccion.reduccion.idReduccion.horas = :horas")
+    ReduccionProfesoresDto encontrarReudccionPorProfesor(@Param("email") String email,
+                                                         @Param("nombre") String nombre,
+                                                         @Param("horas") Integer horas);
 
 }

@@ -6,6 +6,7 @@ import es.iesjandula.reaktor.base.security.models.DtoUsuarioBase;
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.base.utils.HttpClientUtils;
+import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorDto;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
@@ -39,6 +40,7 @@ import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
@@ -130,7 +132,14 @@ public class CommonController
                 throw new SchoolManagerServerException(1, mensajeError);
             }
 
-            return ResponseEntity.ok(list);
+            List<ProfesorDto> listaProfesorDto = list.stream().map(profesor ->
+                    new ProfesorDto(
+                            profesor.getNombre(),
+                            profesor.getApellidos(),
+                            profesor.getEmail()
+                    )).collect(Collectors.toList());
+
+            return ResponseEntity.ok(listaProfesorDto);
 
         } catch (SchoolManagerServerException schoolManagerServerException)
         {
