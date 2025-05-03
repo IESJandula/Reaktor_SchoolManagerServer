@@ -427,19 +427,21 @@ public class Paso3CrearGruposController
                 // Buscar los registros del alumno en DatosBrutosAlumnoMatricula
                 List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatriculaAsignaturasOpt = 
                     this.iDatosBrutoAlumnoMatriculaRepository.findByNombreAndApellidosAndCursoEtapa(alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos(),cursoEtapa);
-                
+
                 for (DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaAsignaturaOpt : datosBrutoAlumnoMatriculaAsignaturasOpt) 
                 {
-                    // Registramos el alumno
-                    Alumno alumno = this.asignarAlumnosRegistrarAlumno(curso, etapa, grupo, alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos());
+                    if(datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("MATR") || datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("PEND"))
+                    {
+                        // Registramos el alumno
+                        Alumno alumno = this.asignarAlumnosRegistrarAlumno(curso, etapa, grupo, alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos());
 
-                    // Registramos la asignatura
-                    Asignatura asignatura = this.asignarAlumnosRegistrarAsignatura(curso, etapa, grupo, datosBrutoAlumnoMatriculaAsignaturaOpt.getAsignatura(), cursoEtapa.isEsoBachillerato());
+                        // Registramos la asignatura
+                        Asignatura asignatura = this.asignarAlumnosRegistrarAsignatura(curso, etapa, grupo, datosBrutoAlumnoMatriculaAsignaturaOpt.getAsignatura(), cursoEtapa.isEsoBachillerato());
 
-                    // Registramos la matricula
-                    this.asignarAlumnosRegistrarMatricula(datosBrutoAlumnoMatriculaAsignaturaOpt, alumno, asignatura);
+                        // Registramos la matricula
+                        this.asignarAlumnosRegistrarMatricula(datosBrutoAlumnoMatriculaAsignaturaOpt, alumno, asignatura);
+                    }
                 }
-
             }
 
             // Log de información antes de la respuesta
@@ -485,7 +487,6 @@ public class Paso3CrearGruposController
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
-    @Modifying
     public ResponseEntity<?> borrarAlumno(@RequestBody AlumnoDto2 alumnoDto)
     {
         try
@@ -590,15 +591,24 @@ public class Paso3CrearGruposController
         }
         else
         {
-            // Creamos un nuevo Alumno
-            alumno = new Alumno();
+            Optional<Alumno> optionalAlumnoA = this.iAlumnoRepository.findByNombreAndApellidos(nombreAlumno, apellidosAlumno);
 
-            // Asignar cada uno de los campos
-            alumno.setNombre(nombreAlumno);
-            alumno.setApellidos(apellidosAlumno);
-            
-            // Guardar el registro en la tabla Alumno
-            this.iAlumnoRepository.saveAndFlush(alumno);
+            if(optionalAlumnoA.isPresent())
+            {
+                alumno = optionalAlumnoA.get();
+            }
+            else {
+                // Creamos un nuevo Alumno
+                alumno = new Alumno();
+
+                // Asignar cada uno de los campos
+                alumno.setNombre(nombreAlumno);
+                alumno.setApellidos(apellidosAlumno);
+
+                // Guardar el registro en la tabla Alumno
+                this.iAlumnoRepository.saveAndFlush(alumno);
+            }
+
         }
 
         return alumno ;
@@ -630,7 +640,7 @@ public class Paso3CrearGruposController
         }
         else
         {
-            // Buscamos la asignatura por su nombre, curso, etapa y grupo N
+            // Buscamos la asignatura por su nombre, curso, etapa y grupo Z
             optionalAsignatura = this.iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, nombreAsignatura, Constants.SIN_GRUPO_ASIGNADO);
 
             // Si existe, la asignamos
@@ -669,9 +679,17 @@ public class Paso3CrearGruposController
                 // Asignamos la clave primaria a la asignatura
                 asignatura.setIdAsignatura(idAsignatura);
 
+                // Asignamos las horas
+                asignatura.setHoras(asignaturaExistente.get().getHoras());
 
+                if(asignaturaExistente.get().getBloques() != null)
+                {
+                    // Creamos una instancia del bloque
+                    Bloque bloque = new Bloque();
+                    bloque.setId(asignaturaExistente.get().getBloques());
 
-
+                    asignatura.setBloqueId(bloque);
+                }
 
                 // Guardamos la asignatura
                 this.iAsignaturaRepository.saveAndFlush(asignatura) ;
