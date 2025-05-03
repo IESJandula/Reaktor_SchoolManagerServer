@@ -6,6 +6,7 @@ import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
+import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
@@ -17,8 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -29,11 +32,12 @@ public class AlumnoService {
     private final IMatriculaRepository iMatriculaRepository;
     private final IAsignaturaRepository iAsignaturaRepository;
     private final IDatosBrutoAlumnoMatriculaRepository iDatosBrutoAlumnoMatriculaRepository;
+    private final IAlumnoRepository iAlumnoRepository;
 
-    public void borrarAlumno(@RequestBody AlumnoDto2 alumnoDto) throws SchoolManagerServerException {
+    public void borrarAlumno(AlumnoDto2 alumnoDto) throws SchoolManagerServerException {
 
             List<MatriculaDto> listaAlumnosABorrar = iMatriculaRepository.encontrarAlumnoPorNombreYApellidosYGrupo(alumnoDto.getNombre(), alumnoDto.getApellidos(), alumnoDto.getGrupo());
-
+            List<Integer> idAlumnos= new ArrayList<>();
             if(listaAlumnosABorrar.isEmpty())
             {
                 String mensajeError = "ERROR - No se encontraron alumnos para borrar";
@@ -52,6 +56,8 @@ public class AlumnoService {
                         matriculaDtoAlumnoABorrar.getNombreAlumno(),
                         matriculaDtoAlumnoABorrar.getApellidosAlumno());
 
+                idAlumnos.add(listaIds.get(listaIds.size() - 1)); //Añado el id encontrado a la lista general
+
                 for (Integer id : listaIds){
 //                  Eliminar el registro en la tabla Matricula
                     this.iMatriculaRepository.borrarPorTodo(matriculaDtoAlumnoABorrar.getCurso(),matriculaDtoAlumnoABorrar.getEtapa(),
@@ -67,7 +73,7 @@ public class AlumnoService {
                     iAsignaturaRepository.delete(asignaturaEncontrada.get());
                 }
 
-
+                //Convertir a false el campo asignacion de los alumnos borrados
                 IdCursoEtapa idCursoEtapa = new IdCursoEtapa(matriculaDtoAlumnoABorrar.getCurso(), matriculaDtoAlumnoABorrar.getEtapa());
                 CursoEtapa cursoEtapa = new CursoEtapa(idCursoEtapa,matriculaDtoAlumnoABorrar.isEsoBachillerato());
 
@@ -81,6 +87,12 @@ public class AlumnoService {
 
                 // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
                 this.iDatosBrutoAlumnoMatriculaRepository.saveAllAndFlush(datosBrutoAlumnoMatricula);
+            }
+            List<Integer> listaIdsSinDuplicados = idAlumnos.stream()
+                .distinct()
+                .toList();
+            for(Integer id : listaIdsSinDuplicados) {
+                iAlumnoRepository.deleteByNombreAndApellidosAndId(alumnoDto.getNombre(), alumnoDto.getApellidos(),id);
             }
 
     }
