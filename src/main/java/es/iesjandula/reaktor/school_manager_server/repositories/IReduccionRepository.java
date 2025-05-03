@@ -2,6 +2,7 @@ package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import java.util.List;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,9 +23,14 @@ import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto;
  * ----------------------------------------------------------------------------------------------------------------------
  */
 @Repository
-public interface IReduccionRepository extends JpaRepository<Reduccion, IdReduccion> {
+public interface IReduccionRepository extends JpaRepository<Reduccion, IdReduccion>
+{
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto(r.idReduccion.nombre, r.idReduccion.horas, r.decideDireccion) "
 			+ "FROM Reduccion r")
 	List<ReduccionDto> encontrarTodasReducciones();
+
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto(r.idReduccion.nombre, r.idReduccion.horas) " +
+			"FROM Reduccion r")
+	List<ReduccionProfesoresDto> encontrarReduccionesParaProfesores();
 
 }

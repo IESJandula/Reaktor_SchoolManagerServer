@@ -25,6 +25,11 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
+import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
@@ -118,7 +123,7 @@ public class Paso3CrearGruposController
     /**
      * Endpoint para crear un nuevo grupo en el sistema basado en el curso y etapa
      * proporcionados.
-     * 
+     *
      * Este método asigna un nuevo grupo a un curso y etapa específicos,
      * asegurándose de que el nombre del grupo sea único
      * en función de la cantidad de veces que ya existe dicho curso y etapa en la
