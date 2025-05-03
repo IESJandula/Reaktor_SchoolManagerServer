@@ -6,6 +6,8 @@ import java.util.Optional;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.*;
 import es.iesjandula.reaktor.school_manager_server.models.*;
+import es.iesjandula.reaktor.school_manager_server.repositories.*;
+import es.iesjandula.reaktor.school_manager_server.services.AlumnoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.HttpStatus;
@@ -23,12 +25,6 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
-import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
@@ -59,6 +55,12 @@ public class Paso3CrearGruposController
     
     @Autowired
     private IMatriculaRepository iMatriculaRepository;
+
+    @Autowired
+    private IBloqueRepository iBloqueRepository;
+
+    @Autowired
+    private AlumnoService alumnoService;
 
     /**
 	 * Endpoint para obtener los cursos etapas.
@@ -479,98 +481,24 @@ public class Paso3CrearGruposController
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
     @Modifying
-    public ResponseEntity<?> borrarAlumno(@RequestBody AlumnoDto alumnoDto) 
+    public ResponseEntity<?> borrarAlumno(@RequestBody AlumnoDto2 alumnoDto)
     {
-        try 
+        try
         {
-            List<MatriculaDto> listaAlumnosABorrar = this.iMatriculaRepository.encontrarAlumnoPorNombreYApellidos(alumnoDto.getNombre(), alumnoDto.getApellidos());
+        alumnoService.borrarAlumno(alumnoDto);
 
-            if(listaAlumnosABorrar.isEmpty())
-            {
-                String mensajeError = "ERROR - No se encontraron alumnos para borrar";
-
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);
-            }
-            
-            // Por cada asignatura del Alumno
-            for (MatriculaDto matriculaDtoAlumnoABorrar : listaAlumnosABorrar) 
-            {            
-                int curso = matriculaDtoAlumnoABorrar.getCurso();
-                String etapa = matriculaDtoAlumnoABorrar.getEtapa(); 
-                char grupo = matriculaDtoAlumnoABorrar.getGrupo();
-                String nombreAsignatura = matriculaDtoAlumnoABorrar.getNombreAsignatura();
-                
-            	IdAsignatura idAsignatura = new IdAsignatura() ;
-
-                CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();    
-                cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, grupo));
-
-                idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo);
-                idAsignatura.setNombre(nombreAsignatura);
-            	
-            	Asignatura asignatura = new Asignatura();
-            	asignatura.setIdAsignatura(idAsignatura);
-                asignatura.setHoras(matriculaDtoAlumnoABorrar.getHoras());
-                asignatura.setEsoBachillerato(matriculaDtoAlumnoABorrar.isEsoBachillerato());
-
-                IdCursoEtapa idCursoEtapa = new IdCursoEtapa(matriculaDtoAlumnoABorrar.getCurso(),matriculaDtoAlumnoABorrar.getEtapa());
-                CursoEtapa cursoEtapa = new CursoEtapa();
-
-                cursoEtapa.setIdCursoEtapa(idCursoEtapa);
-
-                List<Integer> listIdAlumno = this.iMatriculaRepository.encontrarIdAlumnoPorCursoEtapaGrupoYNombre(matriculaDtoAlumnoABorrar.getCurso(),matriculaDtoAlumnoABorrar.getEtapa(),matriculaDtoAlumnoABorrar.getGrupo(),matriculaDtoAlumnoABorrar.getNombreAlumno());
-
-                for(Integer idAlumno : listIdAlumno)
-                {
-//            		Eliminar el registro en la tabla Matricula
-                    this.iMatriculaRepository.borrarPorTodo(matriculaDtoAlumnoABorrar.getCurso(),matriculaDtoAlumnoABorrar.getEtapa(), matriculaDtoAlumnoABorrar.getNombreAsignatura(),idAlumno);
-                }
-
-//            	Si es el ultimo alumno
-                if(this.iMatriculaRepository.numeroAsignaturasPorNombre(idAsignatura.getNombre()) < 1)
-            	{
-                    // Eliminar el registro en la tabla Asignatura
-                    this.iAsignaturaRepository.delete(asignatura);
-
-                    idAsignatura.getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(Constants.SIN_GRUPO_ASIGNADO);
-                    asignatura.setIdAsignatura(idAsignatura);
-                    asignatura.setHoras(matriculaDtoAlumnoABorrar.getHoras());
-                    Bloque bloque = new Bloque();
-                    bloque.setId(matriculaDtoAlumnoABorrar.getBloque());
-                    asignatura.setBloqueId(bloque);
-
-//            		Volvemos a crear la asignatura con el grupo a "null"
-                    this.iAsignaturaRepository.saveAndFlush(asignatura);
-            	}
-
-                List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatricula = 
-                    this.iDatosBrutoAlumnoMatriculaRepository.findByNombreAndApellidosAndCursoEtapa(matriculaDtoAlumnoABorrar.getNombreAlumno(),matriculaDtoAlumnoABorrar.getApellidosAlumno(),cursoEtapa);
-
-                for(DatosBrutoAlumnoMatricula datosAlumnoBorrado : datosBrutoAlumnoMatricula) 
-                {
-                    datosAlumnoBorrado.setAsignado(false);
-                }
-
-                // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
-                this.iDatosBrutoAlumnoMatriculaRepository.saveAllAndFlush(datosBrutoAlumnoMatricula);
-            }
-
-            this.iAlumnoRepository.deleteByNombreAndApellidos(alumnoDto.getNombre(), alumnoDto.getApellidos());
-            
-            
-            // Log de información antes de la respuesta
+        // Log de información antes de la respuesta
             log.info("INFO - Alumno desasignado correctamente");
 
             // Devolver mensaje de OK
             return ResponseEntity.ok().build();
-        } 
-        catch (SchoolManagerServerException schoolManagerServerException) 
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
+        }
+        catch (Exception exception)
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo borrar el alumno";
@@ -718,7 +646,7 @@ public class Paso3CrearGruposController
             else // Si llegamos aquí, es porque no existe la asignatura
             {
                 // Buscamos la asignatura para obtener las horas y los bloques
-                HorasYBloquesDto asignaturaExistente = this.iAsignaturaRepository.encontrarAsignaturaPorCursoEtapaNombre(curso, etapa, nombreAsignatura);
+                Optional<HorasYBloquesDto> asignaturaExistente = this.iAsignaturaRepository.encontrarAsignaturaPorCursoEtapaNombre(curso, etapa, nombreAsignatura);
 
                 // Creamos una instancia del la clave primaria de la asignatura
                 IdAsignatura idAsignatura = new IdAsignatura();
@@ -736,14 +664,9 @@ public class Paso3CrearGruposController
                 // Asignamos la clave primaria a la asignatura
                 asignatura.setIdAsignatura(idAsignatura);
 
-                // Asignamos las horas
-                asignatura.setHoras(asignaturaExistente.getHoras());
 
-                // Creamos una instancia del bloque
-                Bloque bloque = new Bloque();
-                bloque.setId(asignaturaExistente.getBloques());
 
-                asignatura.setBloqueId(bloque);
+
 
                 // Guardamos la asignatura
                 this.iAsignaturaRepository.saveAndFlush(asignatura) ;

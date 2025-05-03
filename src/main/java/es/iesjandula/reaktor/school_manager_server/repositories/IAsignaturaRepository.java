@@ -118,7 +118,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.HorasYBloquesDto(a.horas, a.bloqueId.id) "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
-	HorasYBloquesDto encontrarAsignaturaPorCursoEtapaNombre(@Param("curso") int curso,
+	Optional<HorasYBloquesDto> encontrarAsignaturaPorCursoEtapaNombre(@Param("curso") int curso,
 															@Param("etapa") String etapa,
 															@Param("nombres") String nombres);
 
