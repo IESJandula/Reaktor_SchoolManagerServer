@@ -25,7 +25,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Embeddable
-public class IdMatricula implements Serializable {
+public class IdMatricula implements Serializable
+{
 
     /**
      * Atributo único de serialización para la clase.

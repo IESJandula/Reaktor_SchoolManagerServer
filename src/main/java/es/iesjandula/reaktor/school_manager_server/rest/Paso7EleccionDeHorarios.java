@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -41,6 +42,15 @@ public class Paso7EleccionDeHorarios
 
     @Autowired
     private IProfesorReduccionRepository  iProfesorReduccionRepository;
+
+    @Autowired
+    private IDiasTramosRepository iDiasTramosRepository;
+
+    @Autowired
+    private IPreferenciasHorariasRepository iPreferenciasHorariasRepository;
+
+    @Autowired
+    private IObservacionesAdicionalesRepository  iObservacionesAdicionalesRepository;
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
@@ -171,7 +181,114 @@ public class Paso7EleccionDeHorarios
     }
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/soliciutdes")
+    @RequestMapping(method = RequestMethod.GET, value = "/observaciones")
+    public ResponseEntity<?> obtenerDiasTramosTipoHorario()
+    {
+        try
+        {
+            List<DiasTramosTipoHorarioDto> listDiasTramosTipoHorarioDto = this.iDiasTramosRepository.findByTipoHorario();
+
+            if(listDiasTramosTipoHorarioDto.isEmpty())
+            {
+                String mensajeError = "Error - No se han encontrado dias, tramos y tipos horarios en base de datos";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(1, mensajeError);
+            }
+
+            return ResponseEntity.ok().body(listDiasTramosTipoHorarioDto);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @RequestMapping(method = RequestMethod.PUT, value = "/observaciones")
+    public ResponseEntity<?> actualizarObservaciones(@RequestHeader(value = "conciliacion") Boolean conciliacion,
+                                                     @RequestHeader(value = "trabajarPrimeraHora") Boolean trabajarPrimeraHora,
+                                                     @RequestHeader(value = "otrasObservaciones", required = false) String otrasObservaciones,
+                                                     @RequestHeader(value = "dia") Integer dia,
+                                                     @RequestHeader(value = "tramo") Integer tramo,
+                                                     @RequestHeader(value = "tipoHorario") String tipoHorario,
+                                                     @RequestHeader(value = "email") String email)
+    {
+        try
+        {
+            Profesor profesor = new Profesor();
+            profesor.setEmail(email);
+
+            IdObservacionesAdicionales  idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
+
+            Optional<ObservacionesAdicionales> observacionesAdicionalesABuscar = this.iObservacionesAdicionalesRepository.findById(idObservacionesAdicionales);
+
+            if(observacionesAdicionalesABuscar.isPresent())
+            {
+                String mensajeError = "Error - Ya existe un profesor con esas observaciones adicionales";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(1, mensajeError);
+            }
+
+            ObservacionesAdicionales observacionesAdicionales = new ObservacionesAdicionales(idObservacionesAdicionales, conciliacion, trabajarPrimeraHora, otrasObservaciones);
+
+            this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales);
+
+            IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dia, tramo, tipoHorario);
+
+            DiasTramosTipoHorario diasTramosTipoHorario = new DiasTramosTipoHorario();
+            diasTramosTipoHorario.setIdDiasTramosTipoHorario(idDiasTramosTipoHorario);
+
+            IdPreferenciasHorariasProfesor idPreferenciasHorariasProfesor = new IdPreferenciasHorariasProfesor(profesor, diasTramosTipoHorario);
+
+            Optional<PreferenciasHorariasProfesor> preferenciasHorariasProfesorABuscar = this.iPreferenciasHorariasRepository.findById(idPreferenciasHorariasProfesor);
+
+            if(preferenciasHorariasProfesorABuscar.isPresent())
+            {
+                String mensajeError = "Error - Ya existe un profesor con esas preferencias horarias";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(1, mensajeError);
+            }
+
+            PreferenciasHorariasProfesor preferenciasHorariasProfesor = new PreferenciasHorariasProfesor();
+            preferenciasHorariasProfesor.setIdPreferenciasHorariasProfesor(idPreferenciasHorariasProfesor);
+
+            this.iPreferenciasHorariasRepository.saveAndFlush(preferenciasHorariasProfesor);
+
+            return ResponseEntity.ok().build();
+
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/solicitudes")
     public ResponseEntity<?> obtenerSolicitudes(@RequestHeader(value = "email") String email)
     {
         try
@@ -224,7 +341,7 @@ public class Paso7EleccionDeHorarios
     }
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-    @RequestMapping(method = RequestMethod.DELETE, value = "/soliciutdes")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/solicitudes")
     public ResponseEntity<?> eliminarSolicitudes(@RequestHeader(value = "email", required = false) String email,
                                                  @RequestHeader(value = "nombreAsignatura", required = false) String nombreAsignatura,
                                                  @RequestHeader(value = "horasAsignatura", required = false) Integer horasAsignatura,
@@ -270,7 +387,7 @@ public class Paso7EleccionDeHorarios
     }
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-    @RequestMapping(method = RequestMethod.PUT, value = "/soliciutdes")
+    @RequestMapping(method = RequestMethod.PUT, value = "/solicitudes")
     public ResponseEntity<?> guardarSolicitudes(@RequestHeader(value = "email", required = false) String email,
                                                 @RequestHeader(value = "nombreAsignatura", required = false) String nombreAsignatura,
                                                 @RequestHeader(value = "horasAsignatura", required = false) Integer horasAsignatura,
@@ -416,7 +533,8 @@ public class Paso7EleccionDeHorarios
 
         return profesorReduccion;
     }
-    private Impartir construirSolicutudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException {
+    private Impartir construirSolicutudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException
+    {
         ImpartirDto asignaturaImpartidaDto = this.iImpartirRepository.encontrarAsignaturaImpartidaPorEmail(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
 
         if(asignaturaImpartidaDto == null)
