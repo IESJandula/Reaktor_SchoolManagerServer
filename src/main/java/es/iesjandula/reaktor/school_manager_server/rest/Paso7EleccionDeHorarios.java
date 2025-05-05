@@ -19,10 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -98,7 +95,7 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            Impartir asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, grupo, email);
+            Impartir asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, grupo);
 
             if(asignaturaImpartir != null)
             {
@@ -353,7 +350,7 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            if(nombreAsignatura != null)
+            if(nombreAsignatura != null && !nombreAsignatura.isEmpty())
             {
 
                 Impartir asignaturaImpartidaABorrar = construirSolicutudImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);

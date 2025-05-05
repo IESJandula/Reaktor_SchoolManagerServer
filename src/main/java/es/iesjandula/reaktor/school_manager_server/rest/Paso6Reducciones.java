@@ -1,17 +1,9 @@
 package es.iesjandula.reaktor.school_manager_server.rest;
 
-import java.io.IOException;
-import java.net.SocketTimeoutException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import es.iesjandula.reaktor.base.security.models.DtoUsuarioBase;
-import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.base.utils.HttpClientUtils;
 import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorReduccionesDto;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
@@ -19,16 +11,10 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccio
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
-import es.iesjandula.reaktor.school_manager_server.utils.Constants;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.conn.ConnectTimeoutException;
-import org.apache.http.impl.client.CloseableHttpClient;
+import es.iesjandula.reaktor.school_manager_server.services.ReduccionProfesorService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -55,7 +41,8 @@ public class Paso6Reducciones
 	@Autowired
 	private IProfesorReduccionRepository iProfesorReduccionRepository;
 
-
+	@Autowired
+	private ReduccionProfesorService reduccionProfesorService;
 
 	
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -232,28 +219,11 @@ public class Paso6Reducciones
 	{
 		try
 		{
-			IdReduccion idReduccion = new IdReduccion(nombreReduccion, horasReduccion);
-			Optional<Reduccion> reduccion = this.iReduccionRepository.findById(idReduccion);
+			Reduccion reduccion = this.reduccionProfesorService.validadarYObtenerReduccion(nombreReduccion, horasReduccion);
 
-			if(reduccion.isEmpty())
-			{
-				String mensajeError = "No existe una reducción con ese nombre y esas horas";
+			Profesor profesor = this.reduccionProfesorService.validadarYObtenerProfesor(email);
 
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
-
-			Optional<Profesor> profesor = this.iProfesorRepository.findById(email);
-
-			if(profesor.isEmpty())
-			{
-				String mensajeError = "No existe un profesor con ese nombre y esos apellidos";
-
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
-
-			IdProfesorReduccion idProfesorReduccion = new IdProfesorReduccion(profesor.get(), reduccion.get());
+			IdProfesorReduccion idProfesorReduccion = new IdProfesorReduccion(profesor, reduccion);
 
 			Optional<ProfesorReduccion> optionalProfesorReduccion = this.iProfesorReduccionRepository.findById(idProfesorReduccion);
 

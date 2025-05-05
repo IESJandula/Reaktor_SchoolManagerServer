@@ -12,11 +12,10 @@ import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccion;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.services.ReduccionProfesorService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -49,14 +48,15 @@ public class CommonController
 {
     @Autowired
     private ICursoEtapaRepository iCursoEtapaRepository;
-    @Autowired
-    private IReduccionRepository iReduccionRepository;
 
     @Autowired
     private IProfesorRepository iProfesorRepository;
 
     @Autowired
     private IProfesorReduccionRepository iProfesorReduccionRepository;
+
+    @Autowired
+    private ReduccionProfesorService reduccionProfesorService;
 
     @Value("${reaktor.http_connection_timeout}")
     private int httpConnectionTimeout;
@@ -302,28 +302,11 @@ public class CommonController
     {
         try
         {
-            IdReduccion idReduccion = new IdReduccion(nombreReduccion, horasReduccion);
-            Optional<Reduccion> reduccion = this.iReduccionRepository.findById(idReduccion);
+            Reduccion reduccion = this.reduccionProfesorService.validadarYObtenerReduccion(nombreReduccion, horasReduccion);
 
-            if(reduccion.isEmpty())
-            {
-                String mensajeError = "No existe una reducción con ese nombre y esas horas";
+            Profesor profesor = this.reduccionProfesorService.validadarYObtenerProfesor(email);
 
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
-            }
-
-            Optional<Profesor> profesor = this.iProfesorRepository.findById(email);
-
-            if(profesor.isEmpty())
-            {
-                String mensajeError = "No existe un profesor con ese nombre y esos apellidos";
-
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
-            }
-
-            IdProfesorReduccion idProfesorReduccion = new IdProfesorReduccion(profesor.get(), reduccion.get());
+            IdProfesorReduccion idProfesorReduccion = new IdProfesorReduccion(profesor, reduccion);
 
             Optional<ProfesorReduccion> optionalProfesorReduccion = this.iProfesorReduccionRepository.findById(idProfesorReduccion);
 

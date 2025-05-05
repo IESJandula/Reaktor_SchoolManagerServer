@@ -11,9 +11,9 @@ public class ImpartirTipoDto
 {
     private String tipo;
 
-    private String nombre;
+    private String nombreAsignatura;
 
-    private Integer horas;
+    private Integer horasAsignatura;
 
     private Integer curso;
 

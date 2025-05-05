@@ -11,7 +11,7 @@ public class ReduccionAsignadaDto
 {
     private String tipo;
 
-    private String nombre;
+    private String nombreReduccion;
 
-    private int horas;
+    private int horasReduccion;
 }
