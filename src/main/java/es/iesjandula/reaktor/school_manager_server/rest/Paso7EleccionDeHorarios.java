@@ -147,7 +147,6 @@ public class Paso7EleccionDeHorarios
 
                 return ResponseEntity.ok().body(listReduccion);
             }
-
             List<ReduccionProfesoresDto> listReduccionesProfesores = this.iReduccionRepository.encontrarReduccionesParaProfesores();
 
             if(listReduccionesProfesores.isEmpty())
@@ -157,7 +156,6 @@ public class Paso7EleccionDeHorarios
                 throw new SchoolManagerServerException(1, mensajeError);
             }
             return ResponseEntity.ok().body(listReduccionesProfesores);
-
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -217,7 +215,7 @@ public class Paso7EleccionDeHorarios
     public ResponseEntity<?> actualizarObservaciones(@RequestHeader(value = "conciliacion") Boolean conciliacion,
                                                      @RequestHeader(value = "trabajarPrimeraHora") Boolean trabajarPrimeraHora,
                                                      @RequestHeader(value = "otrasObservaciones", required = false) String otrasObservaciones,
-                                                     @RequestHeader(value = "dia") Integer dia,
+                                                     @RequestHeader(value = "dia") String dia,
                                                      @RequestHeader(value = "tramo") Integer tramo,
                                                      @RequestHeader(value = "tipoHorario") String tipoHorario,
                                                      @RequestHeader(value = "email") String email)
@@ -231,23 +229,22 @@ public class Paso7EleccionDeHorarios
 
             Optional<ObservacionesAdicionales> observacionesAdicionalesABuscar = this.iObservacionesAdicionalesRepository.findById(idObservacionesAdicionales);
 
-            if(observacionesAdicionalesABuscar.isPresent())
-            {
-                String mensajeError = "Error - Ya existe un profesor con esas observaciones adicionales";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
-            }
+
 
             ObservacionesAdicionales observacionesAdicionales = new ObservacionesAdicionales(idObservacionesAdicionales, conciliacion, trabajarPrimeraHora, otrasObservaciones);
 
             this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales);
 
-            IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dia, tramo, tipoHorario);
+            tramo--;
 
-            DiasTramosTipoHorario diasTramosTipoHorario = new DiasTramosTipoHorario();
-            diasTramosTipoHorario.setIdDiasTramosTipoHorario(idDiasTramosTipoHorario);
+            Integer dias = this.iDiasTramosRepository.encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(tramo, tipoHorario, dia);
 
-            IdPreferenciasHorariasProfesor idPreferenciasHorariasProfesor = new IdPreferenciasHorariasProfesor(profesor, diasTramosTipoHorario);
+            IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dias, tramo, tipoHorario);
+
+            DiasTramosTipoHorario diasTramosTipoHorarioAGuardar = new DiasTramosTipoHorario();
+            diasTramosTipoHorarioAGuardar.setIdDiasTramosTipoHorario(idDiasTramosTipoHorario);
+
+            IdPreferenciasHorariasProfesor idPreferenciasHorariasProfesor = new IdPreferenciasHorariasProfesor(profesor, diasTramosTipoHorarioAGuardar);
 
             Optional<PreferenciasHorariasProfesor> preferenciasHorariasProfesorABuscar = this.iPreferenciasHorariasRepository.findById(idPreferenciasHorariasProfesor);
 
@@ -431,10 +428,10 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION+ "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAsignaturas")
-    public ResponseEntity<?> obtenerGrupos(@RequestHeader(value = "nombreAsignatura", required = false) String nombreAsignatura,
-                                           @RequestHeader(value = "horasAsignatura", required = false) Integer horasAsignatura,
-                                           @RequestHeader(value = "curso", required = false) Integer curso,
-                                           @RequestHeader(value = "etapa", required = false) String etapa)
+    public ResponseEntity<?> obtenerGrupos(@RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
+                                           @RequestHeader(value = "horasAsignatura") Integer horasAsignatura,
+                                           @RequestHeader(value = "curso") Integer curso,
+                                           @RequestHeader(value = "etapa") String etapa)
     {
         try
         {

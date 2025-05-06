@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DiasTramosTipoHorarioDto
 {
-    private Integer dia;
+    private String dia;
 
     private Integer tramo;
 

@@ -30,7 +30,8 @@ public interface IReduccionRepository extends JpaRepository<Reduccion, IdReducci
 	List<ReduccionDto> encontrarTodasReducciones();
 
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto(r.idReduccion.nombre, r.idReduccion.horas) " +
-			"FROM Reduccion r")
+			"FROM Reduccion r " +
+			"WHERE r.decideDireccion = false ")
 	List<ReduccionProfesoresDto> encontrarReduccionesParaProfesores();
 
 }

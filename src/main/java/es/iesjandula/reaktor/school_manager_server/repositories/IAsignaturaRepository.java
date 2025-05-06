@@ -134,8 +134,8 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.GrupoAsignaturaDto(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
 			"FROM Asignatura a " +
-			"WHERE a.idAsignatura.nombre = :nombres AND a.horas = :horas AND  a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
-	List<GrupoAsignaturaDto> encontrarGrupoPorNombreAndHorasAndCursoAndEtapa(@Param("nombres") String nombres,
+			"WHERE a.idAsignatura.nombre = :nombre AND a.horas = :horas AND  a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+	List<GrupoAsignaturaDto> encontrarGrupoPorNombreAndHorasAndCursoAndEtapa(@Param("nombre") String nombre,
 																			 @Param("horas") Integer horas,
 																			 @Param("curso") Integer curso,
 																			 @Param("etapa") String etapa);
