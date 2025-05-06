@@ -128,6 +128,11 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	List<Long> encontrarBloquePorCursoEtapa(@Param("curso") int curso,
 									 		@Param("etapa") String etapa);
 
+    @Query("SELECT a " +
+            "FROM Asignatura a " +
+            "WHERE a.bloqueId = :#{#asignatura.bloqueId} AND a != :asignatura")
+    List<Asignatura> buscaOptativasRelacionadas(@Param("asignatura") Asignatura asignatura);
+
 	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirAsignaturaDto(a.idAsignatura.nombre, a.horas, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo)" +
 			"FROM Asignatura a ")
 	List<ImpartirAsignaturaDto>  encontrarAsignaturasPorDepartamento();
@@ -139,5 +144,4 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 																			 @Param("horas") Integer horas,
 																			 @Param("curso") Integer curso,
 																			 @Param("etapa") String etapa);
-
 }

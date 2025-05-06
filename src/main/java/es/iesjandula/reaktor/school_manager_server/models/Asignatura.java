@@ -1,5 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
+import java.util.Objects;
+
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -75,4 +77,46 @@ public class Asignatura
     @ManyToOne
     @JoinColumn(name="bloque_id", referencedColumnName="id")
     private Bloque bloqueId;
+
+    /**
+     * @return true si la asignatura es optativa, false en caso contrario
+     */
+    public boolean isOptativa()
+    {
+        return this.bloqueId != null ;
+    }
+
+    @Override
+    public String toString()
+    {
+    	return this.idAsignatura.getNombre() ;
+    }
+
+    @Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+		{
+			return true ;
+		}
+		else if (obj == null)
+		{
+			return false ;
+		}
+		else if (getClass() != obj.getClass())
+		{
+			return false ;
+		}
+		
+		Asignatura other = (Asignatura) obj ;
+		
+		return Objects.equals(this.idAsignatura.getNombre(), other.idAsignatura.getNombre())				   &&
+			   Objects.equals(this.idAsignatura.getCursoEtapaGrupo(), other.idAsignatura.getCursoEtapaGrupo()) ;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		return Objects.hash(this.idAsignatura.getNombre(), this.idAsignatura.getCursoEtapaGrupo(), this.esoBachillerato, this.horas) ;
+	}
 }

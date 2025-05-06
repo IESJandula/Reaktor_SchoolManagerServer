@@ -4,8 +4,8 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
 import lombok.AllArgsConstructor;

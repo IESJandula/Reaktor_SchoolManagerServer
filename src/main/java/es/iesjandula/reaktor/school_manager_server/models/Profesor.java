@@ -1,7 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.List;
-
+import java.util.Objects;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import jakarta.persistence.Column;
@@ -103,5 +103,38 @@ public class Profesor
 				throw new SchoolManagerServerException(Constants.ERROR_CONCILIACION_NO_VALIDA, mensajeError);
 			}
 		}
+	}
+
+	@Override
+    public String toString()
+    {
+    	return this.nombre + " " + this.apellidos ;
+    }
+    
+    @Override
+	public int hashCode()
+    {
+		return Objects.hash(this.email) ;
+	}
+
+	@Override
+	public boolean equals(Object obj)
+	{
+		if (this == obj)
+		{
+			return true;
+		}
+		else if (obj == null)
+		{
+			return false;
+		}
+		else if (getClass() != obj.getClass())
+		{
+			return false;
+		}
+		
+		Profesor other = (Profesor) obj ;
+		
+		return Objects.equals(this.email, other.email) ;
 	}
 }

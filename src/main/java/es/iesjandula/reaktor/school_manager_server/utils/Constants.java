@@ -117,13 +117,20 @@ public class Constants
 	/************* Errores del Generador de horario ***************/
 
 	/** Error - Horario no más ampliable */
-	public static final int ERR_CODE_HORARIO_NO_MAS_AMPLIABLE = 300 ;
+	public static final int ERR_CODE_HORARIO_NO_MAS_AMPLIABLE 		 = 300 ;
 
 	/** Error - Sin días disponibles */
-	public static final int ERR_CODE_SIN_DIAS_DISPONIBLES     = 301 ;
+	public static final int ERR_CODE_SIN_DIAS_DISPONIBLES     		 = 301 ;
 
 	/** Error - Superado el límite de restricciones que se pueden asignar a esta asignatura por sus horas */
-	public static final int ERR_CODE_SUPERADO_LIMITE_RESTRICC = 302 ;
+	public static final int ERR_CODE_SUPERADO_LIMITE_RESTRICCIONES	 = 302 ;
+
+	/** Mensaje de error - Hay un generador en curso */
+	public static final int ERROR_CODE_GENERADOR_EN_CURSO 	  		 = 303 ;
+
+	/** Mensaje de error - No hay cursos/etapas/grupos por cada curso/etapa */
+	public static final int ERROR_CODE_SIN_CURSOS_ETAPAS_ENCONTRADOS = 304 ;
+
 
 	/******************************************************/
 	/*************** Constantes - Conciliaciones **********/
@@ -219,17 +226,6 @@ public class Constants
 	public static final int TRAMO_HORARIO_SEXTA_HORA   = 5 ;
 
 	/******************************************************/
-	/******************** Tipos de horarios **************/
-	/******************************************************/
-
-	/** Tipo de horario - Matutino */
-	public static final String HORARIO_MATUTINO   = "MATUTINO" ;
-
-	/** Tipo de horario - Vespertino */
-	public static final String HORARIO_VESPERTINO = "VESPERTINO" ;
-
-
-	/******************************************************/
 	/******************** Threads *************************/
 	/******************************************************/
 
@@ -276,5 +272,19 @@ public class Constants
 	/** Si no se pone 2, el sistema no logra encontrar un horario final completo */
     public static final int NUMERO_MAXIMO_OCURRENCIAS_POR_DIA_FP 		  = 2 ;
 
-    
+	/******************************************************/
+	/**************** Estado del generador ****************/
+	/******************************************************/
+
+	/** Estado del generador - En curso */
+	public static final String ESTADO_EN_CURSO 	= "EN_CURSO" ;
+
+	/** Estado del generador - Finalizado */
+	public static final String ESTADO_FINALIZADO = "FINALIZADO" ;
+
+	/** Estado del generador - Detenido */
+	public static final String ESTADO_DETENIDO 	 = "DETENIDO" ;
+	
+	
+	
 }
