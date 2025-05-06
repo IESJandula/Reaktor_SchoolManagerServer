@@ -1,23 +1,27 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core.threads;
+package es.iesjandula.reaktor.school_manager_server.generator.core;
 
 import java.util.Collections;
 import java.util.List;
 
+import es.iesjandula.reaktor.school_manager_server.generator.core.threads.IndicesAsignacionSesion;
+import es.iesjandula.reaktor.school_manager_server.generator.core.threads.UltimaAsignacion;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Asignatura;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.enums.TipoHorario;
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.generator.models.RestriccionHoraria;
-import es.iesjandula.reaktor.school_manager_server.generator.models.enums.Conciliacion;
+import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class GestorDeSesiones
 {
+	/** Asignatura service */
+	private AsignaturaService asignaturaService ;
+
     /** Sesiones pendientes */
     private List<List<Sesion>> sesionesPendientes ;
 
@@ -35,16 +39,20 @@ public class GestorDeSesiones
 
 	/**
 	 * Constructor de la clase
+	 * 
+	 * @param asignaturaService asignatura service
 	 * @param sesionesPendientes sesiones pendientes
 	 * @param matrizAsignacionesMatutinas matriz de asignaciones matutinas
 	 * @param matrizAsignacionesVespertinas matriz de asignaciones vespertinas
 	 * @param ultimaAsignacion ultima asignación
 	 */
-	public GestorDeSesiones(List<List<Sesion>> sesionesPendientes,
+	public GestorDeSesiones(AsignaturaService asignaturaService,
+							List<List<Sesion>> sesionesPendientes,
 							Asignacion[][] matrizAsignacionesMatutinas,
 							Asignacion[][] matrizAsignacionesVespertinas,
 							UltimaAsignacion ultimaAsignacion)
 	{
+		this.asignaturaService 			   = asignaturaService ;
 		this.sesionesPendientes 		   = sesionesPendientes ;
 		this.matrizAsignacionesMatutinas   = matrizAsignacionesMatutinas ;
 		this.matrizAsignacionesVespertinas = matrizAsignacionesVespertinas ;
@@ -115,7 +123,7 @@ public class GestorDeSesiones
     private void seleccionarMatrizAsignaciones(Sesion sesion)
     {
         // Si es matutino ...
-        if (sesion.getTipoHorario() == TipoHorario.MATUTINO)
+        if (sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getHorarioMatutino())
         {
         	// ... elegimos la matriz de asignaciones matutinas
             this.matrizAsignaciones = this.matrizAsignacionesMatutinas ;
@@ -210,7 +218,7 @@ public class GestorDeSesiones
 		{
 			Sesion temp = listaDeSesiones.get(i) ;
 
-			if (temp.getProfesor().getConciliacion() == Conciliacion.SALIR_ANTES_QUINTA_HORA)
+			if (temp.getProfesor().getConciliacion() == Constants.CONCILIACION_SALIR_ANTES_QUINTA_HORA)
 			{
 				indiceSesionEncontrada = i ;
 			}
@@ -257,7 +265,7 @@ public class GestorDeSesiones
 		Sesion outcome = null ;
 		
 		// Obtenemos la/s optativa/s de la última asignación
-		List<Asignatura> bloqueOptativas = this.ultimaAsignacion.getAsignacion().getListaSesiones().get(0).getAsignatura().getBloqueOptativas() ;
+		List<Asignatura> bloqueOptativas = this.asignaturaService.buscaOptativasRelacionadas(this.ultimaAsignacion.getAsignacion().getListaSesiones().get(0).getAsignatura()) ;
 		
 		// Iteramos en la lista de sesiones pendientes
 		int i = 0 ;
@@ -460,11 +468,11 @@ public class GestorDeSesiones
      */
 	private void obtenerRestriccionHorariaDeSesionPorConciliacion(Sesion sesion, RestriccionHoraria.Builder builder)
 	{
-    	if (sesion.getProfesor().getConciliacion() == Conciliacion.ENTRAR_DESPUES_SEGUNDA_HORA)
+    	if (sesion.getProfesor().getConciliacion() == Constants.CONCILIACION_ENTRAR_DESPUES_SEGUNDA_HORA)
     	{
     		builder = builder.docenteEntraDespuesSegundaHora() ;
     	}
-    	else if (sesion.getProfesor().getConciliacion() == Conciliacion.SALIR_ANTES_QUINTA_HORA)
+    	else if (sesion.getProfesor().getConciliacion() == Constants.CONCILIACION_SALIR_ANTES_QUINTA_HORA)
     	{
     		builder = builder.docenteSaleAntesQuintaHora() ;
     	}
@@ -620,12 +628,12 @@ public class GestorDeSesiones
 	private boolean cumpleConciliacion(Sesion sesion, int tramoHorario)
 	{
 		// Las conciliaciones siempre son matutinas
-		boolean outcome = sesion.getTipoHorario() == TipoHorario.VESPERTINO ;
+		boolean outcome = sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getHorarioMatutino() ;
 
 		// Si no es vespertino, entonces seguimos mirando ya que es matutino
 		if (!outcome)
 		{
-			Conciliacion conciliacion = sesion.getProfesor().getConciliacion() ;
+			String conciliacion = sesion.getProfesor().getConciliacion() ;
 			
 			// Si es nula la conciliación, entonces no hay problema
 			outcome = conciliacion == null ;
@@ -634,7 +642,7 @@ public class GestorDeSesiones
 			if (!outcome)
 			{
 				// Si es entrar a segunda hora, ...
-				if (conciliacion == Conciliacion.ENTRAR_DESPUES_SEGUNDA_HORA)
+				if (conciliacion == Constants.CONCILIACION_ENTRAR_DESPUES_SEGUNDA_HORA)
 				{
 					// ... entonces el tramo horario debe ser mayor o igual a la segunda hora
 					outcome = tramoHorario >= Constants.TRAMO_HORARIO_SEGUNDA_HORA ;
@@ -806,7 +814,7 @@ public class GestorDeSesiones
         {
         	Asignacion asignacion = this.matrizAsignaciones[indiceCursoDia][indiceTramoHorario] ;
         	
-        	disponible = asignacion == null || this.asignaturaEnBloqueDeOptativas(asignatura.getBloqueOptativas(), asignacion.getListaSesiones()) ;
+        	disponible = asignacion == null || this.asignaturaEnBloqueDeOptativas(this.asignaturaService.buscaOptativasRelacionadas(asignatura), asignacion.getListaSesiones()) ;
         }
         
         return disponible ;

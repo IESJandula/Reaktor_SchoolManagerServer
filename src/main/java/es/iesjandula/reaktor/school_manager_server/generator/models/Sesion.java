@@ -1,8 +1,9 @@
 package es.iesjandula.reaktor.school_manager_server.generator.models;
 
-import es.iesjandula.reaktor.school_manager_server.generator.models.enums.TipoHorario;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import es.iesjandula.reaktor.school_manager_server.models.Profesor;
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 
 @Slf4j
 @Data
@@ -14,8 +15,8 @@ public class Sesion
     /** Profesor que imparte la asignatura impartida en la sesion */
     private final Profesor profesor ;
     
-    /** Tipo de horario */
-    private final TipoHorario tipoHorario ;
+    /** Tipo de horario matutino o vespertino */
+    private final boolean tipoHorarioMatutino ;
 
     /** Propuesta de dia y/o tramo a forzar */
     private RestriccionHoraria restriccionHoraria ;
@@ -28,12 +29,12 @@ public class Sesion
      * @param tipoHorario tipo de horario
      * @param restriccionHoraria restricción horaria
      */
-    public Sesion(Asignatura asignatura, Profesor profesor, TipoHorario tipoHorario, RestriccionHoraria restriccionHoraria)
+    public Sesion(Asignatura asignatura, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
     {      
-        this.asignatura         = asignatura ;
-        this.profesor           = profesor ;
-        this.tipoHorario        = tipoHorario ;
-        this.restriccionHoraria = restriccionHoraria ;
+        this.asignatura          = asignatura ;
+        this.profesor            = profesor ;
+        this.tipoHorarioMatutino = tipoHorarioMatutino ;
+        this.restriccionHoraria  = restriccionHoraria ;
     }
     
     @Override

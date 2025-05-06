@@ -2,6 +2,8 @@ package es.iesjandula.reaktor.school_manager_server.generator.core.manejadores;
 
 import java.util.Map;
 
+import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
+
 public class ManejadorThreadsParams
 {
 	/** Número de cursos matutinos */
@@ -33,6 +35,9 @@ public class ManejadorThreadsParams
 
     /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina */
     private int factorSesionesConsecutivasProfesorMatVes ;
+
+    /** Asignatura service */
+    private AsignaturaService asignaturaService ;
     
     /**
      * Constructor privado para forzar el uso del Builder
@@ -51,6 +56,7 @@ public class ManejadorThreadsParams
         this.factorNumeroSesionesInsertadas 	      = builder.factorNumeroSesionesInsertadas ;
         this.factorSesionesConsecutivasProfesor       = builder.factorSesionesConsecutivasProfesor ;
         this.factorSesionesConsecutivasProfesorMatVes = builder.factorSesionesConsecutivasProfesorMatVes ;
+        this.asignaturaService                        = builder.asignaturaService ;
     }
     
     /**
@@ -133,6 +139,14 @@ public class ManejadorThreadsParams
         return this.factorSesionesConsecutivasProfesorMatVes ;
     }
 
+    /**
+     * @return asignatura service
+     */
+    public AsignaturaService getAsignaturaService()
+    {
+        return this.asignaturaService ;
+    }
+
 	/**
      * Clase estática interna Builder
      */
@@ -167,6 +181,9 @@ public class ManejadorThreadsParams
 
         /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina */
         private int factorSesionesConsecutivasProfesorMatVes ;
+
+        /** Asignatura service */
+        private AsignaturaService asignaturaService ;
 
         /**
          * @param numeroCursosMatutinos numero de cursos matutinos
@@ -266,6 +283,17 @@ public class ManejadorThreadsParams
         public Builder setFactorSesionesConsecutivasProfesorMatVes(int factorSesionesConsecutivasProfesorMatVes)
         {
             this.factorSesionesConsecutivasProfesorMatVes = factorSesionesConsecutivasProfesorMatVes ;
+            return this ;
+        }
+
+        /** 
+         * @param asignaturaService asignatura service
+         * @return builder
+         */
+        public Builder setAsignaturaService(AsignaturaService asignaturaService)
+        {
+            this.asignaturaService = asignaturaService ;
+            
             return this ;
         }
 

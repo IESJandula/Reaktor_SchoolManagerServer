@@ -1,5 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
+import java.util.Objects;
+
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
@@ -54,5 +56,32 @@ public class CursoEtapaGrupo
     public String getCursoEtapaGrupoString()
     {
         return this.idCursoEtapaGrupo.getCurso() + this.idCursoEtapaGrupo.getEtapa() + this.idCursoEtapaGrupo.getGrupo() ;
+    }
+
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (this == obj)
+        {
+            return true;
+        }
+        else if (obj == null)
+        {
+            return false;
+        }
+        else if (getClass() != obj.getClass())
+        {
+            return false;
+        }
+
+        CursoEtapaGrupo other = (CursoEtapaGrupo) obj;  
+        
+        return Objects.equals(this.idCursoEtapaGrupo, other.idCursoEtapaGrupo) ;
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return Objects.hash(this.idCursoEtapaGrupo) ;
     }
 }

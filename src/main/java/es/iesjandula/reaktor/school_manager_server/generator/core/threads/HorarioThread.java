@@ -2,9 +2,9 @@ package es.iesjandula.reaktor.school_manager_server.generator.core.threads;
 
 import java.util.List;
 
+import es.iesjandula.reaktor.school_manager_server.generator.core.GestorDeSesiones;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.enums.TipoHorario;
 import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -119,7 +119,7 @@ public class HorarioThread extends Thread
     private UltimaAsignacion generarHorario() throws SchoolManagerServerException
     {
 		// Creamos una nueva instancia de GestorDeSesiones
-		GestorDeSesiones gestorDeSesiones = new GestorDeSesiones(this.sesionesPendientes, this.matrizAsignacionesMatutinas, this.matrizAsignacionesVespertinas, this.ultimaAsignacion) ;
+		GestorDeSesiones gestorDeSesiones = new GestorDeSesiones(this.horarioThreadParams.getAsignaturaService(), this.sesionesPendientes, this.matrizAsignacionesMatutinas, this.matrizAsignacionesVespertinas, this.ultimaAsignacion) ;
 
 		// Cogemos una de las sesiones pendientes de asignar
 		Sesion sesion = gestorDeSesiones.obtenerSesionParaAsignar() ;
@@ -128,7 +128,7 @@ public class HorarioThread extends Thread
 		int indiceCursoDiaInicial 	 	  = -1 ;
 
 		// Si la asignatura es matutina ...
-		boolean esAsignaturaMatutina = sesion.getTipoHorario() == TipoHorario.MATUTINO ;
+		boolean esAsignaturaMatutina = sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getHorarioMatutino() ;
 		if (esAsignaturaMatutina)
 		{
 			// ... obtenemos el número de cursos ...
@@ -136,7 +136,7 @@ public class HorarioThread extends Thread
 
 			// ... obtenemos el índice del curso/día inicial matutino
 			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosMatutinos()
-															.get(sesion.getAsignatura().getCursoEtapaGrupo()) ;
+															.get(sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getCursoEtapaGrupoString()) ;
 		}
 		else
 		{
@@ -145,7 +145,7 @@ public class HorarioThread extends Thread
 
 			// ... obtenemos el índice del curso/día inicial vespertino
 			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosVespertinos()
-															.get(sesion.getAsignatura().getCursoEtapaGrupo()) ;
+															.get(sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getCursoEtapaGrupoString()) ;
 		}
 
 		// Encontramos el hueco para la sesión y devolvemos la última asignación

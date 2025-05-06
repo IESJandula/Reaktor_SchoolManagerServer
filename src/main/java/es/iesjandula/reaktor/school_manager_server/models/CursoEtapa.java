@@ -41,4 +41,13 @@ public class CursoEtapa
      */
     @Column(name = "esoBachillerato")
     private boolean esoBachillerato ;
+
+    /**
+     * Método que devuelve el curso y etapa como una cadena de texto.
+     * @return - Cadena de texto con el curso y etapa.
+     */
+    public String getCursoEtapaString()
+    {
+        return this.idCursoEtapa.getCurso() + " " + this.idCursoEtapa.getEtapa() ;
+    }
 }

@@ -127,4 +127,9 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			"WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
 	List<Long> encontrarBloquePorCursoEtapa(@Param("curso") int curso,
 									 @Param("etapa") String etapa);
+
+    @Query("SELECT a " +
+            "FROM Asignatura a " +
+            "WHERE a.bloqueId = :#{#asignatura.bloqueId} AND a != :asignatura")
+    List<Asignatura> buscaOptativasRelacionadas(@Param("asignatura") Asignatura asignatura);
 }

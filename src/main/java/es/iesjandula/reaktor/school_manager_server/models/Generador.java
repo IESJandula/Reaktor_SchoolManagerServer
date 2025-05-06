@@ -46,4 +46,11 @@ public class Generador
      */
     @Column(name = "fechaFin")
     private Date fechaFin ;
+
+    /**
+     * Estado del generador.
+     * <p>Representa el estado del generador.</p>
+     */
+    @Column(name = "estado")
+    private String estado ;
 }

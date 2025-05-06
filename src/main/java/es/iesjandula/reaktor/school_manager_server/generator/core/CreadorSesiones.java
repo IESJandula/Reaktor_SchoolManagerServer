@@ -1,10 +1,9 @@
 package es.iesjandula.reaktor.school_manager_server.generator.core;
 
-import es.iesjandula.reaktor.school_manager_server.generator.models.Asignatura;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Profesor;
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.generator.models.RestriccionHoraria;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.enums.TipoHorario;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -43,18 +42,19 @@ public class CreadorSesiones
      * 
      * @param asignatura asignatura
      * @param profesor profesor
+     * @param tipoHorarioMatutino true si el tipo de horario es matutino, false en caso contrario
      * @param restriccionesHorarias restricciones horarias
      * @throws SchoolManagerServerException con un error
      */ 
     public void crearSesiones(Asignatura asignatura, Profesor profesor, 
-                              TipoHorario tipoHorario, List<RestriccionHoraria> restriccionesHorarias) throws SchoolManagerServerException
+                              boolean tipoHorarioMatutino, List<RestriccionHoraria> restriccionesHorarias) throws SchoolManagerServerException
     {
         // Validamos las restricciones horarias para que no supere el límite de horas de la asignatura
         this.validarRestriccionesHorarias(asignatura, restriccionesHorarias) ;
 
         // Iteramos sobre las horas de la semana de la asignatura
         // Para cada una, creamos una nueva sesión y la añadimos a la lista elegida
-        for (int i=0 ; i < asignatura.getHorasSemana() ; i++)
+        for (int i=0 ; i < asignatura.getHoras() ; i++)
         {
             RestriccionHoraria restriccionHoraria = null ;
 
@@ -65,7 +65,7 @@ public class CreadorSesiones
             }
 
             // Creamos la sesión
-            this.crearSesion(asignatura, profesor, tipoHorario, restriccionHoraria) ;
+            this.crearSesion(asignatura, profesor, tipoHorarioMatutino, restriccionHoraria) ;
         }
     }
 
@@ -78,12 +78,12 @@ public class CreadorSesiones
      */
     public void validarRestriccionesHorarias(Asignatura asignatura, List<RestriccionHoraria> restriccionesHorarias) throws SchoolManagerServerException
     {
-        if (restriccionesHorarias != null && restriccionesHorarias.size() > asignatura.getHorasSemana())
+        if (restriccionesHorarias != null && restriccionesHorarias.size() > asignatura.getHoras())
         {
             String errorString = "Superado el límite de restricciones que se pueden asignar a esta asignatura por sus horas";
             
             log.error(errorString);
-            throw new SchoolManagerServerException(Constants.ERR_CODE_SUPERADO_LIMITE_RESTRICC, errorString);
+            throw new SchoolManagerServerException(Constants.ERR_CODE_SUPERADO_LIMITE_RESTRICCIONES, errorString);
         }
     }
 
@@ -92,10 +92,10 @@ public class CreadorSesiones
      * 
      * @param asignatura asignatura
      * @param profesor profesor
-     * @param tipoHorario tipo de horario
+     * @param tipoHorarioMatutino true si el tipo de horario es matutino, false en caso contrario
      * @param restriccionHoraria restricción horaria
      */
-    public void crearSesion(Asignatura asignatura, Profesor profesor, TipoHorario tipoHorario, RestriccionHoraria restriccionHoraria)
+    public void crearSesion(Asignatura asignatura, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
     {
         // Por defecto, la lista de sesiones elegida es la de sin restricciones
         List<Sesion> listaSesionesElegida = this.sesionesSinRestricciones ;
@@ -116,7 +116,7 @@ public class CreadorSesiones
         }
 
         // Añadimos la sesión a la lista elegida
-        listaSesionesElegida.add(new Sesion(asignatura, profesor, tipoHorario, restriccionHoraria)) ;
+        listaSesionesElegida.add(new Sesion(asignatura, profesor, tipoHorarioMatutino, restriccionHoraria)) ;
     }
 
     /**
