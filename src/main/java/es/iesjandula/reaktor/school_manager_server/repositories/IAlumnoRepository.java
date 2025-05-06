@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 
+import java.util.Optional;
+
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link Alumno}.
  * -----------------------------------------------------------------------------------------------------------------
@@ -26,5 +28,12 @@ public interface IAlumnoRepository extends JpaRepository<Alumno, Integer>
 	@Transactional
 	void deleteByNombreAndApellidos(@Param("nombre") String nombre,
 									@Param("apellidos") String apellidos);
-	
+
+	@Modifying
+	@Transactional
+	void deleteByNombreAndApellidosAndId(@Param("nombre") String nombre,
+										 @Param("apellidos") String apellidos,
+										 @Param("id") Integer id);
+
+    Optional<Alumno> findByNombreAndApellidos(String nombreAlumno, String apellidosAlumno);
 }

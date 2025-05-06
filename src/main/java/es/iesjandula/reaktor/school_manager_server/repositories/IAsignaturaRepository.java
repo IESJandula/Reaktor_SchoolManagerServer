@@ -109,27 +109,39 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 																   @Param("grupo") Character grupo, 
 																   @Param("nombre") String nombre);
 
-	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto(a.departamentoPropietario.nombre, a.departamentoPropietario.plantilla, (depto.plantilla*18), SUM(a.horas), (SUM(a.horas) - (depto.plantilla*18)) as desfase) " +
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaConDepartamentoDto(a.departamentoReceptor.nombre, a.departamentoReceptor.plantilla, (depto.plantilla*18), SUM(a.horas), (SUM(a.horas) - (depto.plantilla*18)) as desfase) " +
 			"FROM Asignatura a " +
-			"JOIN a.departamentoPropietario depto " +
-			"GROUP BY a.departamentoPropietario.nombre")
+			"JOIN a.departamentoReceptor depto " +
+			"GROUP BY a.departamentoReceptor.nombre")
 	List<AsignaturaConDepartamentoDto> encontrarAsignaturasConDepartamento();
 
 	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.HorasYBloquesDto(a.horas, a.bloqueId.id) "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
-	HorasYBloquesDto encontrarAsignaturaPorCursoEtapaNombre(@Param("curso") int curso,
-															@Param("etapa") String etapa,
-															@Param("nombres") String nombres);
+	Optional<HorasYBloquesDto> encontrarAsignaturaPorCursoEtapaNombre(@Param("curso") int curso,
+																	  @Param("etapa") String etapa,
+																	  @Param("nombres") String nombres);
 
 	@Query("SELECT a.bloqueId.id " +
 			"FROM Asignatura a " +
 			"WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
 	List<Long> encontrarBloquePorCursoEtapa(@Param("curso") int curso,
-									 @Param("etapa") String etapa);
+									 		@Param("etapa") String etapa);
 
     @Query("SELECT a " +
             "FROM Asignatura a " +
             "WHERE a.bloqueId = :#{#asignatura.bloqueId} AND a != :asignatura")
     List<Asignatura> buscaOptativasRelacionadas(@Param("asignatura") Asignatura asignatura);
+
+	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirAsignaturaDto(a.idAsignatura.nombre, a.horas, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo)" +
+			"FROM Asignatura a ")
+	List<ImpartirAsignaturaDto>  encontrarAsignaturasPorDepartamento();
+
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.GrupoAsignaturaDto(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
+			"FROM Asignatura a " +
+			"WHERE a.idAsignatura.nombre = :nombres AND a.horas = :horas AND  a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+	List<GrupoAsignaturaDto> encontrarGrupoPorNombreAndHorasAndCursoAndEtapa(@Param("nombres") String nombres,
+																			 @Param("horas") Integer horas,
+																			 @Param("curso") Integer curso,
+																			 @Param("etapa") String etapa);
 }

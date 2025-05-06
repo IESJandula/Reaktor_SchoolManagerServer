@@ -34,13 +34,27 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "WHERE alu.nombre = :nombre AND alu.apellidos = :apellidos")
 	List<MatriculaDto> encontrarAlumnoPorNombreYApellidos(@Param("nombre") String nombre,
 														  @Param("apellidos") String apellidos);
+
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto(alu.nombre, alu.apellidos, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo, a.idAsignatura.nombre, a.horas, a.esoBachillerato, a.bloqueId.id) "
+			+ "FROM Matricula m "
+			+ "JOIN m.idMatricula idM "
+			+ "JOIN idM.alumno alu "
+			+ "JOIN idM.asignatura a "
+			+ "WHERE alu.nombre = :nombre AND alu.apellidos = :apellidos AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
+	List<MatriculaDto> encontrarAlumnoPorNombreYApellidosYGrupo(@Param("nombre") String nombre,
+														  @Param("apellidos") String apellidos,
+														  @Param("grupo") Character grupo);
 	
 	@Query("SELECT COUNT(m.idMatricula.asignatura.idAsignatura.nombre) "
 			+ "FROM Matricula m "
-			+ "WHERE m.idMatricula.asignatura.idAsignatura.nombre = :nombreAsignatura")
-	Long numeroAsignaturasPorNombre(@Param("nombreAsignatura") String nombreAsignatura);
-	
-	@Modifying
+			+ "WHERE m.idMatricula.asignatura.idAsignatura.nombre = :nombreAsignatura AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa ")
+	Integer numeroAsignaturasPorNombreYGrupo(@Param("nombreAsignatura") String nombreAsignatura,
+											 @Param("curso") Integer curso,
+											 @Param("etapa") String etapa,
+											 @Param("grupo") Character grupo);
+
+	//Al estar en un metodo transaccional hay que limpiar manualmente cualquier registro de matricula para que deje hacer flush al final
+	@Modifying(clearAutomatically = true)
 	@Transactional
 	@Query("DELETE "
 			+ "FROM Matricula m "
@@ -59,15 +73,18 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 													   @Param("etapa") String etapa,
 													   @Param("grupo") Character grupo);
 
-	@Query("SELECT m.idMatricula.alumno.id "
-			+ "FROM Matricula m "
-			+ "JOIN m.idMatricula idM "
-			+ "JOIN idM.asignatura a "
-			+ "WHERE idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND idM.alumno.nombre = :nombre")
+	@Query("SELECT alumno.id "
+      + "FROM Matricula m "
+      + "JOIN m.idMatricula.alumno alumno "
+      + "JOIN m.idMatricula.asignatura asig "
+      + "JOIN asig.idAsignatura .cursoEtapaGrupo .idCursoEtapaGrupo ceg "
+      + "WHERE ceg.curso = :curso AND ceg.etapa = :etapa AND ceg.grupo = :grupo AND asig.idAsignatura.nombre = :nombreAsignatura AND alumno.nombre = :nombre AND alumno.apellidos = :apellidos")
 	List<Integer> encontrarIdAlumnoPorCursoEtapaGrupoYNombre(@Param("curso") Integer curso,
 													   @Param("etapa") String etapa,
 													   @Param("grupo") Character grupo,
-													   @Param("nombre") String nombre);
+													   @Param("nombreAsignatura") String nombreAsignatura,
+															 @Param("nombre") String nombre,
+															 @Param("apellidos") String apellidos);
 	@Transactional
 	@Modifying
 	@Query("DELETE " +
