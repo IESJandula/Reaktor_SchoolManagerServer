@@ -131,6 +131,13 @@ public class Constants
 	/** Mensaje de error - No hay cursos/etapas/grupos por cada curso/etapa */
 	public static final int ERROR_CODE_SIN_CURSOS_ETAPAS_ENCONTRADOS = 304 ;
 
+	/** Constantes/Configuración */
+	public final static int CONSTANTE_NO_ENCONTRADA = 50;
+
+	// Códigos de error para validaciones globales previas a la Selección horarios por claustro
+	public static final int ERROR_OBTENIENDO_PARAMETROS = 23;
+	public static final int ERROR_APP_DESHABILITADA = 24;
+
 
 	/******************************************************/
 	/*************** Constantes - Conciliaciones **********/
@@ -284,7 +291,23 @@ public class Constants
 
 	/** Estado del generador - Detenido */
 	public static final String ESTADO_DETENIDO 	 = "DETENIDO" ;
-	
-	
+
+	/*********************************************************/
+	/******************** Tabla Constantes *******************/
+	/*********************************************************/
+
+	public static final String TABLA_CONST_SELECCION_HORARIOS_POR_CLAUSTRO  = "Selección horarios por claustro";
+
+	/*********************************************************/
+	/******************* Parámetros YAML *********************/
+	/*********************************************************/
+
+	/**Parametro YAML para inicializar las constantes */
+	public static final String PARAM_YAML_REINICIAR_CONSTANTES = "reaktor.reiniciarConstantes";
+
+	/** Constante - Parámetros YAML - Selección horarios por claustro */
+	public static final String PARAM_YAML_SELECCION_HORARIOS_POR_CLAUSTRO = "reaktor.constantes.seleccionHorariosPorClaustro";
+
+	public static final String MODO_INICIALIZAR_SISTEMA = "true";
 	
 }

@@ -13,6 +13,7 @@ import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepos
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.services.ReduccionProfesorService;
+import es.iesjandula.reaktor.school_manager_server.services.ValidacionesGlobales;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +55,9 @@ public class CommonController
 
     @Autowired
     private ReduccionProfesorService reduccionProfesorService;
+
+    @Autowired
+    private ValidacionesGlobales validacionesGlobales;
 
     @Value("${reaktor.http_connection_timeout}")
     private int httpConnectionTimeout;
@@ -138,7 +142,8 @@ public class CommonController
 
             return ResponseEntity.ok(listaProfesorDto);
 
-        } catch (SchoolManagerServerException schoolManagerServerException)
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -302,6 +307,8 @@ public class CommonController
     {
         try
         {
+            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+
             Reduccion reduccion = this.reduccionProfesorService.validadarYObtenerReduccion(nombreReduccion, horasReduccion);
 
             Profesor profesor = this.reduccionProfesorService.validadarYObtenerProfesor(email);
@@ -325,7 +332,8 @@ public class CommonController
 
             return ResponseEntity.ok().build();
 
-        } catch (SchoolManagerServerException schoolManagerServerException)
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
         }

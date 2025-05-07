@@ -8,7 +8,10 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
+import es.iesjandula.reaktor.school_manager_server.models.Constantes;
+import es.iesjandula.reaktor.school_manager_server.repositories.IConstantesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -43,9 +46,18 @@ public class InicializacionSistema
 	
 	@Autowired
 	private IDiasTramosRepository iDiasTramosRepository ;
+
+	@Autowired
+	private IConstantesRepository iConstantesRepository;
 	
 	@Value("${spring.jpa.hibernate.ddl-auto}")
 	private String modoDdl;
+
+	@Value("${" + Constants.PARAM_YAML_REINICIAR_CONSTANTES + "}")
+	private Boolean reiniciarConstantes;
+
+	@Value("${" + Constants.PARAM_YAML_SELECCION_HORARIOS_POR_CLAUSTRO + "}")
+	private String seleccionHorariosPorClaustro;
 
 	/**
 	 * Este método se encarga de inicializar el sistema ya sea en el entorno de desarrollo o ejecutando JAR
@@ -77,6 +89,11 @@ public class InicializacionSistema
 
 			// Parseamos los dias, tramos y tipo de horario
 			this.cargarDiasTramosTipoHorarioDesdeCSVInternal() ;
+		}
+
+		if(Constants.MODO_INICIALIZAR_SISTEMA.equals(String.valueOf(this.reiniciarConstantes)))
+		{
+			this.inicializarSistemaConConstantes();
 		}
 	}
 	
@@ -332,6 +349,34 @@ public class InicializacionSistema
 				log.error(errorString, ioException) ;
 				throw new SchoolManagerServerException(Constants.ERR_CODE_CIERRE_READER, errorString, ioException) ;
 			}	
+		}
+	}
+
+	/**
+	 * Este método se encarga de inicializar el sistema con las constantes siempre
+	 * que estemos creando la base de datos ya sea en el entorno de desarrollo o
+	 * ejecutando JAR
+	 */
+	private void inicializarSistemaConConstantes()
+	{
+		this.cargarPropiedad(Constants.TABLA_CONST_SELECCION_HORARIOS_POR_CLAUSTRO, this.seleccionHorariosPorClaustro);
+	}
+
+	private void cargarPropiedad(String key, String value)
+	{
+		// Verificamos si tiene algún valor
+		Optional<Constantes> property = this.iConstantesRepository.findById(key);
+
+		// Si está vacío, lo seteamos con el valor del YAML
+		if (property.isEmpty())
+		{
+			Constantes constante = new Constantes();
+
+			constante.setClave(key);
+			constante.setValor(value);
+
+			// Almacenamos la constante en BBDD
+			this.iConstantesRepository.save(constante);
 		}
 	}
 }

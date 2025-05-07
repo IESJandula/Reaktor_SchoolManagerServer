@@ -6,6 +6,7 @@ import es.iesjandula.reaktor.school_manager_server.dtos.*;
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.*;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
+import es.iesjandula.reaktor.school_manager_server.services.ValidacionesGlobales;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +49,9 @@ public class Paso7EleccionDeHorarios
 
     @Autowired
     private IObservacionesAdicionalesRepository  iObservacionesAdicionalesRepository;
+
+    @Autowired
+    private ValidacionesGlobales validacionesGlobales;
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
@@ -98,6 +102,8 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
+            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+
             Impartir asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, grupo);
 
             if(!usuaio.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuaio.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR))
@@ -228,14 +234,12 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
+            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+
             Profesor profesor = new Profesor();
             profesor.setEmail(email);
 
             IdObservacionesAdicionales  idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
-
-            Optional<ObservacionesAdicionales> observacionesAdicionalesABuscar = this.iObservacionesAdicionalesRepository.findById(idObservacionesAdicionales);
-
-
 
             ObservacionesAdicionales observacionesAdicionales = new ObservacionesAdicionales(idObservacionesAdicionales, conciliacion, trabajarPrimeraHora, otrasObservaciones);
 
@@ -251,15 +255,6 @@ public class Paso7EleccionDeHorarios
             diasTramosTipoHorarioAGuardar.setIdDiasTramosTipoHorario(idDiasTramosTipoHorario);
 
             IdPreferenciasHorariasProfesor idPreferenciasHorariasProfesor = new IdPreferenciasHorariasProfesor(profesor, diasTramosTipoHorarioAGuardar);
-
-            Optional<PreferenciasHorariasProfesor> preferenciasHorariasProfesorABuscar = this.iPreferenciasHorariasRepository.findById(idPreferenciasHorariasProfesor);
-
-            if(preferenciasHorariasProfesorABuscar.isPresent())
-            {
-                String mensajeError = "Error - Ya existe un profesor con esas preferencias horarias";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
-            }
 
             PreferenciasHorariasProfesor preferenciasHorariasProfesor = new PreferenciasHorariasProfesor();
             preferenciasHorariasProfesor.setIdPreferenciasHorariasProfesor(idPreferenciasHorariasProfesor);
@@ -354,6 +349,8 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
+            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+
             if(nombreAsignatura != null && !nombreAsignatura.isEmpty())
             {
 
@@ -401,6 +398,8 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
+            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+
             if(nombreAsignatura != null)
             {
 
@@ -472,7 +471,8 @@ public class Paso7EleccionDeHorarios
         }
     }
 
-    private ProfesorReduccion construirSoliciturReduccionProfesores(String email, String nombreReduccion, Integer horasReduccion) throws SchoolManagerServerException {
+    private ProfesorReduccion construirSoliciturReduccionProfesores(String email, String nombreReduccion, Integer horasReduccion) throws SchoolManagerServerException
+    {
         ReduccionProfesoresDto reduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionPorProfesor(email, nombreReduccion, horasReduccion);
 
         if(reduccionProfesoresDto == null)
@@ -485,7 +485,8 @@ public class Paso7EleccionDeHorarios
         return construirProfesorReduccion(email, nombreReduccion, horasReduccion);
     }
 
-    private IdImpartir construirIdImpartir(String email, String nombreAsignatura, Integer curso, String etapa, Character grupoAntiguo) throws SchoolManagerServerException {
+    private IdImpartir construirIdImpartir(String email, String nombreAsignatura, Integer curso, String etapa, Character grupoAntiguo)
+    {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
         idCursoEtapaGrupo.setCurso(curso);
         idCursoEtapaGrupo.setEtapa(etapa);
@@ -507,7 +508,8 @@ public class Paso7EleccionDeHorarios
         return new IdImpartir(asignatura, profesor);
     }
 
-    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException {
+    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException
+    {
 
         IdImpartir idImpartir = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupo);
 
@@ -518,7 +520,8 @@ public class Paso7EleccionDeHorarios
         return impartir;
     }
 
-    private Impartir construirSolicitudGuardarImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupoAntiguo, Character grupoNuevo) throws SchoolManagerServerException {
+    private Impartir construirSolicitudGuardarImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupoAntiguo, Character grupoNuevo) throws SchoolManagerServerException
+    {
 
         IdImpartir idImpartirGrupoViejo = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupoAntiguo);
 
@@ -575,6 +578,4 @@ public class Paso7EleccionDeHorarios
 
         return construirImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
     }
-
-
 }

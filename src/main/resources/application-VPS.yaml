@@ -21,3 +21,6 @@ logging:
 reaktor:
   publicKeyFile: ${PUBLIC_KEY_FILE}
   urlCors: https://somos.iesjandula.es
+  reiniciarConstantes: true
+  constantes:
+    seleccionHorariosPorClaustro: ""
