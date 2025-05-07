@@ -51,15 +51,17 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
-    public ResponseEntity<?> obtenerAsignaturas()
+    public ResponseEntity<?> obtenerAsignaturas(@RequestHeader(value = "email") String email)
     {
         try
         {
-            List<ImpartirAsignaturaDto> asignaturaDtoSinGrupos = this.iAsignaturaRepository.encontrarAsignaturasPorDepartamento();
+            String departamento = this.iProfesorReduccionRepository.encontrarDepartamentoPorProfesor(email);
+
+            List<ImpartirAsignaturaDto> asignaturaDtoSinGrupos = this.iAsignaturaRepository.encontrarAsignaturasPorDepartamento(departamento);
 
             if(asignaturaDtoSinGrupos.isEmpty())
             {
-                String mensajeError = "Error - No se han encontrado asignaturas";
+                String mensajeError = "Error - No se han encontrado asignaturas para ese departamento";
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(1, mensajeError);
             }
@@ -86,7 +88,8 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/asignaturas")
-    public ResponseEntity<?> asignarAsignatura(@RequestHeader(value = "nombre") String nombreAsignatura,
+    public ResponseEntity<?> asignarAsignatura(@AuthenticationPrincipal DtoUsuarioExtended usuaio,
+                                               @RequestHeader(value = "nombre") String nombreAsignatura,
                                                @RequestHeader(value = "horas") Integer horas,
                                                @RequestHeader(value = "curso") Integer curso,
                                                @RequestHeader(value = "etapa") String etapa,
@@ -97,11 +100,14 @@ public class Paso7EleccionDeHorarios
         {
             Impartir asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, grupo);
 
-            if(asignaturaImpartir != null)
+            if(!usuaio.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuaio.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR))
             {
-                String mensajeError = "Error - Ya se ha asignado esa asignatura a otro profesor";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                if(asignaturaImpartir != null)
+                {
+                    String mensajeError = "Error - Ya se ha asignado esa asignatura a otro profesor";
+                    log.error(mensajeError);
+                    throw new SchoolManagerServerException(1, mensajeError);
+                }
             }
 
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
@@ -287,7 +293,7 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            List<ImpartirDto> listAsignaturasImpartidas = this.iImpartirRepository.encontrarAsignaturasImpartidasPorEmail(email);
+            List<ImpartirHorasDto> listAsignaturasImpartidas = this.iImpartirRepository.encontrarAsignaturasImpartidasPorEmail(email);
 
             String tipoAsignatura = "Asignatura";
 
@@ -297,6 +303,7 @@ public class Paso7EleccionDeHorarios
                             tipoAsignatura,
                             impartir.getNombre(),
                             impartir.getHoras(),
+                            impartir.getCupoHoras(),
                             impartir.getCurso(),
                             impartir.getEtapa(),
                             impartir.getGrupo()
@@ -350,7 +357,7 @@ public class Paso7EleccionDeHorarios
             if(nombreAsignatura != null && !nombreAsignatura.isEmpty())
             {
 
-                Impartir asignaturaImpartidaABorrar = construirSolicutudImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
+                Impartir asignaturaImpartidaABorrar = construirSolicitudImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
                 this.iImpartirRepository.delete(asignaturaImpartidaABorrar);
                 return ResponseEntity.ok().build();
             }
@@ -387,7 +394,8 @@ public class Paso7EleccionDeHorarios
                                                 @RequestHeader(value = "horasAsignatura", required = false) Integer horasAsignatura,
                                                 @RequestHeader(value = "curso", required = false) Integer curso,
                                                 @RequestHeader(value = "etapa", required = false) String etapa,
-                                                @RequestHeader(value = "grupo", required = false) Character grupo,
+                                                @RequestHeader(value = "grupoAntiguo", required = false) Character grupoAntiguo,
+                                                @RequestHeader(value = "grupoNuevo", required = false) Character grupoNuevo,
                                                 @RequestHeader(value = "nombreReduccion", required = false) String nombreReduccion,
                                                 @RequestHeader(value = "horasReduccion", required = false) Integer horasReduccion)
     {
@@ -396,7 +404,7 @@ public class Paso7EleccionDeHorarios
             if(nombreAsignatura != null)
             {
 
-                Impartir asignaturaImpartidaAGuardar = construirImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
+                Impartir asignaturaImpartidaAGuardar = construirSolicitudGuardarImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupoAntiguo, grupoNuevo);
                 this.iImpartirRepository.saveAndFlush(asignaturaImpartidaAGuardar);
                 return ResponseEntity.ok().build();
             }
@@ -477,14 +485,13 @@ public class Paso7EleccionDeHorarios
         return construirProfesorReduccion(email, nombreReduccion, horasReduccion);
     }
 
-    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo)
-    {
+    private IdImpartir construirIdImpartir(String email, String nombreAsignatura, Integer curso, String etapa, Character grupoAntiguo) throws SchoolManagerServerException {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
         idCursoEtapaGrupo.setCurso(curso);
         idCursoEtapaGrupo.setEtapa(etapa);
-        idCursoEtapaGrupo.setGrupo(grupo);
+        idCursoEtapaGrupo.setGrupo(grupoAntiguo);
 
-        CursoEtapaGrupo cursoEtapaGrupo =  new CursoEtapaGrupo();
+        CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
         cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
 
         IdAsignatura idAsignatura = new IdAsignatura();
@@ -497,13 +504,41 @@ public class Paso7EleccionDeHorarios
         Profesor profesor = new Profesor();
         profesor.setEmail(email);
 
-        IdImpartir idImpartir = new IdImpartir(asignatura, profesor);
+        return new IdImpartir(asignatura, profesor);
+    }
 
-        Impartir asignaturaImpartida = new Impartir();
-        asignaturaImpartida.setIdImpartir(idImpartir);
-        asignaturaImpartida.setCupoHoras(horasAsignatura);
+    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException {
 
-        return  asignaturaImpartida;
+        IdImpartir idImpartir = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupo);
+
+        Impartir impartir = new Impartir();
+        impartir.setIdImpartir(idImpartir);
+        impartir.setCupoHoras(horasAsignatura);
+
+        return impartir;
+    }
+
+    private Impartir construirSolicitudGuardarImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupoAntiguo, Character grupoNuevo) throws SchoolManagerServerException {
+
+        IdImpartir idImpartirGrupoViejo = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupoAntiguo);
+
+        Optional<Impartir> asignaturaImpartida = this.iImpartirRepository.findById(idImpartirGrupoViejo);
+        if(asignaturaImpartida.isEmpty())
+        {
+            String mensajeError = "Error - No existe una asignatura asignada con esos datos";
+            log.error(mensajeError);
+            throw new SchoolManagerServerException(1, mensajeError);
+        }
+
+        this.iImpartirRepository.delete(asignaturaImpartida.get());
+
+        IdImpartir idImpartirGrupoNuevo = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupoNuevo);
+
+        Impartir impartir = new Impartir();
+        impartir.setIdImpartir(idImpartirGrupoNuevo);
+        impartir.setCupoHoras(horasAsignatura);
+
+        return impartir;
     }
 
     private ProfesorReduccion construirProfesorReduccion(String email, String nombreReduccion, Integer horasReduccion)
@@ -527,7 +562,7 @@ public class Paso7EleccionDeHorarios
 
         return profesorReduccion;
     }
-    private Impartir construirSolicutudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException
+    private Impartir construirSolicitudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException
     {
         ImpartirDto asignaturaImpartidaDto = this.iImpartirRepository.encontrarAsignaturaImpartidaPorEmail(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
 

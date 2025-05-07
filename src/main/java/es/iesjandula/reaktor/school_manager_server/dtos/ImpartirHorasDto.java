@@ -7,15 +7,13 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ImpartirTipoDto
+public class ImpartirHorasDto
 {
-    private String tipo;
+    private String nombre;
 
-    private String nombreAsignatura;
+    private Integer horas;
 
-    private Integer horasAsignatura;
-
-    private Integer cupoHorasAsignatura;
+    private Integer cupoHoras;
 
     private Integer curso;
 

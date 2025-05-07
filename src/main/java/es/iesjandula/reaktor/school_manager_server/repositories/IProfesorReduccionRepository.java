@@ -44,4 +44,9 @@ public interface IProfesorReduccionRepository extends JpaRepository<ProfesorRedu
                                                          @Param("nombre") String nombre,
                                                          @Param("horas") Integer horas);
 
+    @Query("SELECT p.departamento.nombre " +
+            "FROM Profesor p " +
+            "WHERE p.email = :email")
+    String encontrarDepartamentoPorProfesor(@Param("email") String email);
+
 }

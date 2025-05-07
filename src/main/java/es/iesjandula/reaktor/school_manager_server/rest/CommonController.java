@@ -7,10 +7,7 @@ import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.base.utils.HttpClientUtils;
 import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorDto;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
-import es.iesjandula.reaktor.school_manager_server.models.Profesor;
-import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
-import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
+import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
@@ -230,11 +227,14 @@ public class CommonController
             // Creamos una instancia de profesor con la respuesta de Firebase
             for(DtoUsuarioBase dtoUsuarioBase: listDtoUsuarioBase)
             {
+                Departamento departamento = new Departamento();
+                departamento.setNombre(dtoUsuarioBase.getDepartamento());
 
                 Profesor profesor = new Profesor();
                 profesor.setNombre(dtoUsuarioBase.getNombre());
                 profesor.setApellidos(dtoUsuarioBase.getApellidos());
                 profesor.setEmail(dtoUsuarioBase.getEmail());
+                profesor.setDepartamento(departamento);
 
                 // Almacenamos los profesores en nuestra BBDD
                 this.iProfesorRepository.saveAndFlush(profesor);

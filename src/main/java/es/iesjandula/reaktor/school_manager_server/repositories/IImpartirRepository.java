@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -31,10 +32,10 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
                                          @Param("etapa") String etapa,
                                          @Param("grupo") Character grupo);
 
-    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirDto(i.asignatura.idAsignatura.nombre, i.cupoHoras, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto(i.asignatura.idAsignatura.nombre, i.asignatura.horas, i.cupoHoras, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
             "FROM Impartir i " +
             "WHERE i.idImpartir.profesor.email = :email")
-    List<ImpartirDto> encontrarAsignaturasImpartidasPorEmail(@Param("email") String email);
+    List<ImpartirHorasDto> encontrarAsignaturasImpartidasPorEmail(@Param("email") String email);
 
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirDto(i.asignatura.idAsignatura.nombre, i.cupoHoras, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
             "FROM Impartir i " +
