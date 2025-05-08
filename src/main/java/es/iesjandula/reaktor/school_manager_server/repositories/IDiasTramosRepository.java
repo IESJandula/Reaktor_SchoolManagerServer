@@ -14,13 +14,14 @@ import java.util.List;
 public interface IDiasTramosRepository extends JpaRepository<DiasTramosTipoHorario, IdDiasTramosTipoHorario>
 {
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.DiasTramosTipoHorarioDto(d.diasDesc, d.idDiasTramosTipoHorario.tramo + 1, d.idDiasTramosTipoHorario.tipoHorario) " +
-            "FROM DiasTramosTipoHorario d")
+            "FROM DiasTramosTipoHorario d " +
+            "WHERE NOT ((d.idDiasTramosTipoHorario.dia = 0 AND d.idDiasTramosTipoHorario.tramo = 0) OR (d.idDiasTramosTipoHorario.dia = 4 AND d.idDiasTramosTipoHorario.tramo = 5))")
     List<DiasTramosTipoHorarioDto> findByTipoHorario();
 
     @Query("SELECT d.idDiasTramosTipoHorario.dia " +
             "FROM DiasTramosTipoHorario d " +
             "WHERE d.idDiasTramosTipoHorario.tramo = :tramo AND d.idDiasTramosTipoHorario.tipoHorario = :tipoHorario AND d.diasDesc = :dia")
     Integer encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(@Param("tramo") Integer tramo,
-                                                                               @Param("tipoHorario") String tipoHorario,
-                                                                               @Param("dia") String dia);
+                                                           @Param("tipoHorario") String tipoHorario,
+                                                           @Param("dia") String dia);
 }

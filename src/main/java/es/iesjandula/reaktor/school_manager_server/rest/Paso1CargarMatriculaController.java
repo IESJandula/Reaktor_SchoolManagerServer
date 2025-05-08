@@ -62,11 +62,11 @@ public class Paso1CargarMatriculaController
 
     /**
      * Endpoint para cargar las matrículas a través de un archivo CSV.
-     * 
+     *
      * Este método procesa un archivo CSV enviado como parte de una solicitud POST.
      * Si el archivo está vacío o hay un error durante el proceso, se lanzan
      * excepciones personalizadas.
-     * 
+     *
      * @param archivoCsv - El archivo CSV que contiene las matrículas a procesar.
      * @param curso      - El identificador del curso al que se asignan las
      *                   matrículas.
@@ -289,7 +289,7 @@ public class Paso1CargarMatriculaController
     		
     		DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
     		
-    		if(datosBrutoAlumnoMatriculas.getEstadoMatricula() == "MATR") 
+    		if(datosBrutoAlumnoMatriculas.getEstadoMatricula() == "MATR")
     		{
     			String mensajeError = "Ya existe un alumno matriculado en esa asignatura";
     			
@@ -346,7 +346,6 @@ public class Paso1CargarMatriculaController
 			
     		DatosBrutoAlumnoMatricula nuevosDatosBrutoAlumnoMatricula = new DatosBrutoAlumnoMatricula();
     		
-    		nuevosDatosBrutoAlumnoMatricula.setNombre(nombre);
     		nuevosDatosBrutoAlumnoMatricula.setNombre(nombre);
     		nuevosDatosBrutoAlumnoMatricula.setApellidos(apellidos);
     		nuevosDatosBrutoAlumnoMatricula.setAsignatura(asignatura);

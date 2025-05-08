@@ -10,7 +10,6 @@ import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.services.ReduccionProfesorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -34,9 +33,6 @@ public class Paso6Reducciones
 	
 	@Autowired
 	private IReduccionRepository iReduccionRepository;
-
-	@Autowired
-	private IProfesorRepository iProfesorRepository;
 
 	@Autowired
 	private IProfesorReduccionRepository iProfesorReduccionRepository;

@@ -124,7 +124,7 @@ public class CommonController
     {
         try
         {
-            List<Profesor> list = this.buscarProfesor(usuario);
+            List<Profesor> list = this.buscarProfesorEnFirebase(usuario.getJwt());
 
             if(list.isEmpty())
             {
@@ -155,26 +155,6 @@ public class CommonController
             log.error(mensajeError, exception);
             return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
         }
-    }
-
-    /**
-     * @param usuario usuario
-     * @param email   email
-     * @return el profesor encontrado
-     * @throws SchoolManagerServerException con un error
-     */
-    private List<Profesor> buscarProfesor(DtoUsuarioExtended usuario) throws SchoolManagerServerException
-    {
-        List<Profesor> listProfesor = this.iProfesorRepository.findAll();
-
-        // Si el role es administrador ...
-        if (listProfesor.isEmpty())
-        {
-            // Si no lo encontramos, le pedimos a Firebase que nos lo dé
-            listProfesor = this.buscarProfesorEnFirebase(usuario.getJwt());
-        }
-
-        return listProfesor;
     }
 
     /**
@@ -300,13 +280,17 @@ public class CommonController
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/asignarReducciones")
-    private ResponseEntity<?> asignarReduccion(@RequestHeader(value = "email") String email,
+    private ResponseEntity<?> asignarReduccion(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                               @RequestHeader(value = "email") String email,
                                                @RequestHeader(value = "reduccion") String nombreReduccion,
                                                @RequestHeader(value = "horas") Integer horasReduccion)
     {
         try
         {
-            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
 
             Reduccion reduccion = this.reduccionProfesorService.validadarYObtenerReduccion(nombreReduccion, horasReduccion);
 
