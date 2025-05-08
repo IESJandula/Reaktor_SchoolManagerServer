@@ -240,12 +240,11 @@ public class CommonController
                 profesor.setApellidos(dtoUsuarioBase.getApellidos());
                 profesor.setEmail(dtoUsuarioBase.getEmail());
                 profesor.setDepartamento(departamento);
-
-                // Almacenamos los profesores en nuestra BBDD
-                this.iProfesorRepository.saveAndFlush(profesor);
                 profesores.add(profesor);
             }
-
+            
+            // Almacenamos los profesores en nuestra BBDD
+            this.iProfesorRepository.saveAllAndFlush(profesores);
         }
         catch (SocketTimeoutException socketTimeoutException)
         {
