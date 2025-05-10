@@ -28,6 +28,8 @@ import java.util.stream.Collectors;
 @RequestMapping(value = "/schoolManager/eleccionDeHorarios")
 public class Paso7EleccionDeHorarios
 {
+    @Autowired
+    private IProfesorRepository iProfesorRepository;
 
     @Autowired
     private IAsignaturaRepository iAsignaturaRepository;
@@ -52,6 +54,48 @@ public class Paso7EleccionDeHorarios
 
     @Autowired
     private ValidacionesGlobales validacionesGlobales;
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/profesores")
+    public ResponseEntity<?> obtenerProfesores()
+    {
+        try
+        {
+            List<Profesor> profesores = this.iProfesorRepository.findAll();
+
+            if(profesores.isEmpty())
+            {
+                String mensajeError = "Error - No se han encontrado profesores en base de datos";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(1, mensajeError);
+            }
+
+            List<ProfesorDto> listaProfesorDto = profesores.stream().map(profesor ->
+                    new ProfesorDto(
+                            profesor.getNombre(),
+                            profesor.getApellidos(),
+                            profesor.getEmail()
+                    )).collect(Collectors.toList());
+
+            return ResponseEntity.ok().body(listaProfesorDto);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
@@ -120,6 +164,7 @@ public class Paso7EleccionDeHorarios
             }
 
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
+            asignarAsignatura.setAsignadoDireccion(false);
 
             this.iImpartirRepository.saveAndFlush(asignarAsignatura);
 
@@ -308,7 +353,8 @@ public class Paso7EleccionDeHorarios
                             impartir.getCupoHoras(),
                             impartir.getCurso(),
                             impartir.getEtapa(),
-                            impartir.getGrupo()
+                            impartir.getGrupo(),
+                            impartir.getAsignadoDireccion()
                     )).collect(Collectors.toList());
 
             List<ReduccionProfesoresDto> listReduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionesPorProfesor(email);
@@ -395,38 +441,21 @@ public class Paso7EleccionDeHorarios
         }
     }
 
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/solicitudes")
-    public ResponseEntity<?> guardarSolicitudes(@AuthenticationPrincipal DtoUsuarioExtended usuario,
-                                                @RequestHeader(value = "email", required = false) String email,
-                                                @RequestHeader(value = "nombreAsignatura", required = false) String nombreAsignatura,
-                                                @RequestHeader(value = "horasAsignatura", required = false) Integer horasAsignatura,
-                                                @RequestHeader(value = "curso", required = false) Integer curso,
-                                                @RequestHeader(value = "etapa", required = false) String etapa,
-                                                @RequestHeader(value = "grupoAntiguo", required = false) Character grupoAntiguo,
-                                                @RequestHeader(value = "grupoNuevo", required = false) Character grupoNuevo,
-                                                @RequestHeader(value = "nombreReduccion", required = false) String nombreReduccion,
-                                                @RequestHeader(value = "horasReduccion", required = false) Integer horasReduccion)
+    public ResponseEntity<?> guardarSolicitudes(@RequestHeader(value = "email") String email,
+                                                @RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
+                                                @RequestHeader(value = "horasAsignatura") Integer horasAsignatura,
+                                                @RequestHeader(value = "curso") Integer curso,
+                                                @RequestHeader(value = "etapa") String etapa,
+                                                @RequestHeader(value = "grupoAntiguo") Character grupoAntiguo,
+                                                @RequestHeader(value = "grupoNuevo") Character grupoNuevo)
     {
         try
         {
-            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
-            {
-                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
-            }
-
-            if(nombreAsignatura != null)
-            {
-
-                Impartir asignaturaImpartidaAGuardar = construirSolicitudGuardarImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupoAntiguo, grupoNuevo);
-                this.iImpartirRepository.saveAndFlush(asignaturaImpartidaAGuardar);
-                return ResponseEntity.ok().build();
-            }
-
-            ProfesorReduccion profesorReduccionAGuardar = construirSoliciturReduccionProfesores(email, nombreReduccion, horasReduccion);
-
-            this.iProfesorReduccionRepository.saveAndFlush(profesorReduccionAGuardar);
-
+            Impartir asignaturaImpartidaAGuardar = construirSolicitudGuardarImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupoAntiguo, grupoNuevo);
+            asignaturaImpartidaAGuardar.setAsignadoDireccion(true);
+            this.iImpartirRepository.saveAndFlush(asignaturaImpartidaAGuardar);
             return ResponseEntity.ok().build();
 
         }

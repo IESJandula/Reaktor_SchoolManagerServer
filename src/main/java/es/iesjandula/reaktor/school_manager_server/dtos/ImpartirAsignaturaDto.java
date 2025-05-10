@@ -17,6 +17,4 @@ public class ImpartirAsignaturaDto
 
     private String etapa ;
 
-    private Character grupo;
-
 }

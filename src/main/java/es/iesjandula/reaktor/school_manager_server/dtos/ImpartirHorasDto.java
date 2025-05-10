@@ -20,4 +20,6 @@ public class ImpartirHorasDto
     private String etapa ;
 
     private Character grupo;
+
+    private Boolean asignadoDireccion;
 }

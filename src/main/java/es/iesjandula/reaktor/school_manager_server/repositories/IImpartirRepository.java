@@ -32,7 +32,8 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
                                          @Param("etapa") String etapa,
                                          @Param("grupo") Character grupo);
 
-    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto(i.asignatura.idAsignatura.nombre, i.asignatura.horas, i.cupoHoras, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto(i.asignatura.idAsignatura.nombre, i.asignatura.horas, i.cupoHoras, i.asignatura.idAsignatura.cursoEtapaGrupo" +
+            ".idCursoEtapaGrupo.curso, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo, i.asignadoDireccion) " +
             "FROM Impartir i " +
             "WHERE i.idImpartir.profesor.email = :email")
     List<ImpartirHorasDto> encontrarAsignaturasImpartidasPorEmail(@Param("email") String email);

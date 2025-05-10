@@ -45,4 +45,7 @@ public class Impartir
 
     @Column
     private Integer cupoHoras;
+
+    @Column
+    private Boolean asignadoDireccion;
 }
