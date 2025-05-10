@@ -92,7 +92,7 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/asignaturas")
-    public ResponseEntity<?> asignarAsignatura(@AuthenticationPrincipal DtoUsuarioExtended usuaio,
+    public ResponseEntity<?> asignarAsignatura(@AuthenticationPrincipal DtoUsuarioExtended usuario,
                                                @RequestHeader(value = "nombre") String nombreAsignatura,
                                                @RequestHeader(value = "horas") Integer horas,
                                                @RequestHeader(value = "curso") Integer curso,
@@ -102,11 +102,14 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
 
             Impartir asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, grupo);
 
-            if(!usuaio.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuaio.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR))
+            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR))
             {
                 if(asignaturaImpartir != null)
                 {
@@ -224,7 +227,8 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/observaciones")
-    public ResponseEntity<?> actualizarObservaciones(@RequestHeader(value = "conciliacion") Boolean conciliacion,
+    public ResponseEntity<?> actualizarObservaciones(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                     @RequestHeader(value = "conciliacion") Boolean conciliacion,
                                                      @RequestHeader(value = "trabajarPrimeraHora") Boolean trabajarPrimeraHora,
                                                      @RequestHeader(value = "otrasObservaciones", required = false) String otrasObservaciones,
                                                      @RequestHeader(value = "dia") String dia,
@@ -234,7 +238,10 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
 
             Profesor profesor = new Profesor();
             profesor.setEmail(email);
@@ -338,7 +345,8 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/solicitudes")
-    public ResponseEntity<?> eliminarSolicitudes(@RequestHeader(value = "email", required = false) String email,
+    public ResponseEntity<?> eliminarSolicitudes(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                 @RequestHeader(value = "email", required = false) String email,
                                                  @RequestHeader(value = "nombreAsignatura", required = false) String nombreAsignatura,
                                                  @RequestHeader(value = "horasAsignatura", required = false) Integer horasAsignatura,
                                                  @RequestHeader(value = "curso", required = false) Integer curso,
@@ -349,7 +357,10 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
 
             if(nombreAsignatura != null && !nombreAsignatura.isEmpty())
             {
@@ -386,7 +397,8 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/solicitudes")
-    public ResponseEntity<?> guardarSolicitudes(@RequestHeader(value = "email", required = false) String email,
+    public ResponseEntity<?> guardarSolicitudes(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                @RequestHeader(value = "email", required = false) String email,
                                                 @RequestHeader(value = "nombreAsignatura", required = false) String nombreAsignatura,
                                                 @RequestHeader(value = "horasAsignatura", required = false) Integer horasAsignatura,
                                                 @RequestHeader(value = "curso", required = false) Integer curso,
@@ -398,7 +410,10 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
 
             if(nombreAsignatura != null)
             {

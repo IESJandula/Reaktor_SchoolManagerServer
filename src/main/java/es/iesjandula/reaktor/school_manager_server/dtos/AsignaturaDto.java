@@ -19,5 +19,7 @@ public class AsignaturaDto
 	private Integer horas;
 	
 	private Long bloqueId;
+
+	private Boolean sinDocencia;
 	
 }

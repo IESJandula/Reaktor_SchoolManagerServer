@@ -50,6 +50,12 @@ public class Asignatura
      */
     @Column
     private boolean esoBachillerato;
+
+    /**
+     * Asignaturas que no serán impartidas por un profesor
+     */
+    @Column
+    private boolean sinDocencia;
     
     /**
      * Departamento propietario de la asignatura.
