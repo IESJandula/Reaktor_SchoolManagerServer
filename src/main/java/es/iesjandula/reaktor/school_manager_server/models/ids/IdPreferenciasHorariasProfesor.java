@@ -12,6 +12,7 @@ import java.io.Serializable;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Embeddable
 public class IdPreferenciasHorariasProfesor implements Serializable
 {
     @ManyToOne

@@ -20,8 +20,8 @@ public interface IDiasTramosRepository extends JpaRepository<DiasTramosTipoHorar
 
     @Query("SELECT d.idDiasTramosTipoHorario.dia " +
             "FROM DiasTramosTipoHorario d " +
-            "WHERE d.idDiasTramosTipoHorario.tramo = :tramo AND d.idDiasTramosTipoHorario.tipoHorario = :tipoHorario AND d.diasDesc = :dia")
+            "WHERE d.idDiasTramosTipoHorario.tramo = :tramo AND d.idDiasTramosTipoHorario.tipoHorario = :tipoHorario AND d.diasDesc = :diasDesc")
     Integer encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(@Param("tramo") Integer tramo,
                                                            @Param("tipoHorario") String tipoHorario,
-                                                           @Param("dia") String dia);
+                                                           @Param("diasDesc") String diasDesc);
 }

@@ -35,13 +35,13 @@ public class Paso7EleccionDeHorarios
     private IAsignaturaRepository iAsignaturaRepository;
 
     @Autowired
-    private IImpartirRepository  iImpartirRepository;
+    private IImpartirRepository iImpartirRepository;
 
     @Autowired
     private IReduccionRepository iReduccionRepository;
 
     @Autowired
-    private IProfesorReduccionRepository  iProfesorReduccionRepository;
+    private IProfesorReduccionRepository iProfesorReduccionRepository;
 
     @Autowired
     private IDiasTramosRepository iDiasTramosRepository;
@@ -50,7 +50,7 @@ public class Paso7EleccionDeHorarios
     private IPreferenciasHorariasRepository iPreferenciasHorariasRepository;
 
     @Autowired
-    private IObservacionesAdicionalesRepository  iObservacionesAdicionalesRepository;
+    private IObservacionesAdicionalesRepository iObservacionesAdicionalesRepository;
 
     @Autowired
     private ValidacionesGlobales validacionesGlobales;
@@ -63,7 +63,7 @@ public class Paso7EleccionDeHorarios
         {
             List<Profesor> profesores = this.iProfesorRepository.findAll();
 
-            if(profesores.isEmpty())
+            if (profesores.isEmpty())
             {
                 String mensajeError = "Error - No se han encontrado profesores en base de datos";
                 log.error(mensajeError);
@@ -88,10 +88,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -107,7 +107,7 @@ public class Paso7EleccionDeHorarios
 
             List<ImpartirAsignaturaDto> asignaturaDtoSinGrupos = this.iAsignaturaRepository.encontrarAsignaturasPorDepartamento(departamento);
 
-            if(asignaturaDtoSinGrupos.isEmpty())
+            if (asignaturaDtoSinGrupos.isEmpty())
             {
                 String mensajeError = "Error - No se han encontrado asignaturas para ese departamento";
                 log.error(mensajeError);
@@ -125,10 +125,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -146,22 +146,20 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
             {
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
 
             Impartir asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, grupo);
 
-            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR))
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR) && asignaturaImpartir != null)
             {
-                if(asignaturaImpartir != null)
-                {
-                    String mensajeError = "Error - Ya se ha asignado esa asignatura a otro profesor";
-                    log.error(mensajeError);
-                    throw new SchoolManagerServerException(1, mensajeError);
-                }
+                String mensajeError = "Error - Ya se ha asignado esa asignatura a otro profesor";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(1, mensajeError);
             }
+
 
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
@@ -179,10 +177,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -194,11 +192,11 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            if(usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            if (usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
             {
                 List<ReduccionDto> listReduccion = this.iReduccionRepository.encontrarTodasReducciones();
 
-                if(listReduccion.isEmpty())
+                if (listReduccion.isEmpty())
                 {
                     String mensajeError = "Error - No se han encontro reducciones en la base de datos";
                     log.error(mensajeError);
@@ -209,7 +207,7 @@ public class Paso7EleccionDeHorarios
             }
             List<ReduccionProfesoresDto> listReduccionesProfesores = this.iReduccionRepository.encontrarReduccionesParaProfesores();
 
-            if(listReduccionesProfesores.isEmpty())
+            if (listReduccionesProfesores.isEmpty())
             {
                 String mensajeError = "Error - No se han encontro reducciones en la base de datos";
                 log.error(mensajeError);
@@ -226,10 +224,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -243,7 +241,7 @@ public class Paso7EleccionDeHorarios
         {
             List<DiasTramosTipoHorarioDto> listDiasTramosTipoHorarioDto = this.iDiasTramosRepository.findByTipoHorario();
 
-            if(listDiasTramosTipoHorarioDto.isEmpty())
+            if (listDiasTramosTipoHorarioDto.isEmpty())
             {
                 String mensajeError = "Error - No se han encontrado dias, tramos y tipos horarios en base de datos";
                 log.error(mensajeError);
@@ -261,10 +259,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -276,14 +274,14 @@ public class Paso7EleccionDeHorarios
                                                      @RequestHeader(value = "conciliacion") Boolean conciliacion,
                                                      @RequestHeader(value = "trabajarPrimeraHora") Boolean trabajarPrimeraHora,
                                                      @RequestHeader(value = "otrasObservaciones", required = false) String otrasObservaciones,
-                                                     @RequestHeader(value = "dia") String dia,
+                                                     @RequestHeader(value = "dia") String diasDesc,
                                                      @RequestHeader(value = "tramo") Integer tramo,
                                                      @RequestHeader(value = "tipoHorario") String tipoHorario,
                                                      @RequestHeader(value = "email") String email)
     {
         try
         {
-            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
             {
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
@@ -291,15 +289,21 @@ public class Paso7EleccionDeHorarios
             Profesor profesor = new Profesor();
             profesor.setEmail(email);
 
-            IdObservacionesAdicionales  idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
+            IdObservacionesAdicionales idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
 
             ObservacionesAdicionales observacionesAdicionales = new ObservacionesAdicionales(idObservacionesAdicionales, conciliacion, trabajarPrimeraHora, otrasObservaciones);
 
             this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales);
 
+            List<PreferenciasHorariasProfesor> listPreferenciasHorariasProfesorABuscar = this.iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(email);
+            if (listPreferenciasHorariasProfesorABuscar.size() == 3)
+            {
+                this.iPreferenciasHorariasRepository.deleteAll(listPreferenciasHorariasProfesorABuscar);
+            }
+
             tramo--;
 
-            Integer dias = this.iDiasTramosRepository.encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(tramo, tipoHorario, dia);
+            Integer dias = this.iDiasTramosRepository.encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(tramo, tipoHorario, diasDesc);
 
             IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dias, tramo, tipoHorario);
 
@@ -325,10 +329,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -344,7 +348,7 @@ public class Paso7EleccionDeHorarios
 
             String tipoAsignatura = "Asignatura";
 
-            // Convertimos la listAsignaturasImpartidas en dto para saber el tipo
+            // Convertimos la listAsignaturasImpartidas en dto.
             List<ImpartirTipoDto> listAsignaturasImpartidasDto = listAsignaturasImpartidas.stream().map(impartir ->
                     new ImpartirTipoDto(
                             tipoAsignatura,
@@ -361,7 +365,7 @@ public class Paso7EleccionDeHorarios
 
             String tipoReduccion = "Reduccion";
 
-            // Convertimos la listReduccionProfesoresDto en dto para saber el tipo
+            // Convertimos la listReduccionProfesoresDto en dto.
             List<ReduccionAsignadaDto> listReduccionAsignadaDto = listReduccionProfesoresDto.stream().map(reduccion ->
                     new ReduccionAsignadaDto(
                             tipoReduccion,
@@ -380,10 +384,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo encontrar asignaturas y reducciones asociadas a este profesor";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -403,12 +407,12 @@ public class Paso7EleccionDeHorarios
     {
         try
         {
-            if(!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
             {
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
 
-            if(nombreAsignatura != null && !nombreAsignatura.isEmpty())
+            if (nombreAsignatura != null && !nombreAsignatura.isEmpty())
             {
 
                 Impartir asignaturaImpartidaABorrar = construirSolicitudImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
@@ -432,10 +436,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -468,16 +472,16 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION+ "')")
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAsignaturas")
     public ResponseEntity<?> obtenerGrupos(@RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
                                            @RequestHeader(value = "horasAsignatura") Integer horasAsignatura,
@@ -488,7 +492,7 @@ public class Paso7EleccionDeHorarios
         {
             List<GrupoAsignaturaDto> grupoAsignaturaDtos = this.iAsignaturaRepository.encontrarGrupoPorNombreAndHorasAndCursoAndEtapa(nombreAsignatura, horasAsignatura, curso, etapa);
 
-            if(grupoAsignaturaDtos.isEmpty())
+            if (grupoAsignaturaDtos.isEmpty())
             {
                 String mensajeError = "Error - No se han encontro grupos para esa asignatrua";
                 log.error(mensajeError);
@@ -506,10 +510,10 @@ public class Paso7EleccionDeHorarios
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo acceder a la base de datos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -519,7 +523,7 @@ public class Paso7EleccionDeHorarios
     {
         ReduccionProfesoresDto reduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionPorProfesor(email, nombreReduccion, horasReduccion);
 
-        if(reduccionProfesoresDto == null)
+        if (reduccionProfesoresDto == null)
         {
             String mensajeError = "Error - No se han encontro una reduccion con esos datos asignada a este profesor";
             log.error(mensajeError);
@@ -552,7 +556,7 @@ public class Paso7EleccionDeHorarios
         return new IdImpartir(asignatura, profesor);
     }
 
-    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException
+    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo)
     {
 
         IdImpartir idImpartir = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupo);
@@ -570,7 +574,7 @@ public class Paso7EleccionDeHorarios
         IdImpartir idImpartirGrupoViejo = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupoAntiguo);
 
         Optional<Impartir> asignaturaImpartida = this.iImpartirRepository.findById(idImpartirGrupoViejo);
-        if(asignaturaImpartida.isEmpty())
+        if (asignaturaImpartida.isEmpty())
         {
             String mensajeError = "Error - No existe una asignatura asignada con esos datos";
             log.error(mensajeError);
@@ -609,11 +613,12 @@ public class Paso7EleccionDeHorarios
 
         return profesorReduccion;
     }
+
     private Impartir construirSolicitudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException
     {
         ImpartirDto asignaturaImpartidaDto = this.iImpartirRepository.encontrarAsignaturaImpartidaPorEmail(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
 
-        if(asignaturaImpartidaDto == null)
+        if (asignaturaImpartidaDto == null)
         {
             String mensajeError = "Error - No se han encontrado una asignatura con esos datos asignadas a este profesor";
             log.error(mensajeError);
