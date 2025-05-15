@@ -2,8 +2,10 @@ package es.iesjandula.reaktor.school_manager_server.rest;
 
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
+import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccion;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.services.ReduccionProfesorService;
@@ -13,6 +15,7 @@ import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerExce
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,6 +34,9 @@ public class CommonController
 {
     @Autowired
     private ICursoEtapaRepository iCursoEtapaRepository;
+
+    @Autowired
+    private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
 
     @Autowired
     private IProfesorReduccionRepository iProfesorReduccionRepository;
@@ -75,7 +81,7 @@ public class CommonController
         catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -87,7 +93,71 @@ public class CommonController
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Endpoint para obtener los grupos asociados a un curso y etapa específicos.
+     *
+     * Este método consulta los grupos disponibles para un curso y etapa
+     * determinados.
+     * Si no se encuentran grupos para la combinación de curso y etapa
+     * proporcionados,
+     * se lanza una excepción personalizada. En caso de un error general, se maneja
+     * adecuadamente
+     * la excepción y se devuelve un mensaje de error.
+     *
+     * @param curso - El identificador del curso para el cual se desean obtener los
+     *              grupos.
+     * @param etapa - La etapa educativa asociada al curso para la cual se desean
+     *              obtener los grupos.
+     * @return ResponseEntity<?> - La lista de grupos encontrados o una excepción
+     *         con el mensaje de error si no se encontraron grupos o si ocurre algún
+     *         fallo durante el proceso.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/grupos")
+    public ResponseEntity<?> obtenerGrupos(@RequestHeader(value = "curso", required = true) Integer curso,
+                                           @RequestHeader(value = "etapa", required = true) String etapa)
+    {
+        try
+        {
+            // Obtener la lista de grupos según curso y etapa
+            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.buscaCursoEtapaGruposCreados(curso, etapa);
+
+            // Si la lista está vacía, lanzar una excepción
+            if (cursosEtapasGrupos.isEmpty())
+            {
+                // Lanzar excepcion y mostrar log con mensaje de Error
+                String mensajeError = "ERROR - No se encontraron grupos para el curso " + curso + " y etapa " + etapa;
+
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.CURSO_ETAPA_GRUPO_NO_ENCONTRADO, mensajeError);
+            }
+
+            // Log de información antes de la respuesta
+            log.info("INFO - Se han encontrado los siguientes grupos para el curso: {} y etapa: {}", curso, etapa);
+
+            // Devolver la lista de cursos, etapas y grupos encontrados
+            return ResponseEntity.status(200).body(cursosEtapasGrupos);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            // Devolver la excepción personalizada y el mensaje de error
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo encontrar el grupo";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 

@@ -12,6 +12,7 @@ import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerExce
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -57,7 +58,7 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/profesores")
-    public ResponseEntity<?> obtenerProfesores()
+    public ResponseEntity<?> obtenerProfesoresHorarios()
     {
         try
         {
@@ -81,7 +82,7 @@ public class Paso7EleccionDeHorarios
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -93,7 +94,7 @@ public class Paso7EleccionDeHorarios
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -118,7 +119,7 @@ public class Paso7EleccionDeHorarios
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -130,7 +131,7 @@ public class Paso7EleccionDeHorarios
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -213,11 +214,11 @@ public class Paso7EleccionDeHorarios
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(1, mensajeError);
             }
-            return ResponseEntity.ok().body(listReduccionesProfesores);
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(listReduccionesProfesores);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -229,7 +230,7 @@ public class Paso7EleccionDeHorarios
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -252,7 +253,7 @@ public class Paso7EleccionDeHorarios
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -264,7 +265,7 @@ public class Paso7EleccionDeHorarios
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -334,7 +335,7 @@ public class Paso7EleccionDeHorarios
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -389,7 +390,7 @@ public class Paso7EleccionDeHorarios
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -483,10 +484,10 @@ public class Paso7EleccionDeHorarios
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAsignaturas")
-    public ResponseEntity<?> obtenerGrupos(@RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
-                                           @RequestHeader(value = "horasAsignatura") Integer horasAsignatura,
-                                           @RequestHeader(value = "curso") Integer curso,
-                                           @RequestHeader(value = "etapa") String etapa)
+    public ResponseEntity<?> obtenerGruposDeAsignaturas(@RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
+                                                        @RequestHeader(value = "horasAsignatura") Integer horasAsignatura,
+                                                        @RequestHeader(value = "curso") Integer curso,
+                                                        @RequestHeader(value = "etapa") String etapa)
     {
         try
         {
@@ -503,7 +504,7 @@ public class Paso7EleccionDeHorarios
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -515,7 +516,7 @@ public class Paso7EleccionDeHorarios
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 

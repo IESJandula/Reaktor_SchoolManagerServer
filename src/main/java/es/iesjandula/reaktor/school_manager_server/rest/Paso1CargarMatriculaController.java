@@ -3,11 +3,13 @@ package es.iesjandula.reaktor.school_manager_server.rest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -78,10 +80,9 @@ public class Paso1CargarMatriculaController
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/matriculas", consumes = "multipart/form-data")
-    public ResponseEntity<?> cargarMatriculas(
-            @RequestParam(value = "csv", required = true) MultipartFile archivoCsv,
-            @RequestHeader(value = "curso", required = true) Integer curso,
-            @RequestHeader(value = "etapa", required = true) String etapa)
+    public ResponseEntity<?> subirFicheros(@RequestParam(value = "csv", required = true) MultipartFile archivoCsv,
+                                           @RequestHeader(value = "curso", required = true) Integer curso,
+                                           @RequestHeader(value = "etapa", required = true) String etapa)
     {
         try
         {
@@ -169,7 +170,7 @@ public class Paso1CargarMatriculaController
     /*Endpoint para que nos muestre los datos de los cursos que tienen matriculas*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/matriculas")
-    public ResponseEntity<?> obtenerMatriculas()
+    public ResponseEntity<?> cargarMatriculas()
     {
         try
         {
@@ -188,7 +189,7 @@ public class Paso1CargarMatriculaController
         catch (SchoolManagerServerException schoolManagerServerException)
         {
 
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
 
     }
@@ -196,8 +197,8 @@ public class Paso1CargarMatriculaController
     /* Endpoint que borrar la información asignada a las matriculas relacionada a un curso*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/matriculas")
-    public ResponseEntity<?> borrarDatosMatriculas(@RequestHeader(value = "curso", required = true) Integer curso,
-                                                   @RequestHeader(value = "etapa", required = true) String etapa)
+    public ResponseEntity<?> borrarMatriculas(@RequestHeader(value = "curso", required = true) Integer curso,
+                                              @RequestHeader(value = "etapa", required = true) String etapa)
     {
         try
         {
@@ -270,7 +271,7 @@ public class Paso1CargarMatriculaController
         catch (SchoolManagerServerException schoolManagerServerException)
         {
 
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
 
     }
@@ -291,7 +292,7 @@ public class Paso1CargarMatriculaController
 
             DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
 
-            if (datosBrutoAlumnoMatriculas.getEstadoMatricula() == "MATR")
+            if (Objects.equals(datosBrutoAlumnoMatriculas.getEstadoMatricula(), "MATR"))
             {
                 String mensajeError = "Ya existe un alumno matriculado en esa asignatura";
 
@@ -414,5 +415,4 @@ public class Paso1CargarMatriculaController
             return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
-
 }

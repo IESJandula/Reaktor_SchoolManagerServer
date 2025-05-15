@@ -11,6 +11,7 @@ import es.iesjandula.reaktor.school_manager_server.services.AlumnoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -38,13 +39,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping(value = "/schoolManager/crearGrupos")
-public class Paso3CrearGruposController 
+public class Paso3CrearGruposController
 {
     @Autowired
     private ICursoEtapaRepository iCursoEtapaRepository;
 
     @Autowired
-	private CursoEtapaService cursoEtapaService ;
+    private CursoEtapaService cursoEtapaService;
 
     @Autowired
     private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
@@ -54,32 +55,29 @@ public class Paso3CrearGruposController
 
     @Autowired
     private IAlumnoRepository iAlumnoRepository;
-    
-    @Autowired
-    private IAsignaturaRepository iAsignaturaRepository;
-    
-    @Autowired
-    private IMatriculaRepository iMatriculaRepository;
 
     @Autowired
-    private IBloqueRepository iBloqueRepository;
+    private IAsignaturaRepository iAsignaturaRepository;
+
+    @Autowired
+    private IMatriculaRepository iMatriculaRepository;
 
     @Autowired
     private AlumnoService alumnoService;
 
     /**
-	 * Endpoint para obtener los cursos etapas.
-	 * 
-	 * Este método obtiene mediante un get todos los cursos etapas guardados en base
-	 * de datos para despues mostrarlos en el front en un select.
-	 * 
-	 * @return ResponseEntity<?> - Respuesta con las lista de cursos y etapas.
-	 */
+     * Endpoint para obtener los cursos etapas.
+     * <p>
+     * Este método obtiene mediante un get todos los cursos etapas guardados en base
+     * de datos para despues mostrarlos en el front en un select.
+     *
+     * @return ResponseEntity<?> - Respuesta con las lista de cursos y etapas.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/cursoEtapa")
-    public ResponseEntity<?> obtenerCursoEtapa() 
+    public ResponseEntity<?> obtenerCursoEtapa()
     {
-        try 
+        try
         {
             // Lista usada para guardar los registros de la Tabla CursoEtapa
             List<CursoEtapa> listaCursoEtapa = new ArrayList<>();
@@ -88,7 +86,7 @@ public class Paso3CrearGruposController
             listaCursoEtapa = this.iCursoEtapaRepository.findAll();
 
             // Si la lista esta vacia, lanzar excepcion
-            if (listaCursoEtapa.isEmpty()) 
+            if (listaCursoEtapa.isEmpty())
             {
                 String mensajeError = "ERROR - Sin cursos y etapas en la base de datos";
 
@@ -100,49 +98,49 @@ public class Paso3CrearGruposController
             // Devolver la lista
             log.info("INFO - Lista de los cursos etapas");
             return ResponseEntity.status(200).body(listaCursoEtapa);
-        } 
-        catch (SchoolManagerServerException schoolManagerServerException) 
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo cargar la lista";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
     /**
      * Endpoint para crear un nuevo grupo en el sistema basado en el curso y etapa
      * proporcionados.
-     *
+     * <p>
      * Este método asigna un nuevo grupo a un curso y etapa específicos,
      * asegurándose de que el nombre del grupo sea único
      * en función de la cantidad de veces que ya existe dicho curso y etapa en la
      * base de datos.
-     * 
+     *
      * @param curso - El identificador del curso para el cual se está creando el
      *              grupo.
      * @param etapa - La etapa educativa asociada al curso para el cual se está
      *              creando el grupo.
      * @return ResponseEntity<?> - Un mensaje de éxito indicando que el grupo ha
-     *         sido creado correctamente, o una excepción con el mensaje de error si
-     *         ocurrió algún problema.
+     * sido creado correctamente, o una excepción con el mensaje de error si
+     * ocurrió algún problema.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/grupos")
     public ResponseEntity<?> crearGrupo(@RequestHeader(value = "curso", required = true) Integer curso,
-                                        @RequestHeader(value = "etapa", required = true) String etapa) 
+                                        @RequestHeader(value = "etapa", required = true) String etapa)
     {
-        try 
+        try
         {
             // Validamos y obtenemos el curso y etapa
             CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
@@ -151,10 +149,10 @@ public class Paso3CrearGruposController
             int contador = this.iCursoEtapaGrupoRepository.cuentaCursoEtapaGruposCreados(curso, etapa);
 
             // Asignar la letra A
-            char grupo = Constants.GRUPO_INICIAL ;
+            char grupo = Constants.GRUPO_INICIAL;
 
             // Asignar la letra según el numero de veces que este repetido en BD
-            for (int i = 0; i < contador; i++) 
+            for (int i = 0; i < contador; i++)
             {
                 grupo++;
             }
@@ -183,84 +181,20 @@ public class Paso3CrearGruposController
             // Devolver la respuesta indicando que el grupo ha sido creado correctamente
             return ResponseEntity.ok().build();
         }
-        catch (SchoolManagerServerException schoolManagerServerException) 
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
+        }
+        catch (Exception exception)
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo crear el grupo";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }    
-
-    /**
-     * Endpoint para obtener los grupos asociados a un curso y etapa específicos.
-     * 
-     * Este método consulta los grupos disponibles para un curso y etapa
-     * determinados.
-     * Si no se encuentran grupos para la combinación de curso y etapa
-     * proporcionados,
-     * se lanza una excepción personalizada. En caso de un error general, se maneja
-     * adecuadamente
-     * la excepción y se devuelve un mensaje de error.
-     * 
-     * @param curso - El identificador del curso para el cual se desean obtener los
-     *              grupos.
-     * @param etapa - La etapa educativa asociada al curso para la cual se desean
-     *              obtener los grupos.
-     * @return ResponseEntity<?> - La lista de grupos encontrados o una excepción
-     *         con el mensaje de error si no se encontraron grupos o si ocurre algún
-     *         fallo durante el proceso.
-     */
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/grupos")
-    public ResponseEntity<?> obtenerGrupo(@RequestHeader(value = "curso", required = true) Integer curso,
-                                          @RequestHeader(value = "etapa", required = true) String etapa) 
-    {
-        try 
-        {
-            // Obtener la lista de grupos según curso y etapa
-            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.buscaCursoEtapaGruposCreados(curso, etapa);
-
-            // Si la lista está vacía, lanzar una excepción
-            if (cursosEtapasGrupos.isEmpty()) 
-            {
-                // Lanzar excepcion y mostrar log con mensaje de Error
-                String mensajeError = "ERROR - No se encontraron grupos para el curso " + curso + " y etapa " + etapa;
-
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.CURSO_ETAPA_GRUPO_NO_ENCONTRADO, mensajeError);
-            }
-
-            // Log de información antes de la respuesta
-            log.info("INFO - Se han encontrado los siguientes grupos para el curso: {} y etapa: {}", curso, etapa);
-
-            // Devolver la lista de cursos, etapas y grupos encontrados
-            return ResponseEntity.status(200).body(cursosEtapasGrupos);
-        } 
-        catch (SchoolManagerServerException schoolManagerServerException) 
-        {
-            // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
-        {
-            // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo encontrar el grupo";
-
-            log.error(mensajeError, exception) ;
-
-            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -269,7 +203,7 @@ public class Paso3CrearGruposController
     /**
      * Endpoint para obtener la lista de alumnos pendientes por asignar o ya
      * asignados a un grupo específico de un curso y etapa.
-     *
+     * <p>
      * Este método recibe los parámetros del curso, la etapa y el grupo, y luego
      * recupera
      * una lista de alumnos pendientes y también asignados a ese grupo especifico,
@@ -282,8 +216,8 @@ public class Paso3CrearGruposController
      * @param grupo - El grupo específico dentro del curso y etapa que se está
      *              consultando.
      * @return ResponseEntity<?> - Respuesta con la lista de alumnos del grupo o
-     *         pendientes de asignar, o una excepción personalizada si ocurre algún
-     *         error durante la operación.
+     * pendientes de asignar, o una excepción personalizada si ocurre algún
+     * error durante la operación.
      */
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -328,68 +262,66 @@ public class Paso3CrearGruposController
             // Devolver la lista de Alumnos
             return ResponseEntity.status(200).body(alumnosEnGrupo);
         }
-        catch (SchoolManagerServerException schoolManagerServerException) 
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo obtener la lista de alumnos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnosTotales")
-    public ResponseEntity<?> obtenerTodosAlumnos(@RequestHeader(value = "curso", required = true) Integer curso,
-            									 @RequestHeader(value = "etapa", required = true) String etapa)
+    public ResponseEntity<?> obtenerAlumnosSinGrupos(@RequestHeader(value = "curso", required = true) Integer curso,
+                                                     @RequestHeader(value = "etapa", required = true) String etapa)
     {
-    	try 
-    	{
-    		List<AlumnoDto3> listaDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
-        	
-        	if(listaDatosBrutoAlumnoMatriculas.isEmpty()) 
-        	{
-        		String mensajeError = "No se ha encontrado datos para ese curso y etapa";
-    			
-    			log.error(mensajeError);
-    			throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);
-        	}
-    		return ResponseEntity.ok(listaDatosBrutoAlumnoMatriculas);
-    	}
-        catch (SchoolManagerServerException schoolManagerServerException) 
+        try
+        {
+            List<AlumnoDto3> listaDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
+
+            if (listaDatosBrutoAlumnoMatriculas.isEmpty())
+            {
+                String mensajeError = "No se ha encontrado datos para ese curso y etapa";
+
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);
+            }
+            return ResponseEntity.ok(listaDatosBrutoAlumnoMatriculas);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo obtener el grupo de alumnos";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
-
 
     /**
      * Endpoint para asignar una lista de alumnos a un grupo específico de un curso
      * y etapa.
-     * 
+     * <p>
      * Este método asigna los alumnos, que son recibidos como una lista de objetos
      * `AlumnoDto2`,
      * a un grupo específico dentro de un curso y etapa determinados. Si el alumno
@@ -397,7 +329,7 @@ public class Paso3CrearGruposController
      * la tabla `DatosBrutoAlumnoMatricula`, se transfiere el alumno al grupo
      * especificado y
      * luego se elimina de la tabla `DatosBrutoAlumnoMatricula`.
-     * 
+     *
      * @param alumnos - Lista de objetos `AlumnoDto2` que contiene los datos de los
      *                alumnos a asignar.
      * @param curso   - El identificador del curso al que pertenecen los alumnos.
@@ -405,32 +337,32 @@ public class Paso3CrearGruposController
      * @param grupo   - El identificador del grupo (una letra que representa el
      *                grupo) al que se asignarán los alumnos.
      * @return ResponseEntity<?> - Respuesta con un mensaje de éxito si los alumnos
-     *         se asignaron correctamente, o una excepción con el mensaje de error
-     *         si ocurre un fallo durante el proceso.
+     * se asignaron correctamente, o una excepción con el mensaje de error
+     * si ocurre un fallo durante el proceso.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/gruposAlumnos")
     public ResponseEntity<?> asignarAlumnos(@RequestBody List<AlumnoDto2> alumnos,
-								            @RequestHeader(value = "curso", required = true) Integer curso,
-								            @RequestHeader(value = "etapa", required = true) String etapa,
-								            @RequestHeader(value = "grupo", required = true) Character grupo) 
+                                            @RequestHeader(value = "curso", required = true) Integer curso,
+                                            @RequestHeader(value = "etapa", required = true) String etapa,
+                                            @RequestHeader(value = "grupo", required = true) Character grupo)
     {
-        try 
+        try
         {
             // Validamos y obtenemos el curso y etapa
             CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
 
             // Por cada alumno proporcionado en la lista de entrada se buscan en el repo de DatosBrutosAlumnoMatricula
-            for (AlumnoDto2 alumnoDatosBrutos : alumnos) 
+            for (AlumnoDto2 alumnoDatosBrutos : alumnos)
             {
 
                 // Buscar los registros del alumno en DatosBrutosAlumnoMatricula
-                List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatriculaAsignaturasOpt = 
-                    this.iDatosBrutoAlumnoMatriculaRepository.findByNombreAndApellidosAndCursoEtapa(alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos(),cursoEtapa);
+                List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatriculaAsignaturasOpt =
+                        this.iDatosBrutoAlumnoMatriculaRepository.findByNombreAndApellidosAndCursoEtapa(alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos(), cursoEtapa);
 
-                for (DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaAsignaturaOpt : datosBrutoAlumnoMatriculaAsignaturasOpt) 
+                for (DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaAsignaturaOpt : datosBrutoAlumnoMatriculaAsignaturasOpt)
                 {
-                    if(datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("MATR") || datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("PEND"))
+                    if (datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("MATR") || datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("PEND"))
                     {
                         // Registramos el alumno
                         Alumno alumno = this.asignarAlumnosRegistrarAlumno(curso, etapa, grupo, alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos());
@@ -449,21 +381,21 @@ public class Paso3CrearGruposController
 
             // Devolver mensaje de OK
             return ResponseEntity.ok().build();
-        } 
-        catch (SchoolManagerServerException schoolManagerServerException) 
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
+        }
+        catch (Exception exception)
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo asignar los alumnos al grupo";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -471,19 +403,19 @@ public class Paso3CrearGruposController
 
     /**
      * Endpoint para desasignar un alumno de un grupo específico.
-     * 
+     * <p>
      * Este método busca al alumno en la tabla `DatosBrutoAlumnoMatriculaGrupo`
      * utilizando
      * su nombre y apellidos. Si se encuentra al alumno, se transfiere el registro a
      * la
      * tabla `DatosBrutoAlumnoMatricula` y luego se elimina el registro en la tabla
      * `DatosBrutoAlumnoMatriculaGrupo`, desasignando así al alumno del grupo.
-     * 
+     *
      * @param alumnoDto - El objeto `AlumnoDto` que contiene los datos del alumno a
-     *               desasignar.
+     *                  desasignar.
      * @return ResponseEntity<?> - Respuesta con un mensaje de éxito si el alumno
-     *         fue desasignado correctamente, o una excepción con el mensaje de
-     *         error si ocurre un fallo durante el proceso.
+     * fue desasignado correctamente, o una excepción con el mensaje de
+     * error si ocurre un fallo durante el proceso.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
@@ -491,9 +423,9 @@ public class Paso3CrearGruposController
     {
         try
         {
-        alumnoService.borrarAlumno(alumnoDto);
+            alumnoService.borrarAlumno(alumnoDto);
 
-        // Log de información antes de la respuesta
+            // Log de información antes de la respuesta
             log.info("INFO - Alumno desasignado correctamente");
 
             // Devolver mensaje de OK
@@ -509,10 +441,10 @@ public class Paso3CrearGruposController
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo borrar el alumno";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -523,48 +455,48 @@ public class Paso3CrearGruposController
     public ResponseEntity<?> actualizarTurnoHorario(@RequestHeader(value = "curso", required = true) Integer curso,
                                                     @RequestHeader(value = "etapa", required = true) String etapa,
                                                     @RequestHeader(value = "grupo", required = true) Character grupo,
-                                                    @RequestHeader(value = "esHorarioMatutino", required = true) Boolean esHorarioMatutino) 
+                                                    @RequestHeader(value = "esHorarioMatutino", required = true) Boolean esHorarioMatutino)
     {
         try
         {
-            Optional<CursoEtapaGrupo> cursoEtapaGrupoOptional = this.iCursoEtapaGrupoRepository.findById(new IdCursoEtapaGrupo(curso, etapa, grupo)) ;
+            Optional<CursoEtapaGrupo> cursoEtapaGrupoOptional = this.iCursoEtapaGrupoRepository.findById(new IdCursoEtapaGrupo(curso, etapa, grupo));
 
             if (!cursoEtapaGrupoOptional.isPresent())
             {
-                String mensajeError = "ERROR en la actualización del turno horario - No se encontró el curso " + curso + " " + etapa + " " + grupo ;
+                String mensajeError = "ERROR en la actualización del turno horario - No se encontró el curso " + curso + " " + etapa + " " + grupo;
 
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.CURSO_ETAPA_GRUPO_NO_ENCONTRADO, mensajeError);
             }
 
-            CursoEtapaGrupo cursoEtapaGrupo = cursoEtapaGrupoOptional.get() ;
+            CursoEtapaGrupo cursoEtapaGrupo = cursoEtapaGrupoOptional.get();
 
             // Actualizamos el turno horario
-            cursoEtapaGrupo.setHorarioMatutino(esHorarioMatutino) ;
+            cursoEtapaGrupo.setHorarioMatutino(esHorarioMatutino);
 
             // Guardamos el curso etapa grupo
-            this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo) ;
+            this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo);
 
             // Log de información antes de la respuesta
-            log.info("INFO - Turno horario actualizado correctamente {} {} {} {}", curso, etapa, grupo, esHorarioMatutino) ;
+            log.info("INFO - Turno horario actualizado correctamente {} {} {} {}", curso, etapa, grupo, esHorarioMatutino);
 
             // Devolvemos mensaje de OK
-            return ResponseEntity.ok().build() ;
+            return ResponseEntity.ok().build();
         }
-        catch (SchoolManagerServerException schoolManagerServerException) 
+        catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        } 
-        catch (Exception exception) 
+        }
+        catch (Exception exception)
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo actualizar el turno horario";
 
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -572,14 +504,14 @@ public class Paso3CrearGruposController
 
     /**
      * Método para asignar alumnos y registrarlos en la tabla Alumno
-     * 
+     *
      * @param datosBrutoAlumnoMatriculaAsignaturaOpt - El objeto DatosBrutoAlumnoMatricula que contiene los datos del alumno a asignar
      * @return Alumno - El alumno asignado y registrado en la tabla Alumno
      */
     private Alumno asignarAlumnosRegistrarAlumno(int curso, String etapa, Character grupo, String nombreAlumno, String apellidosAlumno)
     {
         // Creamos un nuevo Alumno
-        Alumno alumno = null ;
+        Alumno alumno = null;
 
         // Buscamos el alumno primero a partir de la tabla matricula
         Optional<Alumno> optionalAlumno = this.iMatriculaRepository.buscarAlumnoPorCursoEtapaNombreApellidos(curso, etapa, grupo, nombreAlumno, apellidosAlumno);
@@ -593,11 +525,12 @@ public class Paso3CrearGruposController
         {
             Optional<Alumno> optionalAlumnoA = this.iAlumnoRepository.findByNombreAndApellidos(nombreAlumno, apellidosAlumno);
 
-            if(optionalAlumnoA.isPresent())
+            if (optionalAlumnoA.isPresent())
             {
                 alumno = optionalAlumnoA.get();
             }
-            else {
+            else
+            {
                 // Creamos un nuevo Alumno
                 alumno = new Alumno();
 
@@ -611,27 +544,27 @@ public class Paso3CrearGruposController
 
         }
 
-        return alumno ;
+        return alumno;
     }
 
     /**
      * Método para obtener la asignatura
-     * 
-     * @param curso - El identificador del curso para el cual se desea obtener la asignatura
-     * @param etapa - La etapa educativa asociada al curso para el cual se desea obtener la asignatura
-     * @param grupo - El grupo asociado al curso y etapa para el cual se desea obtener la asignatura
+     *
+     * @param curso            - El identificador del curso para el cual se desea obtener la asignatura
+     * @param etapa            - La etapa educativa asociada al curso para el cual se desea obtener la asignatura
+     * @param grupo            - El grupo asociado al curso y etapa para el cual se desea obtener la asignatura
      * @param nombreAsignatura - El nombre de la asignatura para el cual se desea obtener la asignatura
-     * @param horas - Las horas de la asignatura
-     * @param esoBachillerato - Indica si es ESO o Bachillerato
+     * @param horas            - Las horas de la asignatura
+     * @param esoBachillerato  - Indica si es ESO o Bachillerato
      * @return Asignatura - La asignatura encontrada en la base de datos
      */
     private Asignatura asignarAlumnosRegistrarAsignatura(Integer curso, String etapa, Character grupo, String nombreAsignatura, Boolean esoBachillerato)
     {
-        Asignatura asignatura = new Asignatura() ;
+        Asignatura asignatura = new Asignatura();
 
         // Primero buscamos la asignatura existente primero por su nombre, curso, etapa y grupo
         Optional<Asignatura> optionalAsignatura = this.iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, nombreAsignatura, grupo);
-        
+
         // Si existe, la asignamos
         if (optionalAsignatura.isPresent())
         {
@@ -647,16 +580,16 @@ public class Paso3CrearGruposController
             if (optionalAsignatura.isPresent())
             {
                 // Obtenemos la asignatura
-                asignatura = optionalAsignatura.get() ;
+                asignatura = optionalAsignatura.get();
 
                 // La borramos
                 this.iAsignaturaRepository.delete(asignatura);
 
                 // Cambiamos el valor por el del grupo
-                asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(grupo) ;
+                asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(grupo);
 
                 // Guardamos la asignatura
-                this.iAsignaturaRepository.saveAndFlush(asignatura) ;
+                this.iAsignaturaRepository.saveAndFlush(asignatura);
             }
             else // Si llegamos aquí, es porque no existe la asignatura
             {
@@ -674,7 +607,7 @@ public class Paso3CrearGruposController
                 idAsignatura.setNombre(nombreAsignatura);
 
                 // Indicamos si es ESO o Bachillerato
-                asignatura.setEsoBachillerato(esoBachillerato) ;
+                asignatura.setEsoBachillerato(esoBachillerato);
 
                 // Asignamos la clave primaria a la asignatura
                 asignatura.setIdAsignatura(idAsignatura);
@@ -682,7 +615,7 @@ public class Paso3CrearGruposController
                 // Asignamos las horas
                 asignatura.setHoras(asignaturaExistente.get().getHoras());
 
-                if(asignaturaExistente.get().getBloques() != null)
+                if (asignaturaExistente.get().getBloques() != null)
                 {
                     // Creamos una instancia del bloque
                     Bloque bloque = new Bloque();
@@ -692,19 +625,19 @@ public class Paso3CrearGruposController
                 }
 
                 // Guardamos la asignatura
-                this.iAsignaturaRepository.saveAndFlush(asignatura) ;
+                this.iAsignaturaRepository.saveAndFlush(asignatura);
             }
         }
 
-        return asignatura ;
+        return asignatura;
     }
 
     /**
      * Método para obtener la matricula
-     * 
+     *
      * @param datosBrutoAlumnoMatriculaAsignaturaOpt - El objeto DatosBrutoAlumnoMatricula que contiene los datos del alumno a asignar
-     * @param alumno - El alumno a asignar
-     * @param asignatura - La asignatura a asignar
+     * @param alumno                                 - El alumno a asignar
+     * @param asignatura                             - La asignatura a asignar
      */
     private void asignarAlumnosRegistrarMatricula(DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaAsignaturaOpt, Alumno alumno, Asignatura asignatura)
     {
@@ -716,13 +649,13 @@ public class Paso3CrearGruposController
         Matricula matricula = new Matricula();
         matricula.setIdMatricula(idMatricula);
 
-        datosBrutoAlumnoMatriculaAsignaturaOpt.setAsignado(true) ;
+        datosBrutoAlumnoMatriculaAsignaturaOpt.setAsignado(true);
 
-        this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculaAsignaturaOpt) ;
+        this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculaAsignaturaOpt);
 
-        if(datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("MATR") || 
-           datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("PEND"))
-        { 
+        if (datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("MATR") ||
+                datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("PEND"))
+        {
             // Guardar el registro en la tabla Matricula
             this.iMatriculaRepository.saveAndFlush(matricula);
         }

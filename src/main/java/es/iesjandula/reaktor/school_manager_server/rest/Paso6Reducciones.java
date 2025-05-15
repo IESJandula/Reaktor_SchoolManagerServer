@@ -30,6 +30,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -116,7 +117,7 @@ public class Paso6Reducciones
 	
 	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
 	@RequestMapping(method = RequestMethod.GET, value = "/reducciones")
-	public ResponseEntity<?> mostrarReduccion()
+	public ResponseEntity<?> cargarReducciones()
 	{
 		try 
 		{
@@ -133,7 +134,7 @@ public class Paso6Reducciones
 		}
 		catch (SchoolManagerServerException schoolManagerServerException) 
 		{
-			return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+			return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
 		catch (Exception exception) 
 		{
@@ -142,7 +143,7 @@ public class Paso6Reducciones
 		    SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
 		
 		    log.error(mensajeError, exception);
-		    return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+		    return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
 		
 	}
@@ -228,7 +229,7 @@ public class Paso6Reducciones
 		}
 		catch (SchoolManagerServerException schoolManagerServerException)
 		{
-			return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+			return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
 		catch (Exception exception)
 		{
@@ -236,7 +237,7 @@ public class Paso6Reducciones
 			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
 
 			log.error(mensajeError, exception);
-			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+			return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
 	}
 
@@ -392,7 +393,7 @@ public class Paso6Reducciones
 
 		} catch (SchoolManagerServerException schoolManagerServerException)
 		{
-			return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+			return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
 		catch (Exception exception)
 		{
@@ -400,7 +401,7 @@ public class Paso6Reducciones
 			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
 
 			log.error(mensajeError, exception);
-			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+			return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
 		}
 	}
 

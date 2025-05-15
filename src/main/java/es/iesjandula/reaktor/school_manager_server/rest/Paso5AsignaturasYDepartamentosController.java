@@ -8,6 +8,7 @@ import es.iesjandula.reaktor.school_manager_server.dtos.*;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -69,7 +70,7 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -77,7 +78,7 @@ public class Paso5AsignaturasYDepartamentosController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
 
             log.error(mensajeError, exception);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -106,7 +107,7 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage().toString());
+            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -127,7 +128,7 @@ public class Paso5AsignaturasYDepartamentosController
         {
             List<AsignaturaConDepartamentoDto> asignaturaConDepartamentoDtos = this.iAsignaturaRepository.encontrarAsignaturasConDepartamento();
 
-            if(asignaturaConDepartamentoDtos.isEmpty())
+            if (asignaturaConDepartamentoDtos.isEmpty())
             {
                 String mensajeError = "No hay asignaturas registrados en la base de datos";
                 log.error(mensajeError);
@@ -138,7 +139,7 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage().toString());
+            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -185,7 +186,7 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -193,7 +194,7 @@ public class Paso5AsignaturasYDepartamentosController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
 
             log.error(mensajeError, exception);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -203,9 +204,9 @@ public class Paso5AsignaturasYDepartamentosController
      * <p>
      * Este método recibirá un curso etapa y grupo y devolvera las asignaturas que tengan ese curso etapa y grupo especificos
      *
-     * @param curso            Número entero que representa el curso de la asignatura.
-     * @param etapa            Cadena de texto que indica la etapa educativa (ej. "ESO", "Bachillerato").
-     * @param grupo            Caracter que identifica el grupo dentro del curso (ej. 'A', 'B').
+     * @param curso Número entero que representa el curso de la asignatura.
+     * @param etapa Cadena de texto que indica la etapa educativa (ej. "ESO", "Bachillerato").
+     * @param grupo Caracter que identifica el grupo dentro del curso (ej. 'A', 'B').
      * @return ResponseEntity<> - Respuesta del endpoint que devuelve las asignaturas
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -235,7 +236,7 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -243,7 +244,7 @@ public class Paso5AsignaturasYDepartamentosController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
 
             log.error(mensajeError, exception);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -284,7 +285,7 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -292,7 +293,7 @@ public class Paso5AsignaturasYDepartamentosController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
 
             log.error(mensajeError, exception);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
 
         }
 
@@ -305,17 +306,17 @@ public class Paso5AsignaturasYDepartamentosController
      * como parámetros y establece a `null` el departamento propietario y
      * el departamento receptor de dicha asignatura.
      *
-     * @param curso            Número entero que representa el curso de la asignatura.
-     * @param etapa            Cadena de texto que indica la etapa educativa (ej. "ESO", "Bachillerato").
-     * @param grupo            Caracter que identifica el grupo dentro del curso (ej. 'A', 'B').
+     * @param curso Número entero que representa el curso de la asignatura.
+     * @param etapa Cadena de texto que indica la etapa educativa (ej. "ESO", "Bachillerato").
+     * @param grupo Caracter que identifica el grupo dentro del curso (ej. 'A', 'B').
      * @return ResponseEntity<> - Respuesta del endpoint que indica el resultado de la operación.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PATCH, value = "/asignaturas/quitarDepartamentos")
     public ResponseEntity<?> quitarAsignaturasDeDepartamentos(@RequestParam("curso") int curso,
-                                                             @RequestParam("etapa") String etapa,
-                                                             @RequestParam("grupo") Character grupo,
-                                                             @RequestParam("nombre") String nombre)
+                                                              @RequestParam("etapa") String etapa,
+                                                              @RequestParam("grupo") Character grupo,
+                                                              @RequestParam("nombre") String nombre)
     {
 
         try
@@ -343,7 +344,8 @@ public class Paso5AsignaturasYDepartamentosController
             return ResponseEntity.status(200).body("Departamentos eliminados correctamente");
 
         }
-        catch (SchoolManagerServerException schoolManagerServerException) {
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
 
             return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -375,11 +377,11 @@ public class Paso5AsignaturasYDepartamentosController
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PATCH, value = "/asignaturas/asignarDepartamentos")
     public ResponseEntity<?> asignarAsignaturasADepartamentos(@RequestParam("curso") int curso,
-                                                             @RequestParam("etapa") String etapa,
-                                                             @RequestParam("grupo") Character grupo,
-                                                             @RequestParam("nombre") String nombre,
-                                                             @RequestParam("departamentoPropietario") String departamentoPropietario,
-                                                             @RequestParam(value = "departamentoReceptor") String departamentoReceptor)
+                                                              @RequestParam("etapa") String etapa,
+                                                              @RequestParam("grupo") Character grupo,
+                                                              @RequestParam("nombre") String nombre,
+                                                              @RequestParam("departamentoPropietario") String departamentoPropietario,
+                                                              @RequestParam(value = "departamentoReceptor") String departamentoReceptor)
     {
 
         try

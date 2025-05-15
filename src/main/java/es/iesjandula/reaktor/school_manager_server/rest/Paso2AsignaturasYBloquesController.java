@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -46,7 +47,7 @@ public class Paso2AsignaturasYBloquesController
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
-    public ResponseEntity<?> obtenerAsignatura(@RequestHeader("curso") int curso,
+    public ResponseEntity<?> cargarAsignaturas(@RequestHeader("curso") int curso,
                                                @RequestHeader("etapa") String etapa)
     {
         try
@@ -65,7 +66,7 @@ public class Paso2AsignaturasYBloquesController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -74,7 +75,7 @@ public class Paso2AsignaturasYBloquesController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
 
             log.error(msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
 
     }
@@ -281,7 +282,7 @@ public class Paso2AsignaturasYBloquesController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -289,7 +290,7 @@ public class Paso2AsignaturasYBloquesController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
 
             log.error(msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
