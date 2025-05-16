@@ -3,6 +3,7 @@ package es.iesjandula.reaktor.school_manager_server.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.Getter;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import lombok.AllArgsConstructor;
@@ -15,6 +16,7 @@ import lombok.AllArgsConstructor;
  * -----------------------------------------------------------------------------------------------------------------
  */
 @AllArgsConstructor
+@Getter
 public class SchoolManagerServerException extends Exception
 {
 	/**
