@@ -25,7 +25,6 @@ import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -165,10 +164,9 @@ public class Paso1CargarMatriculaController
             String msgError = "ERROR - No se pudo realizar la lectura del fichero";
             log.error(msgError, ioException);
 
-            // Devolver una excepción personalizada con código 1, el mensaje de error y la
-            // excepcion general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
-                    Constants.IO_EXCEPTION, msgError, ioException);
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.IO_EXCEPTION, msgError, ioException);
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }

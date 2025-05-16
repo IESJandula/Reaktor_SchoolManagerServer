@@ -2,7 +2,9 @@ package es.iesjandula.reaktor.school_manager_server.rest;
 
 import java.util.List;
 
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,27 +57,40 @@ public class Paso4ResumenAsignaturas
 
             if (asignaturas.isEmpty())
             {
-                String mensajeError = "No existen asignaturas con ese curso y etapa";
+                String mensajeError = "ERROR - No existen asignaturas con ese curso y etapa";
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
-            return ResponseEntity.status(200).body(asignaturas);
+            return ResponseEntity.ok().body(asignaturas);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String msgError = "Error al acceder a la base de datos";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
-
+            // Manejo de excepciones generales
+            String msgError = "ERROR - Error al acceder a la base de datos";
             log.error(msgError, exception);
-            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, msgError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
+    /**
+     * Obtiene la cantidad de alumnos en un grupo específico para una asignatura determinada.
+     *
+     * @param curso      El curso académico del cual se solicita la información.
+     * @param etapa      La etapa educativa en la que se encuentra el curso (por ejemplo, Primaria, Secundaria).
+     * @param grupo      La letra del grupo al que pertenece la información solicitada.
+     * @param asignatura El nombre de la asignatura para la cual se solicita la cantidad de alumnos.
+     * @return ResponseEntity<?> Respuesta que contiene el número de alumnos del grupo para la asignatura solicitada.
+     * Puede devolver errores en caso de que el grupo no exista o de que ocurra algún fallo.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/numeroAlumnosEnAsignatura")
     public ResponseEntity<?> obtenerCantidadAlumnosEnGrupoPorAsignatura(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -90,8 +105,9 @@ public class Paso4ResumenAsignaturas
             // Si no esta ese grupo lanzar excepcion
             if (!listaGrupos.contains(grupo))
             {
-                log.error("ERROR - Grupo vacio");
-                throw new SchoolManagerServerException(404, "ERROR - No se ha encontrado ningún grupo con esa letra");
+                String mensajeError = "ERROR - No se ha encontrado ningún grupo para el " + curso + " y " + etapa + " con letra " + grupo;
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.GRUPO_NO_ENCONTRADO, mensajeError);
             }
 
             // Alumnos en el grupo
@@ -103,11 +119,8 @@ public class Paso4ResumenAsignaturas
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            // Manejo de excepciones personalizadas
-            log.error(schoolManagerServerException.getBodyExceptionMessage().toString());
-
-            // Devolver la excepción personalizada con código 1 y el mensaje de error
-            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException);
+            // Devolver la excepción personalizada con código y el mensaje de error
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException);
         }
         catch (Exception exception)
         {
@@ -115,11 +128,10 @@ public class Paso4ResumenAsignaturas
             String msgError = "ERROR - No se pudo cargar el numero de alumnos";
             log.error(msgError, exception);
 
-            // Devolver la excepción personalizada con código 1, el mensaje de error y la
-            // excepción general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(
-                    1, msgError, exception);
-            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException);
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, msgError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException);
         }
     }
 }

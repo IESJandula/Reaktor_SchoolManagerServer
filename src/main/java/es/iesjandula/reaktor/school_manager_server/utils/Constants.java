@@ -95,6 +95,10 @@ public class Constants
 	 */
 	public final static int MATRICULA_ALUMNO_EXISTENTE = 34;
 
+	/**
+	 * Error - Grupo no encontrado
+	 */
+	public final static int GRUPO_NO_ENCONTRADO = 35;
 
 	/**
 	 * Error - No se encontró el profesor
