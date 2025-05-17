@@ -48,13 +48,18 @@ public class CommonController
     private ValidacionesGlobales validacionesGlobales;
 
     /**
-     * Endpoint para obtener los cursos etapas.
+     * Recupera todos los registros de cursos y etapas disponibles en la base de datos.
+     * <p>
+     * Si no se encuentran registros, se lanza una excepción personalizada. También se maneja
+     * cualquier excepción general que pueda surgir durante la operación, devolviendo respuestas
+     * HTTP adecuadas con detalles del error.
      *
-     * Este método obtiene mediante un get todos los cursos etapas guardados en base
-     * de datos para despues mostrarlos en el front en un select.
-     *
-     * @return ResponseEntity<?> - Respuesta con las lista de cursos y etapas.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) y la lista de objetos {@code CursoEtapa} si se obtienen registros.
+     *         - 400 (BAD_REQUEST) si no existen cursos ni etapas en la base de datos.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/cursoEtapa")
     public ResponseEntity<?> obtenerCursoEtapa()
@@ -76,7 +81,7 @@ public class CommonController
 
             // Devolver la lista
             log.info("INFO - Lista de los cursos etapas");
-            return ResponseEntity.status(200).body(listaCursoEtapa);
+            return ResponseEntity.ok().body(listaCursoEtapa);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -87,7 +92,6 @@ public class CommonController
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo cargar la lista";
-
             log.error(mensajeError, exception) ;
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -98,24 +102,17 @@ public class CommonController
     }
 
     /**
-     * Endpoint para obtener los grupos asociados a un curso y etapa específicos.
+     * Recupera los grupos disponibles para un curso y etapa determinados.
+     * <p>
+     * También se maneja cualquier error general, devolviendo una respuesta adecuada con información del fallo.
      *
-     * Este método consulta los grupos disponibles para un curso y etapa
-     * determinados.
-     * Si no se encuentran grupos para la combinación de curso y etapa
-     * proporcionados,
-     * se lanza una excepción personalizada. En caso de un error general, se maneja
-     * adecuadamente
-     * la excepción y se devuelve un mensaje de error.
-     *
-     * @param curso - El identificador del curso para el cual se desean obtener los
-     *              grupos.
-     * @param etapa - La etapa educativa asociada al curso para la cual se desean
-     *              obtener los grupos.
-     * @return ResponseEntity<?> - La lista de grupos encontrados o una excepción
-     *         con el mensaje de error si no se encontraron grupos o si ocurre algún
-     *         fallo durante el proceso.
+     * @param curso El identificador del curso para el cual se desean obtener los grupos.
+     * @param etapa La etapa educativa asociada al curso para la cual se desean obtener los grupos.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) y una lista de objetos {@code CursoEtapaGrupoDto} si la operación es exitosa.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/grupos")
     public ResponseEntity<?> obtenerGrupos(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -126,32 +123,13 @@ public class CommonController
             // Obtener la lista de grupos según curso y etapa
             List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.buscaCursoEtapaGruposCreados(curso, etapa);
 
-            // Si la lista está vacía, lanzar una excepción
-            if (cursosEtapasGrupos.isEmpty())
-            {
-                // Lanzar excepcion y mostrar log con mensaje de Error
-                String mensajeError = "ERROR - No se encontraron grupos para el curso " + curso + " y etapa " + etapa;
-
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.CURSO_ETAPA_GRUPO_NO_ENCONTRADO, mensajeError);
-            }
-
-            // Log de información antes de la respuesta
-            log.info("INFO - Se han encontrado los siguientes grupos para el curso: {} y etapa: {}", curso, etapa);
-
             // Devolver la lista de cursos, etapas y grupos encontrados
-            return ResponseEntity.status(200).body(cursosEtapasGrupos);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.ok().body(cursosEtapasGrupos);
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo encontrar el grupo";
-
             log.error(mensajeError, exception) ;
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -160,6 +138,21 @@ public class CommonController
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
+
+    /**
+     * Asigna una reducción horaria a un profesor específico, validando previamente los datos proporcionados.
+     * <p>
+     * El método verifica la existencia de la reducción y del profesor, y evita duplicidades en las asignaciones.
+     *
+     * @param usuario el usuario autenticado que realiza la solicitud, utilizado para validaciones de acceso.
+     * @param email el correo electrónico del profesor al que se desea asignar la reducción, indicado en la cabecera.
+     * @param nombreReduccion el nombre de la reducción que se desea asignar, indicado en la cabecera.
+     * @param horasReduccion el número de horas de la reducción, indicado en la cabecera.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) si la reducción se asigna correctamente.
+     *         - 409 (CONFLICT) si la reducción ya estaba asignada al profesor.
+     *         - 500 (INTERNAL_SERVER_ERROR) si se produce un error inesperado durante el proceso.
+     */
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/asignarReducciones")
@@ -185,10 +178,10 @@ public class CommonController
 
             if(optionalProfesorReduccion.isPresent())
             {
-                String mensajeError = "Ya has asignado esa reducción a ese profesor";
+                String mensajeError = "La reducción " + nombreReduccion + " ya ha sido asignada " + profesor.getNombre();
 
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.REDUCCION_ASIGNADA, mensajeError);
             }
 
             ProfesorReduccion profesorReduccion = new ProfesorReduccion();
@@ -197,20 +190,21 @@ public class CommonController
             this.iProfesorReduccionRepository.saveAndFlush(profesorReduccion);
 
             return ResponseEntity.ok().build();
-
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-
-            String mensajeError = "Error al acceder a la base de datos";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Error inesperado al asignar la reducción al profesor";
             log.error(mensajeError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 }

@@ -66,74 +66,18 @@ public class Paso3CrearGruposController
     private AlumnoService alumnoService;
 
     /**
-     * Endpoint para obtener los cursos etapas.
+     * Crea un nuevo grupo para un curso y etapa determinados.
      * <p>
-     * Este método obtiene mediante un get todos los cursos etapas guardados en base
-     * de datos para despues mostrarlos en el front en un select.
+     * El método valida la existencia del curso y etapa, calcula el identificador del grupo
+     * asignando una letra en función del número de grupos ya existentes para esa combinación,
+     * establece valores por defecto y guarda el nuevo grupo en la base de datos.
      *
-     * @return ResponseEntity<?> - Respuesta con las lista de cursos y etapas.
-     */
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/cursoEtapa")
-    public ResponseEntity<?> obtenerCursoEtapa()
-    {
-        try
-        {
-            // Lista usada para guardar los registros de la Tabla CursoEtapa
-            List<CursoEtapa> listaCursoEtapa = new ArrayList<>();
-
-            // Asignar los registros de la Tabla CursoEtapa
-            listaCursoEtapa = this.iCursoEtapaRepository.findAll();
-
-            // Si la lista esta vacia, lanzar excepcion
-            if (listaCursoEtapa.isEmpty())
-            {
-                String mensajeError = "ERROR - Sin cursos y etapas en la base de datos";
-
-                // Lanzar excepcion y mostrar log con mensaje diferente
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.SIN_CURSOS_ETAPAS_ENCONTRADOS, mensajeError);
-            }
-
-            // Devolver la lista
-            log.info("INFO - Lista de los cursos etapas");
-            return ResponseEntity.status(200).body(listaCursoEtapa);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-        catch (Exception exception)
-        {
-            // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo cargar la lista";
-
-            log.error(mensajeError, exception);
-
-            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }
-
-    /**
-     * Endpoint para crear un nuevo grupo en el sistema basado en el curso y etapa
-     * proporcionados.
-     * <p>
-     * Este método asigna un nuevo grupo a un curso y etapa específicos,
-     * asegurándose de que el nombre del grupo sea único
-     * en función de la cantidad de veces que ya existe dicho curso y etapa en la
-     * base de datos.
-     *
-     * @param curso - El identificador del curso para el cual se está creando el
-     *              grupo.
-     * @param etapa - La etapa educativa asociada al curso para el cual se está
-     *              creando el grupo.
-     * @return ResponseEntity<?> - Un mensaje de éxito indicando que el grupo ha
-     * sido creado correctamente, o una excepción con el mensaje de error si
-     * ocurrió algún problema.
+     * @param curso el identificador del curso, enviado en la cabecera de la solicitud (HTTP header).
+     * @param etapa la etapa educativa, enviada en la cabecera de la solicitud (HTTP header).
+     * @return una {@link ResponseEntity} que contiene:
+     *         - 200 (OK) si el grupo se crea correctamente.
+     *         - 400 (BAD_REQUEST) si la validación del curso o etapa falla.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la creación del grupo.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/grupos")
@@ -179,7 +123,7 @@ public class Paso3CrearGruposController
             log.info("INFO - Grupo creado correctamente para el curso: {} y etapa: {}", curso, etapa);
 
             // Devolver la respuesta indicando que el grupo ha sido creado correctamente
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -190,7 +134,6 @@ public class Paso3CrearGruposController
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo crear el grupo";
-
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -201,25 +144,18 @@ public class Paso3CrearGruposController
     }
 
     /**
-     * Endpoint para obtener la lista de alumnos pendientes por asignar o ya
-     * asignados a un grupo específico de un curso y etapa.
+     * Obtiene la lista de alumnos pertenecientes a un curso, etapa y grupo específicos.
      * <p>
-     * Este método recibe los parámetros del curso, la etapa y el grupo, y luego
-     * recupera
-     * una lista de alumnos pendientes y también asignados a ese grupo especifico,
-     * si hay algún
-     * error en el proceso, se captura la excepción y se devuelve un mensaje de
-     * error adecuado.
+     * La información devuelta incluye el nombre, apellidos y grupo de cada alumno.
+     * Los datos se obtienen consultando las matrículas asociadas a los parámetros proporcionados.
      *
-     * @param curso - El curso para el que se solicita la lista de alumnos.
-     * @param etapa - La etapa para la cual se solicita la lista de alumnos.
-     * @param grupo - El grupo específico dentro del curso y etapa que se está
-     *              consultando.
-     * @return ResponseEntity<?> - Respuesta con la lista de alumnos del grupo o
-     * pendientes de asignar, o una excepción personalizada si ocurre algún
-     * error durante la operación.
+     * @param curso el identificador del curso, enviado en la cabecera de la solicitud (HTTP header).
+     * @param etapa la etapa educativa, enviada en la cabecera de la solicitud (HTTP header).
+     * @param grupo la letra que identifica el grupo dentro del curso y etapa, enviada en la cabecera (HTTP header).
+     * @return una {@link ResponseEntity} que contiene:
+     *         - una lista de {@link AlumnoDto2} si la operación es exitosa.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante la consulta.
      */
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnos")
     public ResponseEntity<?> obtenerAlumnosConGrupo(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -246,26 +182,61 @@ public class Paso3CrearGruposController
                 alumnosEnGrupo.add(alumnoDto2);
             }
 
-            // Si la lista esta vacía
-            if (alumnosEnGrupo.isEmpty())
-            {
-                // Lanzar excepcion y mostrar log con mensaje de Error
-                String mensajeError = "ERROR - Lista sin alumnos encontrados para el grupo " + grupo + " del curso " + curso + " y etapa " + etapa;
-
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);
-            }
-
             // Log de información antes de la respuesta
             log.info("INFO - Lista con nombres y apellidos de los alumnos asignados y pendientes de asignar");
 
             // Devolver la lista de Alumnos
-            return ResponseEntity.status(200).body(alumnosEnGrupo);
+            return ResponseEntity.ok().body(alumnosEnGrupo);
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo obtener la lista de alumnos";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Obtiene la lista de alumnos que no están asignados a ningún grupo,
+     * filtrando por curso y etapa educativa específicos.
+     * <p>
+     * La información se recupera a partir de las matrículas registradas para los alumnos
+     * que aún no han sido organizados en grupos.
+     *
+     * @param curso el identificador del curso, enviado en la cabecera de la solicitud (HTTP header).
+     * @param etapa la etapa educativa, enviada en la cabecera de la solicitud (HTTP header).
+     * @return una {@link ResponseEntity} que contiene:
+     *         - una lista de {@link AlumnoDto3} si se encuentran alumnos sin grupo asignado.
+     *         - 404 (NOT_FOUND) si no se encuentran alumnos para el curso y etapa indicados.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante el procesamiento de la solicitud.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnosTotales")
+    public ResponseEntity<?> obtenerAlumnosSinGrupos(@RequestHeader(value = "curso", required = true) Integer curso,
+                                                     @RequestHeader(value = "etapa", required = true) String etapa)
+    {
+        try
+        {
+            List<AlumnoDto3> listaDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
+
+            if (listaDatosBrutoAlumnoMatriculas.isEmpty())
+            {
+                String mensajeError = "No se ha alumnos para ese curso y etapa";
+
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);
+            }
+            return ResponseEntity.ok().body(listaDatosBrutoAlumnoMatriculas);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -281,64 +252,21 @@ public class Paso3CrearGruposController
         }
     }
 
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnosTotales")
-    public ResponseEntity<?> obtenerAlumnosSinGrupos(@RequestHeader(value = "curso", required = true) Integer curso,
-                                                     @RequestHeader(value = "etapa", required = true) String etapa)
-    {
-        try
-        {
-            List<AlumnoDto3> listaDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
-
-            if (listaDatosBrutoAlumnoMatriculas.isEmpty())
-            {
-                String mensajeError = "No se ha encontrado datos para ese curso y etapa";
-
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);
-            }
-            return ResponseEntity.ok(listaDatosBrutoAlumnoMatriculas);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-        catch (Exception exception)
-        {
-            // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo obtener el grupo de alumnos";
-
-            log.error(mensajeError, exception);
-
-            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }
-
     /**
-     * Endpoint para asignar una lista de alumnos a un grupo específico de un curso
-     * y etapa.
+     * Asigna una lista de alumnos a un grupo específico dentro de un curso y etapa determinados.
      * <p>
-     * Este método asigna los alumnos, que son recibidos como una lista de objetos
-     * `AlumnoDto2`,
-     * a un grupo específico dentro de un curso y etapa determinados. Si el alumno
-     * ya existe en
-     * la tabla `DatosBrutoAlumnoMatricula`, se transfiere el alumno al grupo
-     * especificado y
-     * luego se elimina de la tabla `DatosBrutoAlumnoMatricula`.
+     * El método valida la existencia del curso y la etapa, busca los datos de matrícula asociados a cada alumno
+     * (por nombre y apellidos), y registra la información del alumno, la asignatura correspondiente
+     * y la matrícula en base a los datos encontrados.
      *
-     * @param alumnos - Lista de objetos `AlumnoDto2` que contiene los datos de los
-     *                alumnos a asignar.
-     * @param curso   - El identificador del curso al que pertenecen los alumnos.
-     * @param etapa   - La etapa educativa asociada al curso.
-     * @param grupo   - El identificador del grupo (una letra que representa el
-     *                grupo) al que se asignarán los alumnos.
-     * @return ResponseEntity<?> - Respuesta con un mensaje de éxito si los alumnos
-     * se asignaron correctamente, o una excepción con el mensaje de error
-     * si ocurre un fallo durante el proceso.
+     * @param alumnos lista de objetos {@link AlumnoDto2} con los datos de los alumnos que se desean asignar.
+     * @param curso el identificador del curso (enviado en la cabecera HTTP) al que pertenecen los alumnos.
+     * @param etapa la etapa educativa (enviada en la cabecera HTTP) correspondiente al curso.
+     * @param grupo el identificador del grupo (enviado en la cabecera HTTP) al que se asignarán los alumnos.
+     * @return un objeto {@link ResponseEntity} con:
+     *         - HTTP 200 OK si la asignación se realiza correctamente.
+     *         - HTTP 400 BAD REQUEST con un mensaje de error si ocurre una excepción controlada.
+     *         - HTTP 500 INTERNAL SERVER ERROR con un mensaje de error si se produce una excepción inesperada.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/gruposAlumnos")
@@ -402,20 +330,17 @@ public class Paso3CrearGruposController
     }
 
     /**
-     * Endpoint para desasignar un alumno de un grupo específico.
+     * Elimina la asignación de un alumno a un grupo, según los datos proporcionados en un objeto {@link AlumnoDto2}.
      * <p>
-     * Este método busca al alumno en la tabla `DatosBrutoAlumnoMatriculaGrupo`
-     * utilizando
-     * su nombre y apellidos. Si se encuentra al alumno, se transfiere el registro a
-     * la
-     * tabla `DatosBrutoAlumnoMatricula` y luego se elimina el registro en la tabla
-     * `DatosBrutoAlumnoMatriculaGrupo`, desasignando así al alumno del grupo.
+     * Este método está restringido a usuarios con el rol de dirección. Utiliza el servicio {@code alumnoService}
+     * para llevar a cabo el proceso de eliminación. Si la operación se realiza correctamente, el alumno
+     * se desasigna del grupo y se eliminan los registros correspondientes.
      *
-     * @param alumnoDto - El objeto `AlumnoDto` que contiene los datos del alumno a
-     *                  desasignar.
-     * @return ResponseEntity<?> - Respuesta con un mensaje de éxito si el alumno
-     * fue desasignado correctamente, o una excepción con el mensaje de
-     * error si ocurre un fallo durante el proceso.
+     * @param alumnoDto objeto {@link AlumnoDto2} que contiene los datos del alumno que se desea desasignar del grupo.
+     * @return un objeto {@link ResponseEntity} con:
+     *         - HTTP 200 OK si el alumno se ha desasignado correctamente.
+     *         - HTTP 400 BAD REQUEST si ocurre una {@link SchoolManagerServerException} controlada.
+     *         - HTTP 500 INTERNAL SERVER ERROR si se produce una excepción inesperada durante la operación.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
@@ -450,6 +375,22 @@ public class Paso3CrearGruposController
         }
     }
 
+    /**
+     * Actualiza el turno horario (mañana o tarde) para un grupo específico dentro de un curso y etapa determinados.
+     * <p>
+     * Este método permite modificar la propiedad {@code esHorarioMatutino} de un grupo,
+     * identificando de forma única dicho grupo por su curso, etapa y letra.
+     * La operación está restringida a usuarios con rol de dirección.
+     *
+     * @param curso identificador del curso. Obligatorio.
+     * @param etapa etapa educativa del grupo. Obligatoria.
+     * @param grupo identificador del grupo dentro del curso y etapa. Obligatorio.
+     * @param esHorarioMatutino indica si el grupo tiene turno de mañana ({@code true}) o no ({@code false}). Obligatorio.
+     * @return un objeto {@link ResponseEntity} con:
+     *         - HTTP 200 OK si el turno horario se actualizó correctamente.
+     *         - HTTP 400 BAD REQUEST si no se encontró el grupo indicado.
+     *         - HTTP 500 INTERNAL SERVER ERROR si ocurrió un error inesperado durante la operación.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/turnoHorario")
     public ResponseEntity<?> actualizarTurnoHorario(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -461,7 +402,7 @@ public class Paso3CrearGruposController
         {
             Optional<CursoEtapaGrupo> cursoEtapaGrupoOptional = this.iCursoEtapaGrupoRepository.findById(new IdCursoEtapaGrupo(curso, etapa, grupo));
 
-            if (!cursoEtapaGrupoOptional.isPresent())
+            if (cursoEtapaGrupoOptional.isEmpty())
             {
                 String mensajeError = "ERROR en la actualización del turno horario - No se encontró el curso " + curso + " " + etapa + " " + grupo;
 
@@ -541,7 +482,6 @@ public class Paso3CrearGruposController
                 // Guardar el registro en la tabla Alumno
                 this.iAlumnoRepository.saveAndFlush(alumno);
             }
-
         }
 
         return alumno;

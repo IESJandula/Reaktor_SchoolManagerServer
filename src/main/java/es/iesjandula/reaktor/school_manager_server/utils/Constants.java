@@ -70,40 +70,6 @@ public class Constants
 	/*********************************************************/
 
 	/************* ERRORES - Lógica de negocio ***************/
-	/**
-	 * Error - Archivo vacío
-	 */
-	public final static int ARCHIVO_VACIO = 30;
-
-	/**
-	 * Error - Matricula no encotrada
-	 */
-	public final static int MATRICULA_NO_ENCONTRADA = 31;
-
-	/**
-	 * Error - Datos matricula no encontrados
-	 */
-	public final static int DATOS_MATRICULA_NO_ENCONTRADA = 32;
-
-	/**
-	 * Error - Matricula alumno no encontrada
-	 */
-	public final static int MATRICULA_ALUMNO_NO_ENCONTRADA = 33;
-
-	/**
-	 * Error - Matricula alumno ya existente
-	 */
-	public final static int MATRICULA_ALUMNO_EXISTENTE = 34;
-
-	/**
-	 * Error - Grupo no encontrado
-	 */
-	public final static int GRUPO_NO_ENCONTRADO = 35;
-
-
-	public final static int  ASIGNATURAS_MINIMAS_NO_SELECCIONADAS = 37;
-
-	public final static int ASIGNATURA_CON_BLOQUE = 37;
 
 	/**
 	 * Error - No se encontró el profesor
@@ -144,6 +110,51 @@ public class Constants
 	 * Error - El tipo de horario no es válido
 	 */
 	public static final int ERROR_TIPO_HORARIO_NO_VALIDO = 47;
+
+	/**
+	 * Error - Archivo vacío
+	 */
+	public final static int ARCHIVO_VACIO = 48;
+
+	/**
+	 * Error - Matricula no encotrada
+	 */
+	public final static int MATRICULA_NO_ENCONTRADA = 49;
+
+	/**
+	 * Error - Datos matricula no encontrados
+	 */
+	public final static int DATOS_MATRICULA_NO_ENCONTRADA = 50;
+
+	/**
+	 * Error - Matricula alumno no encontrada
+	 */
+	public final static int MATRICULA_ALUMNO_NO_ENCONTRADA = 51;
+
+	/**
+	 * Error - Matricula alumno ya existente
+	 */
+	public final static int MATRICULA_ALUMNO_EXISTENTE = 52;
+
+	/**
+	 * Error - Grupo no encontrado
+	 */
+	public final static int GRUPO_NO_ENCONTRADO = 53;
+
+	/**
+	 * Error - Asignaturas mínimas no seleccionadas
+	 */
+	public final static int  ASIGNATURAS_MINIMAS_NO_SELECCIONADAS = 54;
+
+	/**
+	 * Error - Asignatura con bloque asignado
+	 */
+	public final static int ASIGNATURA_CON_BLOQUE = 55;
+
+	/**
+	 * Error - Reducción ya asignada a un profesor
+	 */
+	public final static int REDUCCION_ASIGNADA = 56;
 
 	/************* ERRORES - Generales/De Conexión ***************/
 
