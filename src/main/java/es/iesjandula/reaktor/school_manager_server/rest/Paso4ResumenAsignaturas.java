@@ -36,16 +36,18 @@ public class Paso4ResumenAsignaturas
     private IAsignaturaRepository iAsignaturaRepository;
 
     /**
-     * Endpoint para obtener las asignaturas de los cursos etapas.
+     * Carga las asignaturas únicas disponibles según el curso y la etapa educativa proporcionados.
      * <p>
-     * Este método recibe los parámetros del curso y la etapa y luego recupera una lista
-     * de asignaturas mostrando su nombre, el nº de horas, el nº de alumnos tanto en general
-     * como en los distintos grupos.
+     * Este endpoint recupera una lista de asignaturas sin duplicados asociadas a los parámetros dados.
      *
-     * @param curso - El curso para el que se solicita la lista de alumnos.
-     * @param etapa - La etapa para la cual se solicita la lista de alumnos.
-     * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
+     * @param curso el identificador numérico del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa la etapa educativa (por ejemplo, ESO, Bachillerato), proporcionada en la cabecera de la solicitud.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) y la lista de asignaturas si se encuentran resultados.
+     *         - 404 (NOT_FOUND) si no hay asignaturas que coincidan con los filtros.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturasUnicas")
     public ResponseEntity<?> cargarAsignaturasUnicas(@RequestHeader("curso") int curso,
@@ -57,7 +59,7 @@ public class Paso4ResumenAsignaturas
 
             if (asignaturas.isEmpty())
             {
-                String mensajeError = "ERROR - No existen asignaturas con ese curso y etapa";
+                String mensajeError = "No existen asignaturas para " + curso + etapa;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
@@ -82,15 +84,22 @@ public class Paso4ResumenAsignaturas
     }
 
     /**
-     * Obtiene la cantidad de alumnos en un grupo específico para una asignatura determinada.
+     * Obtiene el número de alumnos matriculados en una asignatura dentro de un grupo específico,
+     * según el curso y la etapa proporcionados.
+     * <p>
+     * Este endpoint busca la cantidad de alumnos asociados a una asignatura concreta
+     * en un curso, etapa y grupo determinados.
      *
-     * @param curso      El curso académico del cual se solicita la información.
-     * @param etapa      La etapa educativa en la que se encuentra el curso (por ejemplo, Primaria, Secundaria).
-     * @param grupo      La letra del grupo al que pertenece la información solicitada.
-     * @param asignatura El nombre de la asignatura para la cual se solicita la cantidad de alumnos.
-     * @return ResponseEntity<?> Respuesta que contiene el número de alumnos del grupo para la asignatura solicitada.
-     * Puede devolver errores en caso de que el grupo no exista o de que ocurra algún fallo.
+     * @param curso el identificador numérico del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa la etapa educativa (por ejemplo, ESO, Bachillerato), proporcionada en la cabecera de la solicitud.
+     * @param grupo la letra del grupo (por ejemplo, A, B, C), proporcionada en la cabecera de la solicitud.
+     * @param asignatura el nombre de la asignatura, proporcionado en la cabecera de la solicitud.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) y el número de alumnos si la consulta es exitosa.
+     *         - 404 (NOT_FOUND) si no se encuentra el grupo o la asignatura especificada.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/numeroAlumnosEnAsignatura")
     public ResponseEntity<?> obtenerCantidadAlumnosEnGrupoPorAsignatura(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -105,7 +114,7 @@ public class Paso4ResumenAsignaturas
             // Si no esta ese grupo lanzar excepcion
             if (!listaGrupos.contains(grupo))
             {
-                String mensajeError = "ERROR - No se ha encontrado ningún grupo para el " + curso + " y " + etapa + " con letra " + grupo;
+                String mensajeError = "No se ha encontrado ningún grupo para el " + curso + etapa + " con letra " + grupo;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.GRUPO_NO_ENCONTRADO, mensajeError);
             }

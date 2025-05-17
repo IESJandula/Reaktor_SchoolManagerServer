@@ -3,7 +3,9 @@ package es.iesjandula.reaktor.school_manager_server.rest;
 import java.util.List;
 import java.util.Optional;
 
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,16 +37,18 @@ public class Paso2AsignaturasYBloquesController
     private IBloqueRepository iBloqueRepository;
 
     /**
-     * Endpoint para obtener las asignaturas de los cursos etapas.
+     * Obtiene la lista de asignaturas de un curso y etapa determinados.
      * <p>
-     * Este método recibe los parámetros del curso y la etapa y luego recupera una lista
-     * de asignaturas mostrando su nombre, el nº de horas, el nº de alumnos tanto en general
-     * como en los distintos grupos.
+     * Devuelve el nombre de la asignatura, el número de horas y el número de alumnos, tanto en general como por grupos.
      *
-     * @param curso - El curso para el que se solicita la lista de alumnos.
-     * @param etapa - La etapa para la cual se solicita la lista de alumnos.
-     * @return ResponseEntity<?> - Respuesta con la lista de asignaturas mapeando un dto para mostrar los datos de las asignaturas.
+     * @param curso el curso para el que se solicitan las asignaturas.
+     * @param etapa la etapa educativa correspondiente.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) y la lista de asignaturas si se encuentra información.
+     *         - 404 (Not Found) si no existen asignaturas para ese curso y etapa.
+     *         - 500 (Internal Server Error) si ocurre un error inesperado.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
     public ResponseEntity<?> cargarAsignaturas(@RequestHeader("curso") int curso,
@@ -56,40 +60,48 @@ public class Paso2AsignaturasYBloquesController
 
             if (asignaturas.isEmpty())
             {
-                String mensajeError = "No existen asignaturas con ese curso y etapa";
+                String mensajeError = "No existen asignaturas para " + curso + etapa;
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
-
-            return ResponseEntity.status(200).body(asignaturas);
+            return ResponseEntity.ok().body(asignaturas);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudieron cargar las asignaturas";
+            log.error(mensajeError, exception);
 
-            String msgError = "Error al acceder a la base de datos";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            log.error(msgError, exception);
-            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
-
     }
 
     /**
-     * Endpoint para crear un bloque y asignarlo a un conjunto de asignaturas
+     * Crea un nuevo bloque de asignaturas para un curso y etapa determinados.
      * <p>
-     * Este método recibirá un JSON con el curso, la etapa y una lista de nombres de asignaturas
-     * para luego crear un bloque con un id autogenerado y asignar ese mismo id a las asignaturas
-     * que se le pasen al endpoint
+     * El método valida que se hayan seleccionado al menos dos asignaturas, verifica que existan
+     * y comprueba que no estén ya asignadas a otro bloque antes de crear uno nuevo.
      *
-     * @param idAsignatura - JSON que contiene el curso, la etapa y el nombre de la asignatura.
-     * @return ResponseEntity<?> - Respuesta del endpoint que no devolverá nada
+     * @param curso el identificador del curso para el que se crea el bloque.
+     * @param etapa la etapa educativa asociada al bloque.
+     * @param asignaturas una lista de nombres de asignaturas que se incluirán en el bloque;
+     *                    debe contener al menos dos asignaturas.
+     * @return una {@link ResponseEntity} con:
+     *         - 201 (Created) y el ID del bloque si se crea correctamente.
+     *         - 400 (Bad Request) si se seleccionan menos de dos asignaturas.
+     *         - 404 (Not Found) si alguna asignatura no se encuentra.
+     *         - 409 (Conflict) si alguna asignatura ya está asignada a otro bloque.
+     *         - 500 (Internal Server Error) si ocurre un error inesperado.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/bloques")
     public ResponseEntity<?> crearBloques(@RequestParam("curso") int curso,
@@ -101,9 +113,9 @@ public class Paso2AsignaturasYBloquesController
 
             if (asignaturas == null || asignaturas.size() < 2)
             {
-                String msgError = "ERROR - Hay que seleccionar al menos 2 asignaturas";
-                log.error(msgError);
-                throw new SchoolManagerServerException(100, msgError);
+                String mensajeError = "Tienes que seleccionar al menos 2 asignaturas";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURAS_MINIMAS_NO_SELECCIONADAS, mensajeError);
             }
 
             Bloque bloque = new Bloque();
@@ -115,18 +127,18 @@ public class Paso2AsignaturasYBloquesController
                 for (Optional<Asignatura> asignatura : optionalAsignatura)
                 {
 
-                    if (!asignatura.isPresent())
+                    if (asignatura.isEmpty())
                     {
-                        String msgError = "ERROR - La asignatura no fue encontrada";
-                        log.error(msgError);
-                        throw new SchoolManagerServerException(101, msgError);
+                        String mensajeError = "La asignatura no fue encontrada";
+                        log.error(mensajeError);
+                        throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
                     }
 
                     if (asignatura.get().getBloqueId() != null)
                     {
-                        String msgError = "ERROR - Una de las asignaturas ya tiene un bloque asignado";
-                        log.error(msgError);
-                        throw new SchoolManagerServerException(102, msgError);
+                        String mensajeError = "Una de las asignaturas ya tiene un bloque asignado";
+                        log.error(mensajeError);
+                        throw new SchoolManagerServerException(Constants.ASIGNATURA_CON_BLOQUE, mensajeError);
                     }
 
                     this.iBloqueRepository.save(bloque);
@@ -135,55 +147,71 @@ public class Paso2AsignaturasYBloquesController
 
                     iAsignaturaRepository.saveAndFlush(asignatura.get());
                 }
-
             }
 
-            return ResponseEntity.status(201).body(bloque.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(bloque.getId());
 
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            if (schoolManagerServerException.getCode() == Constants.ASIGNATURAS_MINIMAS_NO_SELECCIONADAS)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else if (schoolManagerServerException.getCode() == Constants.ASIGNATURA_NO_ENCONTRADA)
+            {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
         }
         catch (Exception exception)
         {
-            String msgError = "ERROR - No se pudo crear el bloque";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo crear el bloque";
+            log.error(mensajeError, exception);
 
-            log.error(msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
-
     }
 
     /**
-     * Endpoint para borrar un bloque y sus respectiva asignatura.
+     * Elimina un bloque de asignaturas en función del curso, la etapa y el nombre de la asignatura proporcionados.
      * <p>
-     * Este método recibirá un JSON con el curso, la etapa y el nombre de la asignatura
-     * para luego settear a null el campo bloque_id y eliminar la asignatura del bloque de
-     * modo que dicho bloque quedará eliminado
+     * Si al desvincular la asignatura, el bloque ya no contiene más asignaturas asociadas, el bloque será eliminado.
      *
-     * @param idAsignaturaDto - JSON que contiene el curso, la etapa y el nombre de la asignatura.
-     * @return ResponseEntity<?> - Respuesta del endpoint que no devolverá nada
+     * @param curso  el identificador del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa  la etapa educativa, proporcionada en la cabecera de la solicitud.
+     * @param nombre el nombre de la asignatura a desvincular del bloque, proporcionado en la cabecera de la solicitud.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si el bloque se eliminó correctamente.
+     * - 404 (NOT_FOUND) si no se encontró la asignatura.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurrió un error inesperado.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/bloques")
     public ResponseEntity<?> eliminarBloque(@RequestHeader(value = "curso", required = true) Integer curso,
                                             @RequestHeader(value = "etapa", required = true) String etapa,
-                                            @RequestHeader(value = "nombre", required = true) String nombre)
+                                            @RequestHeader(value = "nombre", required = true) String nombreAsignatura)
     {
         try
         {
 
-            // Buscamos el id de la asignatura
-            Asignatura asignatura = iAsignaturaRepository.encontrarPorCursoYEtapaYNombre(curso, etapa, nombre);
+            // Buscamos la asignatura
+            Asignatura asignatura = iAsignaturaRepository.encontrarPorCursoYEtapaYNombre(curso, etapa, nombreAsignatura);
 
             if (asignatura == null)
             {
-                String mensajeError = "No se han encontrado asignaturas con esos parametros";
+                String mensajeError = "No se han encontrado " + nombreAsignatura + " en " + curso + etapa;
                 log.error(mensajeError);
 
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
             // Desasociar la asignatura del bloque
@@ -208,22 +236,38 @@ public class Paso2AsignaturasYBloquesController
             }
 
             log.info("INFO - Bloque " + bloqueId + " eliminado con éxito");
-            return ResponseEntity.status(200).build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String msgError = "ERROR - Error en el servidor";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Error al eliminar el bloque";
+            log.error(mensajeError, exception);
 
-            log.error(msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
+
+    /**
+     * Actualiza el estado de docencia de una asignatura por su nombre.
+     * <p>
+     * Permite marcar una asignatura como sin docencia o restaurarla a su estado original.
+     *
+     * @param nombreAsignatura el nombre de la asignatura a actualizar.
+     * @param sinDocencia true si se desea marcar como sin docencia; false para restaurar.
+     * @return una {@link ResponseEntity} con:
+     *         - 204 (No Content) si la operación se realiza correctamente.
+     *         - 404 (Not Found) si no se encuentra la asignatura.
+     *         - 500 (Internal Server Error) si ocurre un error inesperado.
+     */
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/sinDocencia")
@@ -236,9 +280,9 @@ public class Paso2AsignaturasYBloquesController
 
             if (asignaturaOpt.isEmpty())
             {
-                String mensajeError = "ERROR - No se ha encontrado una asignatura con ese nombre";
+                String mensajeError = "No se ha encontrado " + nombreAsignatura + " en base de datos";
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
             Asignatura asignatura = asignaturaOpt.get();
@@ -246,21 +290,37 @@ public class Paso2AsignaturasYBloquesController
 
             this.iAsignaturaRepository.saveAndFlush(asignatura);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String msgError = "ERROR - Error en el servidor";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo actualizar el estado de docencia de la asignatura";
+            log.error(mensajeError, exception);
 
-            log.error(msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
+
+    /**
+     * Obtiene el número de horas de las asignaturas para un curso y etapa determinados.
+     * <p>
+     * Recupera desde el repositorio una lista de asignaturas con sus nombres y horas correspondientes.
+     *
+     * @param curso el identificador del curso enviado en la cabecera de la solicitud.
+     * @param etapa la etapa educativa enviada en la cabecera de la solicitud.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) y la lista de asignaturas si se encuentran datos.
+     *         - 404 (Not Found) si no se encuentran asignaturas.
+     *         - 500 (Internal Server Error) si ocurre un error inesperado.
+     */
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/horas")
@@ -273,27 +333,42 @@ public class Paso2AsignaturasYBloquesController
 
             if (listAsignatuasHoras.isEmpty())
             {
-                String mensajeError = "No se ha encontrado una asignatura con ese nombre y para ese curso y etapa";
+                String mensajeError = "No se ha encontrado asignaturas con horas para '" + curso + etapa;
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
-            return ResponseEntity.ok(listAsignatuasHoras);
+            return ResponseEntity.ok().body(listAsignatuasHoras);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String msgError = "ERROR - Error en el servidor";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudieron obtener las horas de las asignaturas";
+            log.error(mensajeError, exception);
 
-            log.error(msgError, exception);
-            return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
+    /**
+     * Asigna un número de horas a una asignatura, identificada por su curso, etapa y nombre.
+     *
+     * @param curso el curso en el que se encuentra la asignatura.
+     * @param etapa la etapa educativa correspondiente.
+     * @param nombreAsignatura el nombre de la asignatura a actualizar.
+     * @param horas el número de horas a asignar.
+     * @return una {@link ResponseEntity} con:
+     *         - 204 (No Content) si la operación se realiza correctamente.
+     *         - 404 (Not Found) si no se encuentra la asignatura.
+     *         - 500 (Internal Server Error) si ocurre un error inesperado.
+     */
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/horas")
@@ -302,16 +377,15 @@ public class Paso2AsignaturasYBloquesController
                                           @RequestHeader("nombreAsignatura") String nombreAsignatura,
                                           @RequestHeader("horas") Integer horas)
     {
-
         try
         {
             List<Asignatura> listAsignatura = this.iAsignaturaRepository.findNombreByCursoEtapaAndNombres(curso, etapa, nombreAsignatura);
 
             if (listAsignatura == null)
             {
-                String mensajeError = "No se ha encontrado una asignatura con ese nombre y para ese curso y etapa";
+                String mensajeError = "No se ha encontrado la asignatura '" + nombreAsignatura + "' para '" + curso + etapa + "' paara asignar las horas";
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
             for (Asignatura asignatura : listAsignatura)
@@ -321,8 +395,7 @@ public class Paso2AsignaturasYBloquesController
                 this.iAsignaturaRepository.saveAndFlush(asignatura);
             }
 
-
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -330,15 +403,16 @@ public class Paso2AsignaturasYBloquesController
         }
         catch (Exception exception)
         {
-            String msgError = "ERROR - Error en el servidor";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, msgError, exception);
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudieron asignar las horas a la asignatura";
+            log.error(mensajeError, exception);
 
-            log.error(msgError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
-
-
 }
 
 

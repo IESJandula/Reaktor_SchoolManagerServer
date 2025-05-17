@@ -100,6 +100,11 @@ public class Constants
 	 */
 	public final static int GRUPO_NO_ENCONTRADO = 35;
 
+
+	public final static int  ASIGNATURAS_MINIMAS_NO_SELECCIONADAS = 37;
+
+	public final static int ASIGNATURA_CON_BLOQUE = 37;
+
 	/**
 	 * Error - No se encontró el profesor
 	 */

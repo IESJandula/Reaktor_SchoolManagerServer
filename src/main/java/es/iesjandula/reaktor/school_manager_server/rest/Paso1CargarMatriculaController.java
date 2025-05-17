@@ -62,20 +62,22 @@ public class Paso1CargarMatriculaController
 
 
     /**
-     * Endpoint para cargar las matrículas a través de un archivo CSV.
+     * Carga las matrículas de estudiantes a través de un archivo CSV enviado mediante una solicitud POST.
      * <p>
-     * Este método procesa un archivo CSV enviado como parte de una solicitud POST.
-     * Si el archivo está vacío o hay un error durante el proceso, se lanzan
-     * excepciones personalizadas.
+     * Este método procesa el archivo CSV recibido, valida la existencia del curso y etapa,
+     * realiza el parseo del contenido y registra los datos de matrícula en la base de datos.
+     * Si ya existen asignaciones de grupo previas para el curso y etapa indicados, se eliminan
+     * antes de registrar las nuevas. También se crean asignaturas sin grupo asignado.
      *
-     * @param archivoCsv - El archivo CSV que contiene las matrículas a procesar.
-     * @param curso      - El identificador del curso al que se asignan las
-     *                   matrículas.
-     * @param etapa      - La etapa educativa (por ejemplo, "Primaria",
-     *                   "Secundaria") asociada al curso.
-     * @return ResponseEntity<?> - Si la operación tiene éxito, devuelve un estado HTTP 200.
-     *                             Para errores inesperados, devuelve un estado HTTP 500.
-     * @throws IOException
+     * @param archivoCsv el archivo CSV que contiene los datos de matrícula a cargar; no debe estar vacío.
+     * @param curso      el identificador del curso al que pertenecen las matrículas, proporcionado en la cabecera.
+     * @param etapa      la etapa educativa asociada al curso (por ejemplo, "Primaria", "Secundaria"), proporcionada en la cabecera.
+     * @return una {@link ResponseEntity} con:
+     *         - 201 (CREATED) si la carga del archivo y el procesamiento se realizan correctamente.
+     *         - 400 (BAD_REQUEST) si el archivo está vacío.
+     *         - 404 (NOT_FOUND) si no se encuentran asignaturas asociadas al curso y etapa.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error de lectura del archivo.
+     * @throws IOException si se produce un error al leer el contenido del archivo CSV.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/matriculas", consumes = "multipart/form-data")
@@ -89,7 +91,7 @@ public class Paso1CargarMatriculaController
             if (archivoCsv.isEmpty())
             {
                 // Lanzar excepcion
-                String msgError = "ERROR - El archivo importado está vacío";
+                String msgError = "El archivo importado está vacío";
                 log.error(msgError);
                 throw new SchoolManagerServerException(Constants.ARCHIVO_VACIO, msgError);
             }
@@ -112,7 +114,7 @@ public class Paso1CargarMatriculaController
 
             if (listAsignaturas.isEmpty())
             {
-                String mensajeError = "ERROR - No se han encontrado asignaturas para ese curso y etapa";
+                String mensajeError = "No se han encontrado asignaturas para " + curso + etapa;
 
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
@@ -142,7 +144,7 @@ public class Paso1CargarMatriculaController
             }
 
             // Devolver OK informando que se ha insertado los registros
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -172,16 +174,16 @@ public class Paso1CargarMatriculaController
     }
 
     /**
-     * Endpoint para recuperar los cursos que tienen matriculas
+     * Recupera la lista de cursos y etapas que tienen matrículas de estudiantes asociadas.
+     * <p>
+     * Este endpoint realiza una consulta a la base de datos para obtener todas las combinaciones
+     * de curso y etapa en las que existen registros de matrícula.
      *
-     * Este método gestiona una solicitud GET para obtener la lista de etapas del curso
-     * que tienen matriculas de estudiantes asociadas. Recupera los datos de la base de datos
-     * utilizando el {@code iDatosBrutoAlumnoMatriculaRepository}.
-     *
-     * @return ResponseEntity<?> - Si la operación tiene éxito, devuelve un estado HTTP 200 contiene la lista
-     *                             de objetos {@code CursoEtapaDto}. Para errores inesperados, devuelve un estado HTTP 500.
-     *
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) y una lista de objetos {@code CursoEtapaDto} si la operación es exitosa.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/matriculas")
     public ResponseEntity<?> cargarMatriculas()
@@ -190,7 +192,7 @@ public class Paso1CargarMatriculaController
         {
             List<CursoEtapaDto> listCursoEtapa = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso();
 
-            return ResponseEntity.ok(listCursoEtapa);
+            return ResponseEntity.ok().body(listCursoEtapa);
         }
         catch (Exception exception)
         {
@@ -206,16 +208,16 @@ public class Paso1CargarMatriculaController
     }
 
     /**
-     * Elimina toda la información de registro asociada a un curso y etapa específicos.
-     * Esto incluye registros en entidades relacionadas como estudiantes, asignaturas y bloques.
+     * Elimina toda la información de matrícula asociada a un curso y etapa específicos.
+     * <p>
+     * Este proceso incluye la eliminación de registros vinculados a estudiantes, asignaturas y bloques.
      *
-     * @param curso el identificador del curso cuyas inscripciones se eliminarán
-     * @param etapa el identificador de la etapa cuyas inscripciones se suprimirán
-     * @return a ResponseEntity. Si la operación tiene éxito, devuelve un estado HTTP 200.
-     *                           Para errores inesperados, devuelve un estado HTTP 500.
-     *
+     * @param curso el identificador del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa la etapa educativa asociada al curso, proporcionada en la cabecera de la solicitud.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) si la operación se realiza correctamente.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante el proceso de eliminación.
      */
-    /* Endpoint que borrar la información asignada a las matriculas relacionada a un curso*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/matriculas")
     public ResponseEntity<?> borrarMatriculas(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -257,7 +259,7 @@ public class Paso1CargarMatriculaController
                 this.iBloqueRepository.delete(bloque);
             }
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -266,7 +268,7 @@ public class Paso1CargarMatriculaController
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - Fallo interno al intentar borrar las matrículas del" + curso + " y " + etapa;
+            String mensajeError = "ERROR - Fallo interno al intentar borrar las matrículas del curso y etapa deseados";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -277,17 +279,17 @@ public class Paso1CargarMatriculaController
     }
 
     /**
-     * Recupera datos de matriculación basados en un curso y etapa especificados.
-     * Este método obtiene la lista de datos de inscripción correspondientes al curso y etapa proporcionados.
-     * Si no se encuentra ningún dato, se lanza una excepción personalizada.
+     * Recupera los datos de matrícula correspondientes a un curso y etapa específicos.
+     * <p>
+     * Este endpoint obtiene la lista de inscripciones registradas. Si no se encuentran datos, se lanza una excepción personalizada.
      *
-     * @param curso el curso cuyos datos de matriculación deben recuperarse
-     * @param etapa la etapa cuyos datos de inscripción deben recuperarse
-     * @return a ResponseEntity Si la operación tiene éxito, devuelve un estado HTTP 200 contiene la lista
-     *                          de objetos {@code DatosMatriculaDto} si se encuentran. Para errores inesperados,
-     *                          devuelve un estado HTTP 500.
+     * @param curso el curso académico, proporcionado en la cabecera de la solicitud.
+     * @param etapa la etapa educativa, proporcionada en la cabecera de la solicitud.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) y una lista de objetos {@code DatosMatriculaDto} si se encuentran datos.
+     *         - 404 (NOT_FOUND) si no hay inscripciones para los parámetros indicados.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
-    /*Endpoint para que nos muestre los datos de las matriculas según un curso y una etapa*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/datosMatriculas")
     public ResponseEntity<?> obtenerDatosMatriculas(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -305,7 +307,7 @@ public class Paso1CargarMatriculaController
                 throw new SchoolManagerServerException(Constants.DATOS_MATRICULA_NO_ENCONTRADA, mensajeError);
             }
 
-            return ResponseEntity.ok(listDatosBrutoAlumnoMatriculas);
+            return ResponseEntity.ok().body(listDatosBrutoAlumnoMatriculas);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -325,19 +327,18 @@ public class Paso1CargarMatriculaController
     }
 
     /**
-     * Actualiza el estado de matriculación de un alumno en un curso y etapa en función de los parámetros proporcionados.
+     * Actualiza el estado de matrícula de un alumno en una asignatura específica, dentro de un curso y etapa determinados.
      *
-     * @param nombre      El nombre del estudiante.
-     * @param apellidos   Los apellidos del estudiante.
-     * @param asignatura  La asignatura en la que está matriculado el alumno.
-     * @param curso       El curso en el que está matriculado el alumno.
-     * @param etapa       La etapa en la que está matriculado el alumno.
-     * @param estado      El nuevo estado de inscripción que se actualizará para el alumno.
-     * @return A ResponseEntity Si la operación tiene éxito, devuelve un estado HTTP 200.
-     *                          Para errores inesperados, devuelve un estado HTTP 500.
-     *
+     * @param nombre      el nombre del alumno.
+     * @param apellidos   los apellidos del alumno.
+     * @param asignatura  la asignatura relacionada con la matrícula.
+     * @param curso       el curso académico correspondiente.
+     * @param etapa       la etapa educativa correspondiente.
+     * @param estado      el nuevo estado de la matrícula (por ejemplo, ACTIVO o INACTIVO).
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) si la actualización es exitosa.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
-    /*Endpoint para que nos muestre los datos de las matriculas según un curso y una etapa*/
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/datosMatriculas")
     public ResponseEntity<?> matricularAsignatura(@RequestHeader(value = "nombre") String nombre,
@@ -353,7 +354,7 @@ public class Paso1CargarMatriculaController
 
             if (datosBrutoAlumnoMatriculas == null)
             {
-                String mensajeError = "El alumno " + nombre + apellidos + " no está matriculado en el curso de " + curso + etapa;
+                String mensajeError = "El alumno " + nombre + apellidos + " no está matriculado en " + curso + etapa;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.MATRICULA_ALUMNO_NO_ENCONTRADA, mensajeError);
             }
@@ -362,7 +363,7 @@ public class Paso1CargarMatriculaController
 
             this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculas);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -371,7 +372,7 @@ public class Paso1CargarMatriculaController
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo encontrar el alumno deseado en base de datos";
+            String mensajeError = "ERROR - No se pudo encontrar el alumno deseado en base de datos para matricular en la asignatura";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -382,19 +383,21 @@ public class Paso1CargarMatriculaController
     }
 
     /**
-     * Gestiona el proceso de matriculación de un alumno basándose en las cabeceras proporcionadas.
-     * Valida si el estudiante ya está registrado con la misma información y realiza las acciones apropiadas
-     * para registrar al estudiante si no está ya presente.
+     * Gestiona el proceso de matriculación de un alumno según los datos proporcionados en la cabecera de la solicitud.
+     * <p>
+     * Valida si el alumno ya está registrado y realiza la operación de matriculación solo si no existe duplicidad.
      *
-     * @param nombre      El nombre del estudiante que se va a matricular.
-     * @param apellidos   Los apellidos del estudiante que se va a matricular.
-     * @param asignatura  Las asignaturas en las que se va a matricular el alumno.
-     * @param curso       El curso en el que se va a matricular el alumno.
-     * @param etapa       La etapa en la que se va a matricular el alumno.
-     * @param estado      El estado de la matricula del alumno
-     * @return a ResponseEntity. Si la operación tiene éxito, devuelve un estado HTTP 200. Si no se encuentra al alumno,
-     *          devuelve un estado HTTP 404. Si el alumno está asignado a un grupo o se produce otro conflicto,
-     *          devuelve un estado HTTP 409. Para errores inesperados, devuelve un estado HTTP 500.
+     * @param nombre      el nombre del alumno a matricular.
+     * @param apellidos   los apellidos del alumno a matricular.
+     * @param asignatura  la asignatura en la que se va a matricular.
+     * @param curso       el curso académico correspondiente.
+     * @param etapa       la etapa educativa correspondiente.
+     * @param estado      el estado de la matrícula (por ejemplo, ACTIVO).
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) si la matrícula es realizada con éxito.
+     *         - 404 (NOT_FOUND) si el alumno no se encuentra registrado.
+     *         - 409 (CONFLICT) si el alumno ya está asignado a un grupo o se produce un conflicto.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/datosMatriculas")
@@ -412,7 +415,7 @@ public class Paso1CargarMatriculaController
 
             if (datosBrutoAlumnoMatriculas != null)
             {
-                String mensajeError = "Ya existe un alumno matriculado con ese nombre y esas asignaturas";
+                String mensajeError = "El alumnos " + nombre + apellidos + " ya está matriculado en " + curso + etapa;
 
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.MATRICULA_ALUMNO_EXISTENTE, mensajeError);
@@ -431,7 +434,7 @@ public class Paso1CargarMatriculaController
 
             this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(nuevosDatosBrutoAlumnoMatricula);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -447,7 +450,7 @@ public class Paso1CargarMatriculaController
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo encontrar el alumno deseado en base de datos";
+            String mensajeError = "ERROR - No se pudo matricular el alumno";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -458,19 +461,21 @@ public class Paso1CargarMatriculaController
     }
 
     /**
-     * Elimina la matrícula de un alumno en un curso y asignatura concretos, siempre que el alumno exista y
-     * no esté asignado a un grupo.
+     * Elimina la matrícula de un alumno para una asignatura concreta, siempre que no esté asignado a un grupo.
      *
-     * @param nombre      El nombre del estudiante que se va a desmatricular.
-     * @param apellidos   Los apellidos del estudiante que se va a desmatricular.
-     * @param asignatura  Las asignaturas en las que se va a desmatricular el alumno.
-     * @param curso       El curso en el que se va a desmatricular el alumno.
-     * @param etapa       La etapa en la que se va a desmatricular el alumno.
-     * @param estado      El estado de matriculación actual del alumno.
-     * @return A ResponseEntity. Si la operación tiene éxito, devuelve un estado HTTP 200. Si no se encuentra al alumno,
-     *         devuelve un estado HTTP 404. Si el alumno está asignado a un grupo o se produce otro conflicto,
-     *         devuelve un estado HTTP 409. Para errores inesperados, devuelve un estado HTTP 500.
+     * @param nombre      el nombre del alumno que se desea desmatricular.
+     * @param apellidos   los apellidos del alumno.
+     * @param asignatura  la asignatura de la que se desea eliminar la matrícula.
+     * @param curso       el curso académico correspondiente.
+     * @param etapa       la etapa educativa correspondiente.
+     * @param estado      el estado actual de la matrícula.
+     * @return una {@link ResponseEntity} con:
+     *         - 200 (OK) si la matrícula es eliminada con éxito.
+     *         - 404 (NOT_FOUND) si el alumno no está registrado.
+     *         - 409 (CONFLICT) si el alumno está asignado a un grupo o existe otro conflicto.
+     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/datosMatriculas")
     public ResponseEntity<?> desmatricularAlumno(@RequestHeader(value = "nombre") String nombre,
@@ -503,7 +508,7 @@ public class Paso1CargarMatriculaController
 
             this.iDatosBrutoAlumnoMatriculaRepository.delete(datosBrutoAlumnoMatriculaABorrar);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
