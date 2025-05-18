@@ -158,6 +158,16 @@ public class Constants
 
 	public final static int DEPARTAMENTO_NO_ENCONTRADO = 57;
 
+	public final static int REDUCCION_EXISTENTE = 58;
+
+	public final static int REDUCCION_NO_ENCONTRADA = 59;
+
+	/**
+	 * Error - Reducción no asignada a un profesor
+	 */
+	public final static int REDUCCION_NO_ASIGNADA_A_PROFESOR = 60;
+
+
 	/************* ERRORES - Generales/De Conexión ***************/
 
 	/**

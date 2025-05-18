@@ -30,6 +30,7 @@ import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,406 +49,462 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping(value = "/schoolManager/crearReducciones")
 @Slf4j
-public class Paso6Reducciones 
+public class Paso6Reducciones
 {
-	
-	@Autowired
-	private IReduccionRepository iReduccionRepository;
 
-	@Autowired
-	private IProfesorRepository iProfesorRepository;
+    @Autowired
+    private IReduccionRepository iReduccionRepository;
 
-	@Autowired
-	private IProfesorReduccionRepository iProfesorReduccionRepository;
+    @Autowired
+    private IProfesorRepository iProfesorRepository;
 
-	@Autowired
-	private ReduccionProfesorService reduccionProfesorService;
+    @Autowired
+    private IProfesorReduccionRepository iProfesorReduccionRepository;
 
-	@Value("${reaktor.http_connection_timeout}")
-	private int httpConnectionTimeout;
+    @Autowired
+    private ReduccionProfesorService reduccionProfesorService;
 
-	@Value("${reaktor.firebase_server_url}")
-	private String firebaseServerUrl;
-	
-	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	@RequestMapping(method = RequestMethod.POST, value = "/reducciones")
-	public ResponseEntity<?> crearReduccion(@RequestHeader(value = "nombre", required = true) String nombre,
-											@RequestHeader(value = "horas", required = true) Integer horas,
-											@RequestHeader(value = "decideDireccion", required = true) Boolean decideDireccion)
-	{
-		try 
-		{
+    @Value("${reaktor.http_connection_timeout}")
+    private int httpConnectionTimeout;
 
-			IdReduccion idReduccion = new IdReduccion(nombre, horas);
-			Optional<Reduccion> reduccion = this.iReduccionRepository.findById(idReduccion);
+    @Value("${reaktor.firebase_server_url}")
+    private String firebaseServerUrl;
 
-			if(reduccion.isPresent())
-			{
-				String mensajeError = "Ya existe una reducción con ese nombre";
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
+    /**
+     * Crea un nuevo recurso de reducción con los parámetros especificados.
+     * <p>
+     * Si ya existe una reducción con los mismos parámetros, se lanza una excepción.
+     *
+     * @param nombre           el nombre de la reducción, que actúa como identificador.
+     * @param horas            la cantidad de horas asociadas a la reducción.
+     * @param decideDireccion  indica si la decisión sobre esta reducción la toma la dirección.
+     * @return una {@link ResponseEntity} con:
+     * - 201 (CREATED) si la reducción se creó correctamente.
+     * - 409 (CONFLICT) si ya existe una reducción con los mismos parámetros.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/reducciones")
+    public ResponseEntity<?> crearReduccion(@RequestHeader(value = "nombre", required = true) String nombre,
+                                            @RequestHeader(value = "horas", required = true) Integer horas,
+                                            @RequestHeader(value = "decideDireccion", required = true) Boolean decideDireccion)
+    {
+        try
+        {
 
-			idReduccion.setNombre(nombre);
-			idReduccion.setHoras(horas);
+            IdReduccion idReduccion = new IdReduccion(nombre, horas);
+            Optional<Reduccion> reduccion = this.iReduccionRepository.findById(idReduccion);
 
-			Reduccion nuevaReduccion = new Reduccion();
-			nuevaReduccion.setIdReduccion(idReduccion);
-			nuevaReduccion.setDecideDireccion(decideDireccion);
-			
-			this.iReduccionRepository.saveAndFlush(nuevaReduccion);
-			
-			return ResponseEntity.ok().build();
-			
-		}
-		catch (SchoolManagerServerException schoolManagerServerException) 
-		{
-			return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-		catch (Exception exception) 
-		{
-			
-			String mensajeError = "Error al acceder a la base de datos";
-		    SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-		
-		    log.error(mensajeError, exception);
-		    return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-	}
-	
-	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	@RequestMapping(method = RequestMethod.GET, value = "/reducciones")
-	public ResponseEntity<?> cargarReducciones()
-	{
-		try 
-		{
-			List<ReduccionDto> listReduccions = this.iReduccionRepository.encontrarTodasReducciones();
-			
-			if(listReduccions.isEmpty()) {
-				
-				String mensajeError = "No se han encontrado ninguna reducción";
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
-			
-			return ResponseEntity.ok(listReduccions);
-		}
-		catch (SchoolManagerServerException schoolManagerServerException) 
-		{
-			return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-		catch (Exception exception) 
-		{
-			
-			String mensajeError = "Error al acceder a la base de datos";
-		    SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-		
-		    log.error(mensajeError, exception);
-		    return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-		
-	}
+            if (reduccion.isPresent())
+            {
+                String mensajeError = "Ya existe una reducción con esos parametros";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.REDUCCION_EXISTENTE, mensajeError);
+            }
 
-	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	@RequestMapping(method = RequestMethod.DELETE, value = "/reducciones")
-	public ResponseEntity<?> borrarReduccion(@RequestHeader(value = "nombre", required = true) String nombre,
-											 @RequestHeader(value = "horas", required = true) Integer horas,
-											 @RequestHeader(value = "decideDireccion", required = true) Boolean decideDireccion)
-	{
-		try
-		{
-			IdReduccion idReduccioABorrar = new IdReduccion(nombre, horas);
-			Optional<Reduccion> reduccion = this.iReduccionRepository.findById(idReduccioABorrar);
+            idReduccion.setNombre(nombre);
+            idReduccion.setHoras(horas);
 
-			if(reduccion.isEmpty())
-			{
-				String mensajeError = "No existe una reducción con ese nombre";
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
+            Reduccion nuevaReduccion = new Reduccion();
+            nuevaReduccion.setIdReduccion(idReduccion);
+            nuevaReduccion.setDecideDireccion(decideDireccion);
 
-			ProfesorReduccion profesorReduccion = this.iProfesorReduccionRepository.encontrarProfesorReduccion(nombre, horas);
+            this.iReduccionRepository.saveAndFlush(nuevaReduccion);
 
-			if(profesorReduccion != null)
-			{
-				String mensajeError = "No se puede borrar la reducción porque está asignada";
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
+            return ResponseEntity.status(HttpStatus.CREATED).build();
 
-			idReduccioABorrar.setNombre(nombre);
-			idReduccioABorrar.setHoras(horas);
-			
-			Reduccion reduccionABorrar = new Reduccion();
-			reduccionABorrar.setIdReduccion(idReduccioABorrar);
-			reduccionABorrar.setDecideDireccion(decideDireccion);
-			
-			this.iReduccionRepository.delete(reduccionABorrar);
-			
-			return ResponseEntity.ok().build();
-			
-		}
-		catch (SchoolManagerServerException schoolManagerServerException) 
-		{
-			return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-		catch (Exception exception) 
-		{
-			
-			String mensajeError = "Error al acceder a la base de datos";
-		    SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-		
-		    log.error(mensajeError, exception);
-		    return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-	}
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
 
-	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	@RequestMapping(method = RequestMethod.GET, value = "/profesores")
-	private ResponseEntity<?> obtenerProfesores(@AuthenticationPrincipal DtoUsuarioExtended usuario)
-	{
-		try
-		{
-			List<Profesor> list = this.buscarProfesor(usuario);
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar crear la reducción.";
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-			if(list.isEmpty())
-			{
-				String mensajeError = "No se han encontrado profesores";
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
+            log.error(mensajeError, exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 
-			List<ProfesorDto> listaProfesorDto = list.stream().map(profesor ->
-					new ProfesorDto(
-							profesor.getNombre(),
-							profesor.getApellidos(),
-							profesor.getEmail()
-					)).collect(Collectors.toList());
+    /**
+     * Recupera la lista de reducciones disponibles en el sistema.
+     * <p>
+     * Cada reducción representa un conjunto de horas que pueden ser asignadas o decididas
+     * por la dirección según las reglas establecidas.
+     *
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de objetos {@link ReduccionDto} si la operación es exitosa.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/reducciones")
+    public ResponseEntity<?> cargarReducciones()
+    {
+        try
+        {
+            List<ReduccionDto> listReduccions = this.iReduccionRepository.encontrarTodasReducciones();
 
-			return ResponseEntity.ok(listaProfesorDto);
+            return ResponseEntity.ok().body(listReduccions);
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar al obtener la lista de reducciones.";
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-		}
-		catch (SchoolManagerServerException schoolManagerServerException)
-		{
-			return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-		catch (Exception exception)
-		{
-			String mensajeError = "Error al acceder a la base de datos";
-			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
+            log.error(mensajeError, exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
 
-			log.error(mensajeError, exception);
-			return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-	}
+    }
 
-	/**
-	 * @param jwtAdmin JWT del usuario admin
-	 * @param email    email del profesor que va a realizar la reserva
-	 * @return el profesor encontrado enfirebase
-	 * @throws SchoolManagerServerException con un error
-	 */
-	private List<Profesor> buscarProfesorEnFirebase(String jwtAdmin) throws SchoolManagerServerException
-	{
-		List<Profesor> profesores = new ArrayList<>();
+    /**
+     * Elimina una entidad de tipo "Reducción" según los parámetros proporcionados.
+     * <p>
+     * El método verifica que la reducción exista y que no esté asignada a ningún profesor antes de proceder con la eliminación.
+     *
+     * @param nombre           el nombre de la reducción a eliminar.
+     * @param horas            la cantidad de horas asociadas a la reducción.
+     * @param decideDireccion  indica si la decisión sobre esta reducción la toma la dirección.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si la reducción se eliminó correctamente.
+     * - 404 (NOT_FOUND) si no existe la reducción especificada.
+     * - 409 (CONFLICT) si la reducción está asignada a un profesor.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/reducciones")
+    public ResponseEntity<?> borrarReduccion(@RequestHeader(value = "nombre", required = true) String nombre,
+                                             @RequestHeader(value = "horas", required = true) Integer horas,
+                                             @RequestHeader(value = "decideDireccion", required = true) Boolean decideDireccion)
+    {
+        try
+        {
+            IdReduccion idReduccioABorrar = new IdReduccion(nombre, horas);
+            Optional<Reduccion> reduccionABorrar = this.iReduccionRepository.findById(idReduccioABorrar);
 
-		// Creamos un HTTP Client con Timeout
-		CloseableHttpClient closeableHttpClient = HttpClientUtils.crearHttpClientConTimeout(this.httpConnectionTimeout);
+            if (reduccionABorrar.isEmpty())
+            {
+                String mensajeError = "No existe una reducción con el nombre " + nombre + " y horas " + horas;
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.REDUCCION_NO_ENCONTRADA, mensajeError);
+            }
 
-		CloseableHttpResponse closeableHttpResponse = null;
+            ProfesorReduccion profesorReduccion = this.iProfesorReduccionRepository.encontrarProfesorReduccion(nombre, horas);
 
-		try
-		{
-			HttpGet httpGet = new HttpGet(this.firebaseServerUrl + "/firebase/queries/users");
+            if (profesorReduccion != null)
+            {
+                Profesor profesor = this.iProfesorRepository.findByEmail(profesorReduccion.getIdProfesorReduccion().getProfesor().getEmail());
+                String mensajeError = "No se puede borrar la reducción porque está asignada al profesor " + profesor;
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.REDUCCION_ASIGNADA, mensajeError);
+            }
 
-			// Añadimos el jwt y el email a la llamada
-			httpGet.addHeader("Authorization", "Bearer " + jwtAdmin);
-			httpGet.addHeader("Accept", "application/json");
+            this.iReduccionRepository.delete(reduccionABorrar.get());
 
-			// Hacemos la peticion
-			closeableHttpResponse = closeableHttpClient.execute(httpGet);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
-			if (closeableHttpResponse.getStatusLine().getStatusCode() == 403)
-			{
-				String mensajeError = "Acceso denegado (403) al obtener lista de profesores";
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            if (schoolManagerServerException.getCode() == Constants.REDUCCION_NO_ENCONTRADA)
+            {
 
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
-			}
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+        }
+        catch (Exception exception)
+        {
 
-			// Comprobamos si viene la cabecera. En caso afirmativo, es porque trae un
-			// profesor
-			if (closeableHttpResponse.getEntity() == null)
-			{
-				String mensajeError = "No se han encontrado profesores en la BBDD Global";
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar al intentar borrar la reducción.";
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
-			}
+            log.error(mensajeError, exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 
-			// Convertimos la respuesta en un objeto DtoInfoUsuario
-			ObjectMapper objectMapper = new ObjectMapper();
+    /**
+     * Recupera la lista de profesores disponibles en la base de datos en forma de objetos DTO.
+     * <p>
+     * Si no se encuentran profesores, se lanza una excepción con el mensaje adecuado.
+     * Este método requiere que el usuario tenga el rol de Dirección para su acceso.
+     *
+     * @param usuario el objeto {@link DtoUsuarioExtended} que representa al usuario autenticado que realiza la solicitud.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de objetos {@link ProfesorDto} si la operación es exitosa.
+     * - 404 (NOT_FOUND) si no se encuentran profesores.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/profesores")
+    private ResponseEntity<?> obtenerProfesores(@AuthenticationPrincipal DtoUsuarioExtended usuario)
+    {
+        try
+        {
+            List<Profesor> list = this.buscarProfesor(usuario);
 
-			// Obtenemos la respuesta de Firebase
-			List<DtoUsuarioBase> listDtoUsuarioBase = objectMapper
-					.readValue(closeableHttpResponse.getEntity().getContent(),
-							new TypeReference<List<DtoUsuarioBase>>() {});
+            if (list.isEmpty())
+            {
+                String mensajeError = "No se han encontrado profesores en base de datos";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
+            }
 
-			// Creamos una instancia de profesor con la respuesta de Firebase
-			for(DtoUsuarioBase dtoUsuarioBase: listDtoUsuarioBase)
-			{
-				Departamento departamento = new Departamento();
-				departamento.setNombre(dtoUsuarioBase.getDepartamento());
+            List<ProfesorDto> listaProfesorDto = list.stream().map(profesor ->
+                    new ProfesorDto(
+                            profesor.getNombre(),
+                            profesor.getApellidos(),
+                            profesor.getEmail()
+                    )).collect(Collectors.toList());
 
-				Profesor profesor = new Profesor();
-				profesor.setNombre(dtoUsuarioBase.getNombre());
-				profesor.setApellidos(dtoUsuarioBase.getApellidos());
-				profesor.setEmail(dtoUsuarioBase.getEmail());
-				profesor.setDepartamento(departamento);
-				profesores.add(profesor);
-			}
+            return ResponseEntity.ok().body(listaProfesorDto);
 
-			// Almacenamos los profesores en nuestra BBDD
-			this.iProfesorRepository.saveAllAndFlush(profesores);
-		}
-		catch (SocketTimeoutException socketTimeoutException)
-		{
-			String errorString = "SocketTimeoutException de lectura o escritura al comunicarse con el servidor (búsqueda del profesor asociado a la reserva)";
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener la lista de profesores.";
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-			log.error(errorString, socketTimeoutException);
-			throw new SchoolManagerServerException(Constants.ERROR_CONEXION_FIREBASE, errorString, socketTimeoutException);
-		}
-		catch (ConnectTimeoutException connectTimeoutException)
-		{
-			String errorString = "ConnectTimeoutException al intentar conectar con el servidor (búsqueda del profesor asociado a la reserva)";
+            log.error(mensajeError, exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 
-			log.error(errorString, connectTimeoutException);
-			throw new SchoolManagerServerException(Constants.TIMEOUT_CONEXION_FIREBASE, errorString, connectTimeoutException);
-		}
-		catch (IOException ioException)
-		{
-			String errorString = "IOException mientras se buscaba el profesor asociado a la reserva";
+    /**
+     * Recupera y devuelve la lista de reducciones asignadas a los profesores.
+     * <p>
+     * Este método es accesible únicamente para usuarios con el rol definido en {@code BaseConstants.ROLE_DIRECCION}.
+     *
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de objetos {@link ProfesorReduccionesDto} si la operación es exitosa.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/asignarReducciones")
+    private ResponseEntity<?> obtenerReduccionesProfesores()
+    {
+        try
+        {
+            List<ProfesorReduccionesDto> list = this.iProfesorReduccionRepository.encontrarTodosProfesoresReducciones();
 
-			log.error(errorString, ioException);
-			throw new SchoolManagerServerException(Constants.IO_EXCEPTION_FIREBASE, errorString, ioException);
-		}
-		finally
-		{
-			// Cierre de flujos
-			this.buscarProfesorEnFirebaseCierreFlujos(closeableHttpResponse);
-		}
+            return ResponseEntity.ok().body(list);
 
-		return profesores;
-	}
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener la lista de reducciones de profesores.";
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-	/**
-	 * @param usuario usuario
-	 * @param email   email
-	 * @return el profesor encontrado
-	 * @throws SchoolManagerServerException con un error
-	 */
-	private List<Profesor> buscarProfesor(DtoUsuarioExtended usuario) throws SchoolManagerServerException
-	{
-		// Buscamos el profesor en Firebase
-		return  this.buscarProfesorEnFirebase(usuario.getJwt());
-	}
+            log.error(mensajeError, exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 
-	/**
-	 * @param closeableHttpResponse closeable HTTP response
-	 * @throws PrinterClientException printer client exception
-	 */
-	private void buscarProfesorEnFirebaseCierreFlujos(CloseableHttpResponse closeableHttpResponse) throws SchoolManagerServerException
-	{
-		if (closeableHttpResponse != null)
-		{
-			try
-			{
-				closeableHttpResponse.close();
-			}
-			catch (IOException ioException)
-			{
-				String errorString = "IOException mientras se cerraba el closeableHttpResponse en el método que busca al profesor de la reserva";
+    /**
+     * Elimina una reducción asignada a un profesor según los parámetros proporcionados.
+     * <p>
+     * Este método elimina la asociación entre una reducción específica y un profesor, si existe.
+     * Si la reducción no está asignada al profesor, se devuelve una respuesta de error.
+     *
+     * @param email             el correo electrónico del profesor al que se le eliminará la reducción.
+     * @param nombreReduccion   el nombre de la reducción a eliminar.
+     * @param horasReduccion    las horas asociadas a la reducción.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si la reducción se eliminó correctamente.
+     * - 404 (NOT_FOUND) si la reducción no está asignada al profesor.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/asignarReducciones")
+    private ResponseEntity<?> borrarReduccionesProfesores(@RequestHeader(value = "email") String email,
+                                                          @RequestHeader(value = "reduccion") String nombreReduccion,
+                                                          @RequestHeader(value = "horas") Integer horasReduccion)
+    {
+        try
+        {
+            Reduccion reduccion = this.reduccionProfesorService.validadarYObtenerReduccion(nombreReduccion, horasReduccion);
 
-				log.error(errorString, ioException);
-				throw new SchoolManagerServerException(Constants.IO_EXCEPTION_FIREBASE, errorString, ioException);
-			}
-		}
-	}
+            Profesor profesor = this.reduccionProfesorService.validadarYObtenerProfesor(email);
 
-	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	@RequestMapping(method = RequestMethod.GET, value = "/asignarReducciones")
-	private ResponseEntity<?> obtenerReduccionesProfesores ()
-	{
-		try
-		{
-			List<ProfesorReduccionesDto> list = this.iProfesorReduccionRepository.encontrarTodosProfesoresReducciones();
+            IdProfesorReduccion idProfesorReduccion = new IdProfesorReduccion(profesor, reduccion);
 
-			if(list.isEmpty())
-			{
-				String mensajeError = "No se han encontrado profesores con reducciones asignadas";
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
+            Optional<ProfesorReduccion> optionalProfesorReduccion = this.iProfesorReduccionRepository.findById(idProfesorReduccion);
 
-			return ResponseEntity.ok(list);
+            if (optionalProfesorReduccion.isEmpty())
+            {
+                String mensajeError =
+                        "No hay asignada ninguna reducción con el nombre " + nombreReduccion + " al profesor " + profesor.getNombre() + " " + profesor.getApellidos() + " con horas " + horasReduccion;
 
-		} catch (SchoolManagerServerException schoolManagerServerException)
-		{
-			return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-		catch (Exception exception)
-		{
-			String mensajeError = "Error al acceder a la base de datos";
-			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.REDUCCION_NO_ASIGNADA_A_PROFESOR, mensajeError);
+            }
 
-			log.error(mensajeError, exception);
-			return ResponseEntity.status(500).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-	}
+            ProfesorReduccion profesorReduccion = new ProfesorReduccion();
+            profesorReduccion.setIdProfesorReduccion(idProfesorReduccion);
 
-	@PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-	@RequestMapping(method = RequestMethod.DELETE, value = "/asignarReducciones")
-	private ResponseEntity<?> borrarReduccionesProfesores (@RequestHeader(value = "email") String email,
-														   @RequestHeader(value = "reduccion") String nombreReduccion,
-														   @RequestHeader(value = "horas") Integer horasReduccion)
-	{
-		try
-		{
-			Reduccion reduccion = this.reduccionProfesorService.validadarYObtenerReduccion(nombreReduccion, horasReduccion);
+            this.iProfesorReduccionRepository.delete(profesorReduccion);
 
-			Profesor profesor = this.reduccionProfesorService.validadarYObtenerProfesor(email);
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
-			IdProfesorReduccion idProfesorReduccion = new IdProfesorReduccion(profesor, reduccion);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
 
-			Optional<ProfesorReduccion> optionalProfesorReduccion = this.iProfesorReduccionRepository.findById(idProfesorReduccion);
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar borrar la reducción asignada al profesor.";
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-			if(optionalProfesorReduccion.isEmpty())
-			{
-				String mensajeError = "No hay asignada una reducción con ese nombre a el profesor que indicas";
+            log.error(mensajeError, exception);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 
-				log.error(mensajeError);
-				throw new SchoolManagerServerException(1, mensajeError);
-			}
+    /**
+     * @param jwtAdmin JWT del usuario admin
+     * @param email    email del profesor que va a realizar la reserva
+     * @return el profesor encontrado enfirebase
+     * @throws SchoolManagerServerException con un error
+     */
+    private List<Profesor> buscarProfesorEnFirebase(String jwtAdmin) throws SchoolManagerServerException
+    {
+        List<Profesor> profesores = new ArrayList<>();
 
-			ProfesorReduccion profesorReduccion = new ProfesorReduccion();
-			profesorReduccion.setIdProfesorReduccion(idProfesorReduccion);
+        // Creamos un HTTP Client con Timeout
+        CloseableHttpClient closeableHttpClient = HttpClientUtils.crearHttpClientConTimeout(this.httpConnectionTimeout);
 
-			this.iProfesorReduccionRepository.delete(profesorReduccion);
+        CloseableHttpResponse closeableHttpResponse = null;
 
-			return ResponseEntity.ok().build();
+        try
+        {
+            HttpGet httpGet = new HttpGet(this.firebaseServerUrl + "/firebase/queries/users");
 
-		} catch (SchoolManagerServerException schoolManagerServerException)
-		{
-			return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-		catch (Exception exception)
-		{
+            // Añadimos el jwt y el email a la llamada
+            httpGet.addHeader("Authorization", "Bearer " + jwtAdmin);
+            httpGet.addHeader("Accept", "application/json");
 
-			String mensajeError = "Error al acceder a la base de datos";
-			SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
+            // Hacemos la peticion
+            closeableHttpResponse = closeableHttpClient.execute(httpGet);
 
-			log.error(mensajeError, exception);
-			return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-		}
-	}
+            if (closeableHttpResponse.getStatusLine().getStatusCode() == 403)
+            {
+                String mensajeError = "Acceso denegado (403) al obtener lista de profesores";
+
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
+            }
+
+            // Comprobamos si viene la cabecera. En caso afirmativo, es porque trae un
+            // profesor
+            if (closeableHttpResponse.getEntity() == null)
+            {
+                String mensajeError = "No se han encontrado profesores en la BBDD Global";
+
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
+            }
+
+            // Convertimos la respuesta en un objeto DtoInfoUsuario
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            // Obtenemos la respuesta de Firebase
+            List<DtoUsuarioBase> listDtoUsuarioBase = objectMapper
+                    .readValue(closeableHttpResponse.getEntity().getContent(),
+                            new TypeReference<List<DtoUsuarioBase>>()
+                            {
+                            });
+
+            // Creamos una instancia de profesor con la respuesta de Firebase
+            for (DtoUsuarioBase dtoUsuarioBase : listDtoUsuarioBase)
+            {
+                Departamento departamento = new Departamento();
+                departamento.setNombre(dtoUsuarioBase.getDepartamento());
+
+                Profesor profesor = new Profesor();
+                profesor.setNombre(dtoUsuarioBase.getNombre());
+                profesor.setApellidos(dtoUsuarioBase.getApellidos());
+                profesor.setEmail(dtoUsuarioBase.getEmail());
+                profesor.setDepartamento(departamento);
+                profesores.add(profesor);
+            }
+
+            // Almacenamos los profesores en nuestra BBDD
+            this.iProfesorRepository.saveAllAndFlush(profesores);
+        }
+        catch (SocketTimeoutException socketTimeoutException)
+        {
+            String errorString = "SocketTimeoutException de lectura o escritura al comunicarse con el servidor (búsqueda del profesor asociado a la reserva)";
+
+            log.error(errorString, socketTimeoutException);
+            throw new SchoolManagerServerException(Constants.ERROR_CONEXION_FIREBASE, errorString, socketTimeoutException);
+        }
+        catch (ConnectTimeoutException connectTimeoutException)
+        {
+            String errorString = "ConnectTimeoutException al intentar conectar con el servidor (búsqueda del profesor asociado a la reserva)";
+
+            log.error(errorString, connectTimeoutException);
+            throw new SchoolManagerServerException(Constants.TIMEOUT_CONEXION_FIREBASE, errorString, connectTimeoutException);
+        }
+        catch (IOException ioException)
+        {
+            String errorString = "IOException mientras se buscaba el profesor asociado a la reserva";
+
+            log.error(errorString, ioException);
+            throw new SchoolManagerServerException(Constants.IO_EXCEPTION_FIREBASE, errorString, ioException);
+        }
+        finally
+        {
+            // Cierre de flujos
+            this.buscarProfesorEnFirebaseCierreFlujos(closeableHttpResponse);
+        }
+
+        return profesores;
+    }
+
+    /**
+     * @param usuario usuario
+     * @param email   email
+     * @return el profesor encontrado
+     * @throws SchoolManagerServerException con un error
+     */
+    private List<Profesor> buscarProfesor(DtoUsuarioExtended usuario) throws SchoolManagerServerException
+    {
+        // Buscamos el profesor en Firebase
+        return this.buscarProfesorEnFirebase(usuario.getJwt());
+    }
+
+    /**
+     * @param closeableHttpResponse closeable HTTP response
+     * @throws PrinterClientException printer client exception
+     */
+    private void buscarProfesorEnFirebaseCierreFlujos(CloseableHttpResponse closeableHttpResponse) throws SchoolManagerServerException
+    {
+        if (closeableHttpResponse != null)
+        {
+            try
+            {
+                closeableHttpResponse.close();
+            }
+            catch (IOException ioException)
+            {
+                String errorString = "IOException mientras se cerraba el closeableHttpResponse en el método que busca al profesor de la reserva";
+
+                log.error(errorString, ioException);
+                throw new SchoolManagerServerException(Constants.IO_EXCEPTION_FIREBASE, errorString, ioException);
+            }
+        }
+    }
 }
