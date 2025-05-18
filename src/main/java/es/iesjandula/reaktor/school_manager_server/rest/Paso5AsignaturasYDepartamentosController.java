@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.*;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -40,11 +41,17 @@ public class Paso5AsignaturasYDepartamentosController
     private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
 
     /**
-     * Endpoint para obtener todos los departamentos.
+     * Recupera todos los departamentos registrados en la base de datos y los convierte en objetos DTO.
      * <p>
-     * Este método devuelve la lista de departamentos con su nombre.
+     * Si no se encuentran departamentos, se lanza una excepción personalizada. El método también maneja
+     * excepciones generales, devolviendo códigos de estado HTTP apropiados y mensajes de error detallados.
+     * <p>
+     * Solo accesible para usuarios con rol de dirección.
      *
-     * @return ResponseEntity<> - Respuesta con la lista de departamentos.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de {@link DepartamentoDto} con los nombres de los departamentos si la operación es exitosa.
+     * - 404 (NOT_FOUND) si no se encuentran departamentos.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante el proceso.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/departamentos")
@@ -56,9 +63,9 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (departamentos.isEmpty())
             {
-                String mensajeError = "No hay departamentos registrados en la base de datos";
+                String mensajeError = "No se encontraron departamentos registrados en el sistema.";
                 log.warn(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.DEPARTAMENTO_NO_ENCONTRADO, mensajeError);
             }
 
             // Convertimos los departamentos a DTOs
@@ -66,22 +73,39 @@ public class Paso5AsignaturasYDepartamentosController
                     .map(departamento -> new DepartamentoDto(departamento.getNombre()))
                     .collect(Collectors.toList());
 
-            return ResponseEntity.ok(departamentosDto);
+            return ResponseEntity.ok().body(departamentosDto);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudo obtener los datos del desplegable";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se ha producido un error inesperado al intentar obtener la lista de departamentos.";
             log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
+    /**
+     * Asigna un número máximo de plantilla de profesores a un departamento existente en el sistema.
+     * <p>
+     * El departamento es identificado por su nombre. Si no se encuentra el departamento, se lanza una
+     * excepción personalizada. También se manejan errores generales de servidor.
+     * <p>
+     * Este método requiere permisos de dirección para ser ejecutado.
+     *
+     * @param nombre el nombre del departamento al que se desea asignar la plantilla de profesores.
+     * @param plantilla número máximo de plantilla de profesores a asignar al departamento.
+     * @return un {@link ResponseEntity} con:
+     *         - Código HTTP 204 (No Content) si la asignación fue exitosa.
+     *         - Código HTTP 404 (Not Found) si el departamento no fue encontrado.
+     *         - Código HTTP 500 (Internal Server Error) en caso de error inesperado.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/departamentos")
     public ResponseEntity<?> asignarProfesoresADepartamentos(@RequestParam("nombre") String nombre,
@@ -93,9 +117,9 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (departamentoOpt.isEmpty())
             {
-                String mensajeError = "No existe un departamento con ese nombre";
+                String mensajeError = "No se ha encontrado ningún departamento con el nombre: " + nombre;
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.DEPARTAMENTO_NO_ENCONTRADO, mensajeError);
             }
 
             Departamento departamento = departamentoOpt.get();
@@ -103,60 +127,67 @@ public class Paso5AsignaturasYDepartamentosController
 
             iDepartamentoRepository.saveAndFlush(departamento);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - Error en el servidor";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se ha producido un error inesperado al asignar plantilla al departamento: " + nombre;
             log.error(mensajeError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }
 
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/asignaturas/infoDepartamentos")
-    public ResponseEntity<?> obtenerDatosDepartamentosConAsignaturas()
-    {
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-        try
-        {
-            List<AsignaturaConDepartamentoDto> asignaturaConDepartamentoDtos = this.iAsignaturaRepository.encontrarAsignaturasConDepartamento();
-
-            if (asignaturaConDepartamentoDtos.isEmpty())
-            {
-                String mensajeError = "No hay asignaturas registrados en la base de datos";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
-            }
-
-            return ResponseEntity.ok(asignaturaConDepartamentoDtos);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-        catch (Exception exception)
-        {
-            String mensajeError = "ERROR - Error en el servidor";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
-            log.error(mensajeError, exception);
-            return ResponseEntity.status(500).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
     /**
-     * Endpoint para obtener curso etapa y grupo de forma disctint.
+     * Obtiene una lista de asignaturas junto con los departamentos a los que pertenecen.
      * <p>
-     * Este método devolvera curso etapa y grupo de forma disctint
+     * Este método consulta los datos desde el repositorio, los transforma en DTOs y los devuelve
+     * en la respuesta. Es accesible únicamente para usuarios con rol de dirección.
      *
-     * @return ResponseEntity<?> - Respuesta del endpoint que devuelve el curso etapa y grupo
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de objetos {@link AsignaturaConDepartamentoDto} si la operación es exitosa.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un fallo en el servidor.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/asignaturas/infoDepartamentos")
+    public ResponseEntity<?> obtenerDatosDepartamentosConAsignaturas()
+    {
+        try
+        {
+            List<AsignaturaConDepartamentoDto> asignaturaConDepartamentoDtos = this.iAsignaturaRepository.encontrarAsignaturasConDepartamento();
+
+            return ResponseEntity.ok(asignaturaConDepartamentoDtos);
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se ha producido un error inesperado al obtener la información de asignaturas con sus departamentos.";
+            log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Recupera todos los registros de CursoEtapaGrupo, los transforma en objetos DTO y los devuelve como respuesta.
+     * <p>
+     * Los datos incluyen curso, etapa, grupo, si tiene horario matutino y si pertenece a ESO o Bachillerato.
+     * <p>
+     * Este método es seguro y requiere permisos de dirección.
+     *
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de {@link CursoEtapaGrupoDto} si hay datos disponibles.
+     * - 404 (NOT_FOUND) si no se encuentra ningún registro.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/curso")
@@ -168,7 +199,7 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (cursoEtapaGrupos.isEmpty())
             {
-                String mensajeError = "No hay cursoEtapaGrupo registradas en la base de datos";
+                String mensajeError = "No hay curso, etapa y grupo registradas en la base de datos";
                 log.warn(mensajeError);
                 throw new SchoolManagerServerException(1, mensajeError);
             }
@@ -186,28 +217,33 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudo obtener los datos del desplegable";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se ha producido un error inesperado al obtener los datos del desplegable de curso, etapa y grupo.";
             log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
-
     /**
-     * Endpoint para obtener Asignaturas por curso etapa y grupo.
+     * Recupera las asignaturas registradas para un curso, etapa y grupo específicos.
      * <p>
-     * Este método recibirá un curso etapa y grupo y devolvera las asignaturas que tengan ese curso etapa y grupo especificos
+     * Las asignaturas se devuelven en forma de DTOs que contienen únicamente el nombre de cada una.
+     * Si no se encuentra ninguna asignatura para la combinación especificada, se lanza una excepción.
      *
-     * @param curso Número entero que representa el curso de la asignatura.
-     * @param etapa Cadena de texto que indica la etapa educativa (ej. "ESO", "Bachillerato").
-     * @param grupo Caracter que identifica el grupo dentro del curso (ej. 'A', 'B').
-     * @return ResponseEntity<> - Respuesta del endpoint que devuelve las asignaturas
+     * @param curso el identificador del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa la etapa educativa, proporcionada en la cabecera de la solicitud.
+     * @param grupo el identificador del grupo al que pertenece la asignatura, proporcionado en la cabecera de la solicitud.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de {@link NombreAsignaturaDto} si se encuentran asignaturas.
+     * - 404 (NOT_FOUND) si no se encuentra ninguna asignatura.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturasPorCursoEtapaGrupo")
@@ -223,7 +259,7 @@ public class Paso5AsignaturasYDepartamentosController
             {
                 String mensajeError = "No hay asignaturas registradas para la selección dada";
                 log.warn(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
             // Convertimos las asignaturas a DTOs
@@ -236,22 +272,30 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudo obtener los datos del desplegable";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se ha producido un error inesperado al obtener las asignaturas por curso, etapa y grupo.";
             log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
     /**
-     * Endpoint para obtener todas las asignaturas con su información
+     * Recupera todas las asignaturas registradas en el sistema.
+     * <p>
+     * Este método obtiene la lista de todas las asignaturas, las convierte al formato DTO y las devuelve.
+     * Si no hay asignaturas registradas, lanza una excepción con un mensaje de error adecuado.
      *
-     * @return ResponseEntity<> - Lista de asignaturas con sus departamentos
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de objetos {@link AsignaturaInfoDto} si existen asignaturas.
+     * - 404 (NOT_FOUND) si no se encontraron asignaturas.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurrió un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
@@ -263,9 +307,9 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (asignaturas.isEmpty())
             {
-                String mensajeError = "No hay asignaturas registradas en el sistema";
+                String mensajeError = "No se encontraron asignaturas registradas en la base de datos.";
                 log.warn(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
             // Convertimos a DTO
@@ -285,31 +329,34 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudo obtener los datos del desplegable";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se ha producido un error inesperado al obtener la lista completa de asignaturas.";
             log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-
         }
-
     }
 
     /**
-     * Endpoint para eliminar los departamentos de una asignatura.
+     * Elimina la asociación entre una asignatura y sus departamentos (departamentoPropietario y departamentoReceptor)
+     * en función del curso, la etapa, el grupo y el nombre proporcionados.
      * <p>
-     * Este endpoint recibe el curso, etapa, grupo y nombre de la asignatura
-     * como parámetros y establece a `null` el departamento propietario y
-     * el departamento receptor de dicha asignatura.
+     * Si se encuentra la asignatura correspondiente, se desvinculará de ambos departamentos.
      *
-     * @param curso Número entero que representa el curso de la asignatura.
-     * @param etapa Cadena de texto que indica la etapa educativa (ej. "ESO", "Bachillerato").
-     * @param grupo Caracter que identifica el grupo dentro del curso (ej. 'A', 'B').
-     * @return ResponseEntity<> - Respuesta del endpoint que indica el resultado de la operación.
+     * @param curso  el identificador del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa  la etapa educativa, proporcionada en la cabecera de la solicitud.
+     * @param grupo  el identificador del grupo al que pertenece la asignatura, proporcionado en la cabecera de la solicitud.
+     * @param nombre el nombre de la asignatura cuya asociación se desea eliminar, proporcionado en la cabecera de la solicitud.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si la desvinculación se realizó correctamente.
+     * - 404 (NOT_FOUND) si no se encontró la asignatura.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurrió un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PATCH, value = "/asignaturas/quitarDepartamentos")
@@ -318,7 +365,6 @@ public class Paso5AsignaturasYDepartamentosController
                                                               @RequestParam("grupo") Character grupo,
                                                               @RequestParam("nombre") String nombre)
     {
-
         try
         {
             // Buscar la asignatura con los datos proporcionados
@@ -327,9 +373,9 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (asignaturaOpt.isEmpty())
             {
-                String mensajeError = "ERROR - No se encontró la asignatura con los datos proporcionados";
+                String mensajeError = "No se encontró ninguna asignatura con los datos: " + curso + etapa + grupo + ", " + nombre;
                 log.warn(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
             // Obtener la asignatura y actualizar los departamentos a null
@@ -341,38 +387,40 @@ public class Paso5AsignaturasYDepartamentosController
             iAsignaturaRepository.saveAndFlush(asignatura);
 
             log.info("INFO - Departamentos eliminados para la asignatura: {}", nombre);
-            return ResponseEntity.status(200).body("Departamentos eliminados correctamente");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudo eliminar los departamentos";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar eliminar la asignatura asociada al departamento.";
             log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
     /**
-     * Endpoint para asignar departamentos a una asignatura.
+     * Asigna una asignatura a uno o más departamentos en función del curso, la etapa, el grupo y el nombre proporcionados.
      * <p>
-     * Este endpoint recibe el curso, etapa, grupo y nombre de la asignatura
-     * como parámetros y permite establecer los departamentos propietario
-     * y receptor de dicha asignatura.
+     * Se actualiza el departamento propietario de la asignatura y, opcionalmente, un departamento receptor.
      *
-     * @param curso                   Número entero que representa el curso de la asignatura.
-     * @param etapa                   Cadena de texto que indica la etapa educativa (ej. "ESO", "Bachillerato").
-     * @param grupo                   Caracter que identifica el grupo dentro del curso (ej. 'A', 'B').
-     * @param nombre                  Nombre de la asignatura que se desea modificar.
-     * @param departamentoPropietario Nombre del departamento propietario.
-     * @param departamentoReceptor    Nombre del departamento receptor.
-     * @return ResponseEntity<> - Respuesta del endpoint que indica el resultado de la operación.
+     * @param curso                  el identificador del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa                  la etapa educativa, proporcionada en la cabecera de la solicitud.
+     * @param grupo                  el identificador del grupo al que pertenece la asignatura, proporcionado en la cabecera de la solicitud.
+     * @param nombre                 el nombre de la asignatura que se va a asignar, proporcionado en la cabecera de la solicitud.
+     * @param departamentoPropietario el nombre del departamento que será propietario de la asignatura.
+     * @param departamentoReceptor  el nombre del departamento receptor.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si la asignación se realizó correctamente.
+     * - 404 (NOT_FOUND) si no se encontró la asignatura o alguno de los departamentos.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurrió un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PATCH, value = "/asignaturas/asignarDepartamentos")
@@ -383,7 +431,6 @@ public class Paso5AsignaturasYDepartamentosController
                                                               @RequestParam("departamentoPropietario") String departamentoPropietario,
                                                               @RequestParam(value = "departamentoReceptor") String departamentoReceptor)
     {
-
         try
         {
             // Buscar la asignatura con los datos proporcionados
@@ -392,9 +439,9 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (asignaturaOpt.isEmpty())
             {
-                String mensajeError = "ERROR - No se encontró la asignatura con los datos proporcionados";
+                String mensajeError = "No se encontró la asignatura con los datos " + curso + etapa + grupo + ", " + nombre;
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
             Asignatura asignatura = asignaturaOpt.get();
@@ -405,9 +452,9 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (departamentoPropietarioOpt.isEmpty())
             {
-                String mensajeError = "ERROR - No se encontró los departamentos con los datos proporcionados";
+                String mensajeError = "No se encontró el departamento propietario con el nombre " + departamentoPropietario;
                 log.warn(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.DEPARTAMENTO_NO_ENCONTRADO, mensajeError);
             }
 
             departamentoReceptorOpt.ifPresent(asignatura::setDepartamentoReceptor);
@@ -417,19 +464,21 @@ public class Paso5AsignaturasYDepartamentosController
             iAsignaturaRepository.saveAndFlush(asignatura);
 
             log.info("INFO - Departamentos asignados para la asignatura: {}", nombre);
-            return ResponseEntity.ok("Departamentos asignados correctamente");
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudo asignar los departamentos";
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(1, mensajeError, exception);
-
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se ha producido un error inesperado al intentar asignar la asignatura a los departamentos";
             log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }

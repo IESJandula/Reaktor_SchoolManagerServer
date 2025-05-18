@@ -156,6 +156,8 @@ public class Constants
 	 */
 	public final static int REDUCCION_ASIGNADA = 56;
 
+	public final static int DEPARTAMENTO_NO_ENCONTRADO = 57;
+
 	/************* ERRORES - Generales/De Conexión ***************/
 
 	/**

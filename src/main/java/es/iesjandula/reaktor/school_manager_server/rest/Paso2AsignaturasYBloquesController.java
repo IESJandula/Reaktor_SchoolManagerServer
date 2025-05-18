@@ -48,7 +48,6 @@ public class Paso2AsignaturasYBloquesController
      *         - 404 (Not Found) si no existen asignaturas para ese curso y etapa.
      *         - 500 (Internal Server Error) si ocurre un error inesperado.
      */
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
     public ResponseEntity<?> cargarAsignaturas(@RequestHeader("curso") int curso,
@@ -101,7 +100,6 @@ public class Paso2AsignaturasYBloquesController
      *         - 409 (Conflict) si alguna asignatura ya está asignada a otro bloque.
      *         - 500 (Internal Server Error) si ocurre un error inesperado.
      */
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/bloques")
     public ResponseEntity<?> crearBloques(@RequestParam("curso") int curso,
@@ -193,7 +191,6 @@ public class Paso2AsignaturasYBloquesController
      * - 404 (NOT_FOUND) si no se encontró la asignatura.
      * - 500 (INTERNAL_SERVER_ERROR) si ocurrió un error inesperado.
      */
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/bloques")
     public ResponseEntity<?> eliminarBloque(@RequestHeader(value = "curso", required = true) Integer curso,
@@ -268,7 +265,6 @@ public class Paso2AsignaturasYBloquesController
      *         - 404 (Not Found) si no se encuentra la asignatura.
      *         - 500 (Internal Server Error) si ocurre un error inesperado.
      */
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/sinDocencia")
     public ResponseEntity<?> asignaturasSinDocencia(@RequestHeader("nombreAsignatura") String nombreAsignatura,
@@ -321,7 +317,6 @@ public class Paso2AsignaturasYBloquesController
      *         - 404 (Not Found) si no se encuentran asignaturas.
      *         - 500 (Internal Server Error) si ocurre un error inesperado.
      */
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/horas")
     public ResponseEntity<?> mostrarHoras(@RequestHeader("curso") Integer curso,
@@ -369,7 +364,6 @@ public class Paso2AsignaturasYBloquesController
      *         - 404 (Not Found) si no se encuentra la asignatura.
      *         - 500 (Internal Server Error) si ocurre un error inesperado.
      */
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/horas")
     public ResponseEntity<?> asignarHoras(@RequestHeader("curso") Integer curso,
