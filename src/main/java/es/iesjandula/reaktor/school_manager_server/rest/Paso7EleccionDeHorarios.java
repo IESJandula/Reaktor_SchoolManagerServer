@@ -56,6 +56,19 @@ public class Paso7EleccionDeHorarios
     @Autowired
     private ValidacionesGlobales validacionesGlobales;
 
+    /**
+     * Recupera una lista de profesores junto con sus horarios desde la base de datos.
+     * <p>
+     * Si no se encuentran profesores, se devuelve una respuesta con el estado correspondiente y detalles del error.
+     * En caso de errores generales, se devuelve una respuesta con estado de error interno del servidor.
+     * <p>
+     * Este método está protegido y requiere que el usuario solicitante tenga el rol "ROLE_DIRECCION".
+     *
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de objetos {@link ProfesorDto} si la operación es exitosa.
+     * - 404 (NOT_FOUND) si no se encuentran profesores.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/profesores")
     public ResponseEntity<?> obtenerProfesoresHorarios()
@@ -66,9 +79,9 @@ public class Paso7EleccionDeHorarios
 
             if (profesores.isEmpty())
             {
-                String mensajeError = "Error - No se han encontrado profesores en base de datos";
+                String mensajeError = "No se encontraron profesores registrados en la base de datos.";
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.SIN_PROFESORES_ENCONTRADOS, mensajeError);
             }
 
             List<ProfesorDto> listaProfesorDto = profesores.stream().map(profesor ->
@@ -82,13 +95,12 @@ public class Paso7EleccionDeHorarios
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al obtener la lista completa de profesores.";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -98,6 +110,17 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Obtiene la lista de asignaturas asignadas a un departamento, a partir del correo electrónico del profesor.
+     * <p>
+     * Este método está restringido a usuarios con el rol "ROLE_PROFESOR".
+     *
+     * @param email el correo electrónico del profesor, utilizado para identificar el departamento asociado.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de objetos {@link ImpartirAsignaturaDto} si se encuentran asignaturas.
+     * - 404 (NOT_FOUND) si no se encuentran asignaturas para el departamento.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
     public ResponseEntity<?> obtenerAsignaturas(@RequestHeader(value = "email") String email)
@@ -110,22 +133,21 @@ public class Paso7EleccionDeHorarios
 
             if (asignaturaDtoSinGrupos.isEmpty())
             {
-                String mensajeError = "Error - No se han encontrado asignaturas para ese departamento";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                String mensajeError = "No se encontraron asignaturas asociadas al departamento del profesor con email: " + email;
+                log.warn(mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURAS_NO_ENCONTRADAS_PARA_DEPARTAMENTO, mensajeError);
             }
 
             return ResponseEntity.ok().body(asignaturaDtoSinGrupos);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener las asignaturas del profesor con email: " + email;
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -135,6 +157,23 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Asigna una asignatura a un profesor en función de los datos suministrados en los encabezados de la solicitud.
+     * <p>
+     * Esta operación solo está permitida para usuarios con el rol "ROLE_PROFESOR".
+     *
+     * @param usuario           el usuario autenticado que realiza la solicitud.
+     * @param nombreAsignatura el nombre de la asignatura a asignar.
+     * @param horas            la cantidad de horas asignadas a la asignatura.
+     * @param curso            el curso al que pertenece la asignatura.
+     * @param etapa            la etapa educativa de la asignatura.
+     * @param grupo            el grupo al que se asignará la asignatura.
+     * @param email            el correo electrónico del profesor al que se asignará la asignatura.
+     * @return una {@link ResponseEntity} con:
+     * - 201 (CREATED) si la asignación se realiza correctamente.
+     * - 409 (CONFLICT) si la asignatura ya ha sido asignada a otro profesor.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/asignaturas")
     public ResponseEntity<?> asignarAsignatura(@AuthenticationPrincipal DtoUsuarioExtended usuario,
@@ -156,28 +195,26 @@ public class Paso7EleccionDeHorarios
 
             if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR) && asignaturaImpartir != null)
             {
-                String mensajeError = "Error - Ya se ha asignado esa asignatura a otro profesor";
+                String mensajeError = "La asignatura '" + nombreAsignatura + "' ya ha sido asignada a otro profesor para el curso " + curso + grupo + " de la etapa " + etapa;
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
             }
-
 
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
 
             this.iImpartirRepository.saveAndFlush(asignarAsignatura);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.CREATED).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar asignar la asignatura '" + nombreAsignatura + "' al profesor con email: " + email;
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -187,6 +224,20 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Obtiene una lista de reducciones en función del rol del usuario autenticado.
+     * <p>
+     * Si el usuario tiene el rol de Dirección, se recuperan todas las reducciones del sistema.
+     * En caso contrario, se obtienen únicamente las reducciones asociadas al profesorado.
+     * Se aplican controles de error adecuados para manejar casos como la ausencia de datos
+     * o errores en el acceso a la base de datos.
+     *
+     * @param usuario el usuario autenticado cuya función determina la lógica de recuperación de datos.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) si se recuperan correctamente las reducciones.
+     * - 404 (NOT_FOUND) si no se encuentran reducciones.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un fallo inesperado.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/reduccion")
     public ResponseEntity<?> obtenerReducciones(@AuthenticationPrincipal DtoUsuarioExtended usuario)
@@ -199,9 +250,9 @@ public class Paso7EleccionDeHorarios
 
                 if (listReduccion.isEmpty())
                 {
-                    String mensajeError = "Error - No se han encontro reducciones en la base de datos";
+                    String mensajeError = "No se encontraron reducciones disponibles";
                     log.error(mensajeError);
-                    throw new SchoolManagerServerException(1, mensajeError);
+                    throw new SchoolManagerServerException(Constants.SIN_REDUCCIONES_ENCONTRADAS, mensajeError);
                 }
 
                 return ResponseEntity.ok().body(listReduccion);
@@ -210,21 +261,20 @@ public class Paso7EleccionDeHorarios
 
             if (listReduccionesProfesores.isEmpty())
             {
-                String mensajeError = "Error - No se han encontro reducciones en la base de datos";
+                String mensajeError = "No se encontraron reducciones disponibles para los profesores";
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.SIN_REDUCCIONES_ENCONTRADAS, mensajeError);
             }
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(listReduccionesProfesores);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener las reducciones para el usuario: " + usuario.getEmail();
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -234,6 +284,19 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Recupera la lista de días, tramos horarios y tipos de horario disponibles en la base de datos.
+     * <p>
+     * Este método está restringido a usuarios con el rol de profesor y realiza la consulta a través
+     * del repositorio correspondiente. En caso de que no se encuentren datos, se lanza una excepción
+     * específica indicando su ausencia. Si ocurre un error general, se registra en el log y se devuelve
+     * una respuesta de error adecuada.
+     *
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) si se recuperan correctamente los datos como una lista de {@link DiasTramosTipoHorarioDto}.
+     * - 404 (NOT_FOUND) si no se encuentra información en la base de datos.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/observaciones")
     public ResponseEntity<?> obtenerDiasTramosTipoHorario()
@@ -244,22 +307,21 @@ public class Paso7EleccionDeHorarios
 
             if (listDiasTramosTipoHorarioDto.isEmpty())
             {
-                String mensajeError = "Error - No se han encontrado dias, tramos y tipos horarios en base de datos";
+                String mensajeError = "No se han encontrado dias, tramos y tipos horarios en base de datos";
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS, mensajeError);
             }
 
             return ResponseEntity.ok().body(listDiasTramosTipoHorarioDto);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener los dias, tramos y tipos horarios en base de datos";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -269,6 +331,25 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Actualiza las observaciones y preferencias horarias de un profesor en función de los parámetros proporcionados.
+     * <p>
+     * Este método se encarga de guardar tanto las observaciones como las preferencias de tramos horarios,
+     * realizando las validaciones necesarias y gestionando posibles excepciones.
+     *
+     * @param usuario               el usuario autenticado que realiza la solicitud, representado como {@link DtoUsuarioExtended}.
+     * @param conciliacion          indica si el profesor solicita una observación conciliadora.
+     * @param trabajarPrimeraHora  indica si el profesor desea trabajar en la primera hora.
+     * @param otrasObservaciones    observaciones adicionales sobre la disponibilidad horaria del profesor (opcional).
+     * @param diasDesc              descripción del/de los día(s) aplicables para el horario.
+     * @param tramo                 el tramo horario que se desea modificar.
+     * @param tipoHorario           el tipo de horario o jornada laboral.
+     * @param email                 el correo electrónico del profesor al que se aplican las observaciones.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si la operación se realiza correctamente.
+     * - 400 (NOT_FOUND) si se lanza una excepción de tipo {@link SchoolManagerServerException} durante la validación.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado o de acceso a la base de datos.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/observaciones")
     public ResponseEntity<?> actualizarObservaciones(@AuthenticationPrincipal DtoUsuarioExtended usuario,
@@ -305,6 +386,11 @@ public class Paso7EleccionDeHorarios
             tramo--;
 
             Integer dias = this.iDiasTramosRepository.encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(tramo, tipoHorario, diasDesc);
+            if (dias == null) {
+                String mensajeError = "No se pudo encontrar el identificador del día/tramo/tipoHorario especificado.";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS, mensajeError);
+            }
 
             IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dias, tramo, tipoHorario);
 
@@ -318,18 +404,17 @@ public class Paso7EleccionDeHorarios
 
             this.iPreferenciasHorariasRepository.saveAndFlush(preferenciasHorariasProfesor);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar actualizar las observaciones del profesor.";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -339,6 +424,19 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Recupera la lista de asignaturas y reducciones asociadas a un profesor en función de su correo electrónico.
+     * <p>
+     * El resultado se estructura en un mapa con dos claves principales:
+     * "asignaturas", que contiene la lista de asignaturas con sus respectivos detalles, y
+     * "reduccionAsignadas", que contiene la lista de reducciones asignadas al profesor.
+     *
+     * @param email el correo electrónico del profesor del que se desea obtener la información.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y un mapa con las claves "asignaturas" y "reduccionAsignadas" si la consulta se realiza correctamente.
+     * - 404 (NOT_FOUND) si no se encuentra información asociada al profesor.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/solicitudes")
     public ResponseEntity<?> obtenerSolicitudes(@RequestHeader(value = "email") String email)
@@ -347,12 +445,10 @@ public class Paso7EleccionDeHorarios
         {
             List<ImpartirHorasDto> listAsignaturasImpartidas = this.iImpartirRepository.encontrarAsignaturasImpartidasPorEmail(email);
 
-            String tipoAsignatura = "Asignatura";
-
             // Convertimos la listAsignaturasImpartidas en dto.
             List<ImpartirTipoDto> listAsignaturasImpartidasDto = listAsignaturasImpartidas.stream().map(impartir ->
                     new ImpartirTipoDto(
-                            tipoAsignatura,
+                            Constants.TIPO_ASIGNATURA,
                             impartir.getNombre(),
                             impartir.getHoras(),
                             impartir.getCupoHoras(),
@@ -364,12 +460,10 @@ public class Paso7EleccionDeHorarios
 
             List<ReduccionProfesoresDto> listReduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionesPorProfesor(email);
 
-            String tipoReduccion = "Reduccion";
-
             // Convertimos la listReduccionProfesoresDto en dto.
             List<ReduccionAsignadaDto> listReduccionAsignadaDto = listReduccionProfesoresDto.stream().map(reduccion ->
                     new ReduccionAsignadaDto(
-                            tipoReduccion,
+                            Constants.TIPO_REDUCCION,
                             reduccion.getNombre(),
                             reduccion.getHoras()
                     )).collect(Collectors.toList());
@@ -383,8 +477,7 @@ public class Paso7EleccionDeHorarios
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo encontrar asignaturas y reducciones asociadas a este profesor";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener las solicitudes del profesor con correo electrónico: " + email;
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -394,6 +487,23 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Elimina solicitudes relacionadas con asignaturas o reducciones de profesorado según los parámetros proporcionados.
+     * <p>
+     * El tipo de solicitud a eliminar (asignatura o reducción) se determina a partir de los encabezados incluidos
+     * en la solicitud. El acceso está restringido según los permisos del usuario autenticado.
+     *
+     * @param usuario           el usuario autenticado que realiza la solicitud, representado como {@link DtoUsuarioExtended}.
+     * @param email             el correo electrónico del profesor asociado a la solicitud (opcional).
+     * @param nombreAsignatura  el nombre de la asignatura a eliminar, requerido si se trata de una solicitud de asignatura.
+     * @param horasAsignatura   las horas asociadas a la asignatura, opcional.
+     * @param curso             el curso escolar de la asignatura, opcional.
+     * @param etapa             la etapa educativa de la asignatura, opcional.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si la eliminación se realizó correctamente.
+     * - 404 (NOT_FOUND) si no se encuentra la solicitud a eliminar.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/solicitudes")
     public ResponseEntity<?> eliminarSolicitudes(@AuthenticationPrincipal DtoUsuarioExtended usuario,
@@ -415,7 +525,6 @@ public class Paso7EleccionDeHorarios
 
             if (nombreAsignatura != null && !nombreAsignatura.isEmpty())
             {
-
                 Impartir asignaturaImpartidaABorrar = construirSolicitudImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
                 this.iImpartirRepository.delete(asignaturaImpartidaABorrar);
                 return ResponseEntity.ok().build();
@@ -425,18 +534,17 @@ public class Paso7EleccionDeHorarios
 
             this.iProfesorReduccionRepository.delete(profesorReduccionABorrar);
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar eliminar las solicitudes.";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -446,6 +554,24 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Guarda una solicitud de asignación de asignatura procesando los encabezados de la solicitud
+     * y persistiendo la información en la base de datos.
+     * <p>
+     * En caso de error durante la operación, se devuelven respuestas apropiadas indicando la causa.
+     *
+     * @param email           el correo electrónico del usuario que realiza la solicitud.
+     * @param nombreAsignatura el nombre de la asignatura que se desea asignar.
+     * @param horasAsignatura  el número de horas asignadas a la asignatura.
+     * @param curso            el curso académico al que pertenece la asignatura.
+     * @param etapa            la etapa educativa correspondiente a la asignatura.
+     * @param grupoAntiguo     el identificador del grupo previo de la asignatura.
+     * @param grupoNuevo       el nuevo identificador de grupo al que se desea asignar la asignatura.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si la asignación se guarda correctamente.
+     * - 404 (NOT_FOUND) si no se encuentra la solicitud de asignación.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante el procesamiento.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/solicitudes")
     public ResponseEntity<?> guardarSolicitudes(@RequestHeader(value = "email") String email,
@@ -461,18 +587,17 @@ public class Paso7EleccionDeHorarios
             Impartir asignaturaImpartidaAGuardar = construirSolicitudGuardarImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupoAntiguo, grupoNuevo);
             asignaturaImpartidaAGuardar.setAsignadoDireccion(true);
             this.iImpartirRepository.saveAndFlush(asignaturaImpartidaAGuardar);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar guardar la solicitud.";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -482,6 +607,20 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Recupera los grupos de asignaturas en función del nombre, horas, curso y etapa proporcionados.
+     * <p>
+     * El método filtra los grupos que coincidan con los parámetros especificados en los encabezados de la solicitud.
+     *
+     * @param nombreAsignatura  el nombre de la asignatura a buscar.
+     * @param horasAsignatura   el número de horas asignadas a la asignatura.
+     * @param curso             el curso académico de la asignatura.
+     * @param etapa             la etapa educativa correspondiente a la asignatura.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de {@link GrupoAsignaturaDto} si se encuentran resultados.
+     * - 404 (NOT_FOUND) si no se encuentra ningún grupo que coincida.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAsignaturas")
     public ResponseEntity<?> obtenerGruposDeAsignaturas(@RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
@@ -495,22 +634,21 @@ public class Paso7EleccionDeHorarios
 
             if (grupoAsignaturaDtos.isEmpty())
             {
-                String mensajeError = "Error - No se han encontro grupos para esa asignatrua";
+                String mensajeError = "No se han encontro grupos para esa asignatrua";
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.GRUPOS_NO_ENCONTRADOS_PARA_ASIGNATURA, mensajeError);
             }
 
             return ResponseEntity.ok().body(grupoAsignaturaDtos);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(404).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - No se pudo acceder a la base de datos";
-
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener los grupos de asignaturas.";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
@@ -520,20 +658,43 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Construye una instancia de {@link ProfesorReduccion} para un profesor y reducción especificados.
+     * <p>
+     * Busca la reducción asignada al profesor identificado por su correo electrónico, con el nombre y las horas indicadas.
+     *
+     * @param email            el correo electrónico del profesor.
+     * @param nombreReduccion  el nombre de la reducción asignada al profesor.
+     * @param horasReduccion   el número de horas de la reducción.
+     * @return una instancia de {@link ProfesorReduccion} con los datos correspondientes.
+     * @throws SchoolManagerServerException si no se encuentra una reducción asignada al profesor con los datos especificados.
+     */
     private ProfesorReduccion construirSoliciturReduccionProfesores(String email, String nombreReduccion, Integer horasReduccion) throws SchoolManagerServerException
     {
         ReduccionProfesoresDto reduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionPorProfesor(email, nombreReduccion, horasReduccion);
 
         if (reduccionProfesoresDto == null)
         {
-            String mensajeError = "Error - No se han encontro una reduccion con esos datos asignada a este profesor";
+            String mensajeError = "No se han encontro una reduccion con esos datos asignada a este profesor";
             log.error(mensajeError);
-            throw new SchoolManagerServerException(1, mensajeError);
+            throw new SchoolManagerServerException(Constants.REDUCCION_NO_ASIGNADA_A_PROFESOR, mensajeError);
         }
 
         return construirProfesorReduccion(email, nombreReduccion, horasReduccion);
     }
 
+    /**
+     * Construye una instancia de {@code IdImpartir} con los parámetros proporcionados.
+     * <p>
+     * Esta instancia incluye los identificadores compuestos relacionados con la asignatura y el profesor.
+     *
+     * @param email          el correo electrónico del profesor.
+     * @param nombreAsignatura el nombre de la asignatura.
+     * @param curso          el curso al que pertenece la asignatura.
+     * @param etapa          la etapa educativa de la asignatura (por ejemplo, primaria, secundaria).
+     * @param grupoAntiguo   el grupo antiguo asociado a la asignatura.
+     * @return una instancia de {@code IdImpartir} que contiene los identificadores compuestos.
+     */
     private IdImpartir construirIdImpartir(String email, String nombreAsignatura, Integer curso, String etapa, Character grupoAntiguo)
     {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
@@ -557,6 +718,18 @@ public class Paso7EleccionDeHorarios
         return new IdImpartir(asignatura, profesor);
     }
 
+    /**
+     * Construye una instancia de la clase {@code Impartir} asociándola con
+     * un identificador único y estableciendo el número de horas asignadas.
+     *
+     * @param email           el correo electrónico de la persona responsable de impartir la asignatura.
+     * @param nombreAsignatura el nombre de la asignatura a impartir.
+     * @param horasAsignatura  la cantidad de horas asignadas a la asignatura.
+     * @param curso           el curso en el que se imparte la asignatura.
+     * @param etapa           la etapa educativa en la que se imparte la asignatura.
+     * @param grupo           el identificador del grupo asignado a la asignatura.
+     * @return una nueva instancia de {@code Impartir} con los detalles especificados.
+     */
     private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo)
     {
 
@@ -569,6 +742,22 @@ public class Paso7EleccionDeHorarios
         return impartir;
     }
 
+    /**
+     * Construye un objeto {@code Impartir} para guardar una asignación docente de una asignatura y profesor dados.
+     * <p>
+     * Este método verifica la existencia de una asignación docente previa, la elimina y crea una nueva asignación
+     * con el grupo y detalles actualizados.
+     *
+     * @param email           el correo electrónico del profesor.
+     * @param nombreAsignatura el nombre de la asignatura.
+     * @param horasAsignatura  la cantidad de horas asignadas a la asignatura.
+     * @param curso           el curso académico de la asignación.
+     * @param etapa           la etapa educativa (por ejemplo, primaria, secundaria).
+     * @param grupoAntiguo    el grupo anterior asignado al profesor para esta asignación docente.
+     * @param grupoNuevo      el nuevo grupo que se asignará al profesor para esta asignación docente.
+     * @return una nueva instancia de {@code Impartir} que representa la asignación docente actualizada.
+     * @throws SchoolManagerServerException si la asignación docente previa no existe o no se puede encontrar.
+     */
     private Impartir construirSolicitudGuardarImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupoAntiguo, Character grupoNuevo) throws SchoolManagerServerException
     {
 
@@ -577,9 +766,9 @@ public class Paso7EleccionDeHorarios
         Optional<Impartir> asignaturaImpartida = this.iImpartirRepository.findById(idImpartirGrupoViejo);
         if (asignaturaImpartida.isEmpty())
         {
-            String mensajeError = "Error - No existe una asignatura asignada con esos datos";
+            String mensajeError = "No existe una asignatura asignada con esos datos";
             log.error(mensajeError);
-            throw new SchoolManagerServerException(1, mensajeError);
+            throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ASIGNADA_A_PROFESOR, mensajeError);
         }
 
         this.iImpartirRepository.delete(asignaturaImpartida.get());
@@ -593,6 +782,15 @@ public class Paso7EleccionDeHorarios
         return impartir;
     }
 
+    /**
+     * Construye un objeto {@link ProfesorReduccion} asignando el correo electrónico,
+     * el nombre de la reducción y las horas de reducción a sus componentes correspondientes.
+     *
+     * @param email           el correo electrónico asociado al profesor.
+     * @param nombreReduccion el nombre de la reducción.
+     * @param horasReduccion  el número de horas asociadas a la reducción.
+     * @return el objeto {@link ProfesorReduccion} construido con los datos asignados.
+     */
     private ProfesorReduccion construirProfesorReduccion(String email, String nombreReduccion, Integer horasReduccion)
     {
         Profesor profesor = new Profesor();
@@ -615,15 +813,30 @@ public class Paso7EleccionDeHorarios
         return profesorReduccion;
     }
 
+    /**
+     * Construye y devuelve un objeto {@code Impartir} basado en los datos proporcionados.
+     * <p>
+     * Verifica previamente si la asignatura está asignada al profesor identificado por el correo electrónico.
+     * Si no existe tal asignación, lanza una excepción.
+     *
+     * @param email            el correo electrónico del profesor.
+     * @param nombreAsignatura el nombre de la asignatura a impartir.
+     * @param horasAsignatura  la cantidad de horas asignadas a la asignatura.
+     * @param curso            el curso al que pertenece la asignatura.
+     * @param etapa            la etapa educativa (por ejemplo, primaria, secundaria).
+     * @param grupo            el grupo dentro del curso.
+     * @return la entidad {@code Impartir} creada con los datos proporcionados.
+     * @throws SchoolManagerServerException si no se encuentra la asignatura asignada al profesor.
+     */
     private Impartir construirSolicitudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException
     {
         ImpartirDto asignaturaImpartidaDto = this.iImpartirRepository.encontrarAsignaturaImpartidaPorEmail(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
 
         if (asignaturaImpartidaDto == null)
         {
-            String mensajeError = "Error - No se han encontrado una asignatura con esos datos asignadas a este profesor";
+            String mensajeError = "No se han encontrado una asignatura con esos datos asignadas a este profesor";
             log.error(mensajeError);
-            throw new SchoolManagerServerException(1, mensajeError);
+            throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ASIGNADA_A_PROFESOR, mensajeError);
         }
 
         return construirImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);

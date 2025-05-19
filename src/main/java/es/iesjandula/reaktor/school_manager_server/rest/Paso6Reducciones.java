@@ -120,11 +120,13 @@ public class Paso6Reducciones
         }
         catch (Exception exception)
         {
-
+            // Manejo de excepciones generales
             String mensajeError = "ERROR - Se produjo un error inesperado al intentar crear la reducción.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            log.error(mensajeError, exception);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
@@ -151,10 +153,13 @@ public class Paso6Reducciones
         }
         catch (Exception exception)
         {
+            // Manejo de excepciones generales
             String mensajeError = "ERROR - Se produjo un error inesperado al intentar al obtener la lista de reducciones.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            log.error(mensajeError, exception);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
 
@@ -221,11 +226,13 @@ public class Paso6Reducciones
         }
         catch (Exception exception)
         {
-
+            // Manejo de excepciones generales
             String mensajeError = "ERROR - Se produjo un error inesperado al intentar al intentar borrar la reducción.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            log.error(mensajeError, exception);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
@@ -254,7 +261,7 @@ public class Paso6Reducciones
             {
                 String mensajeError = "No se han encontrado profesores en base de datos";
                 log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
+                throw new SchoolManagerServerException(Constants.SIN_PROFESORES_ENCONTRADOS, mensajeError);
             }
 
             List<ProfesorDto> listaProfesorDto = list.stream().map(profesor ->
@@ -273,10 +280,13 @@ public class Paso6Reducciones
         }
         catch (Exception exception)
         {
+            // Manejo de excepciones generales
             String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener la lista de profesores.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            log.error(mensajeError, exception);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
@@ -303,10 +313,13 @@ public class Paso6Reducciones
         }
         catch (Exception exception)
         {
+            // Manejo de excepciones generales
             String mensajeError = "ERROR - Se produjo un error inesperado al intentar obtener la lista de reducciones de profesores.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            log.error(mensajeError, exception);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
@@ -364,11 +377,13 @@ public class Paso6Reducciones
         }
         catch (Exception exception)
         {
-
+            // Manejo de excepciones generales
             String mensajeError = "ERROR - Se produjo un error inesperado al intentar borrar la reducción asignada al profesor.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            log.error(mensajeError, exception);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }

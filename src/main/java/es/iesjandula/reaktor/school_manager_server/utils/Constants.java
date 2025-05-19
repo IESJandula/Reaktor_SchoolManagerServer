@@ -29,6 +29,16 @@ public class Constants
 	 */
 	public static final char SIN_GRUPO_ASIGNADO = 'Z';
 
+    /**
+     * Tipo de solicitud: Asignatura.
+     */
+    public static final String TIPO_ASIGNATURA = "Asignatura";
+
+    /**
+     * Tipo de solicitud: Reducción.
+     */
+    public static final String TIPO_REDUCCION = "Reduccion";
+
 
 	/*********************************************************/
 	/******************* Ficheros y carpetas *****************/
@@ -124,48 +134,92 @@ public class Constants
 	/**
 	 * Error - Datos matricula no encontrados
 	 */
-	public final static int DATOS_MATRICULA_NO_ENCONTRADA = 50;
+	public final static int DATOS_MATRICULA_NO_ENCONTRADA = 51;
 
 	/**
 	 * Error - Matricula alumno no encontrada
 	 */
-	public final static int MATRICULA_ALUMNO_NO_ENCONTRADA = 51;
+	public final static int MATRICULA_ALUMNO_NO_ENCONTRADA = 52;
 
 	/**
 	 * Error - Matricula alumno ya existente
 	 */
-	public final static int MATRICULA_ALUMNO_EXISTENTE = 52;
+	public final static int MATRICULA_ALUMNO_EXISTENTE = 53;
 
 	/**
 	 * Error - Grupo no encontrado
 	 */
-	public final static int GRUPO_NO_ENCONTRADO = 53;
+	public final static int GRUPO_NO_ENCONTRADO = 54;
 
 	/**
 	 * Error - Asignaturas mínimas no seleccionadas
 	 */
-	public final static int  ASIGNATURAS_MINIMAS_NO_SELECCIONADAS = 54;
+	public final static int  ASIGNATURAS_MINIMAS_NO_SELECCIONADAS = 55;
 
 	/**
 	 * Error - Asignatura con bloque asignado
 	 */
-	public final static int ASIGNATURA_CON_BLOQUE = 55;
+	public final static int ASIGNATURA_CON_BLOQUE = 56;
 
 	/**
 	 * Error - Reducción ya asignada a un profesor
 	 */
-	public final static int REDUCCION_ASIGNADA = 56;
-
-	public final static int DEPARTAMENTO_NO_ENCONTRADO = 57;
-
-	public final static int REDUCCION_EXISTENTE = 58;
-
-	public final static int REDUCCION_NO_ENCONTRADA = 59;
+	public final static int REDUCCION_ASIGNADA = 57;
 
 	/**
-	 * Error - Reducción no asignada a un profesor
+	 * Error - Departamento no encontrado
 	 */
-	public final static int REDUCCION_NO_ASIGNADA_A_PROFESOR = 60;
+	public final static int DEPARTAMENTO_NO_ENCONTRADO = 58;
+
+	/**
+	 * Error - La reducción ya existe
+	 */
+	public final static int REDUCCION_EXISTENTE = 59;
+
+	/**
+	 * Error - No se encontró la reducción
+	 */
+	public final static int REDUCCION_NO_ENCONTRADA = 60;
+
+	/**
+	 * Error - No se encontro ninguna una reducción asignada a un profesor
+	 */
+	public final static int REDUCCION_NO_ASIGNADA_A_PROFESOR = 61;
+
+	/**
+	 * Error - La asignatura ya ha sido asignada a el profesor
+	 */
+	public final static int ASIGNATURA_ASIGNADA_A_PROFESOR = 62;
+
+	/**
+	 * Error - Días, tramos y tipos horarios no encontrados
+	 */
+	public final static int DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS = 63;
+
+	/**
+	 * Error - No se han encontrado asignaturas para el departamento
+	 */
+	public final static int ASIGNATURAS_NO_ENCONTRADAS_PARA_DEPARTAMENTO = 64;
+
+	/**
+	 * Error - No se han encontrado grupos para esa asignatura
+	 */
+	public final static int GRUPOS_NO_ENCONTRADOS_PARA_ASIGNATURA = 65;
+
+	/**
+	 * Error - No se encontró una asignatura asignada al profesor con esos datos
+	 */
+	public final static int ASIGNATURA_NO_ASIGNADA_A_PROFESOR = 66;
+
+	/**
+	 * Error - No se encontraron profesores en la base de datos
+	 */
+	public static final int SIN_PROFESORES_ENCONTRADOS = 67;
+
+	/**
+	 * Error - No se encontraron reducciones en la base de datos
+	 */
+	public static final int SIN_REDUCCIONES_ENCONTRADAS = 68;
 
 
 	/************* ERRORES - Generales/De Conexión ***************/
