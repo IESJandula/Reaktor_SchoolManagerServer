@@ -229,13 +229,11 @@ public class Paso7EleccionDeHorarios
      * <p>
      * Si el usuario tiene el rol de Dirección, se recuperan todas las reducciones del sistema.
      * En caso contrario, se obtienen únicamente las reducciones asociadas al profesorado.
-     * Se aplican controles de error adecuados para manejar casos como la ausencia de datos
-     * o errores en el acceso a la base de datos.
+     * Se aplican control de error para manejar el caso de que no se encuentren las reducciones asociadas al profesorado.
      *
      * @param usuario el usuario autenticado cuya función determina la lógica de recuperación de datos.
      * @return una {@link ResponseEntity} con:
      * - 200 (OK) si se recuperan correctamente las reducciones.
-     * - 404 (NOT_FOUND) si no se encuentran reducciones.
      * - 500 (INTERNAL_SERVER_ERROR) si ocurre un fallo inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
@@ -248,28 +246,11 @@ public class Paso7EleccionDeHorarios
             {
                 List<ReduccionDto> listReduccion = this.iReduccionRepository.encontrarTodasReducciones();
 
-                if (listReduccion.isEmpty())
-                {
-                    String mensajeError = "No se encontraron reducciones disponibles";
-                    log.error(mensajeError);
-                    throw new SchoolManagerServerException(Constants.SIN_REDUCCIONES_ENCONTRADAS, mensajeError);
-                }
-
                 return ResponseEntity.ok().body(listReduccion);
             }
             List<ReduccionProfesoresDto> listReduccionesProfesores = this.iReduccionRepository.encontrarReduccionesParaProfesores();
 
-            if (listReduccionesProfesores.isEmpty())
-            {
-                String mensajeError = "No se encontraron reducciones disponibles para los profesores";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.SIN_REDUCCIONES_ENCONTRADAS, mensajeError);
-            }
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(listReduccionesProfesores);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {

@@ -49,7 +49,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
-	List<Optional<Asignatura>> findAsignaturasByCursoEtapaAndNombre(@Param("curso") int curso,
+	List<Asignatura> findAsignaturasByCursoEtapaAndNombre(@Param("curso") int curso,
 														      		@Param("etapa") String etapa,
 														      		@Param("nombre") String nombre);
 
@@ -79,13 +79,13 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaHorasDto(a.idAsignatura.nombre, a.horas) "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
-	List<AsignaturaHorasDto> findNombreAndHorasByCursoEtapaAndNombres(@Param("curso") Integer curso,
-																	  @Param("etapa") String etapa);
+	List<AsignaturaHorasDto> findNombreAndHorasByCursoEtapa(@Param("curso") Integer curso,
+															@Param("etapa") String etapa);
 
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
-	Asignatura encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
+	List<Asignatura> encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
 											  @Param("etapa") String etapa,
 											  @Param("nombres") String nombres);
 
@@ -151,5 +151,5 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Query("SELECT a " +
 			"FROM Asignatura a " +
 			"WHERE a.idAsignatura.nombre = :nombre")
-	Optional<Asignatura> encontrarAsignaturaPorNombre(@Param("nombre") String nombre);
+	List<Asignatura> encontrarAsignaturaPorNombre(@Param("nombre") String nombre);
 }

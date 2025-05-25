@@ -117,4 +117,8 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 															  @Param("grupo") Character grupo,
 															  @Param("nombreAlumno") String nombreAlumno,
 															  @Param("apellidosAlumno") String apellidosAlumno) ;
+
+	@Query("SELECT COUNT(DISTINCT m.idMatricula.alumno.id) " +
+			"FROM Matricula m")
+	Long numeroAlumnos();
 }

@@ -44,10 +44,11 @@ public class Paso2AsignaturasYBloquesController
      * @param curso el curso para el que se solicitan las asignaturas.
      * @param etapa la etapa educativa correspondiente.
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) y la lista de asignaturas si se encuentra información.
-     *         - 404 (Not Found) si no existen asignaturas para ese curso y etapa.
-     *         - 500 (Internal Server Error) si ocurre un error inesperado.
+     * - 200 (OK) y la lista de asignaturas si se encuentra información.
+     * - 404 (Not Found) si no existen asignaturas para ese curso y etapa.
+     * - 500 (Internal Server Error) si ocurre un error inesperado.
      */
+//    TODO: cambiar a ResquestParam
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
     public ResponseEntity<?> cargarAsignaturas(@RequestHeader("curso") int curso,
@@ -89,16 +90,16 @@ public class Paso2AsignaturasYBloquesController
      * El método valida que se hayan seleccionado al menos dos asignaturas, verifica que existan
      * y comprueba que no estén ya asignadas a otro bloque antes de crear uno nuevo.
      *
-     * @param curso el identificador del curso para el que se crea el bloque.
-     * @param etapa la etapa educativa asociada al bloque.
+     * @param curso       el identificador del curso para el que se crea el bloque.
+     * @param etapa       la etapa educativa asociada al bloque.
      * @param asignaturas una lista de nombres de asignaturas que se incluirán en el bloque;
      *                    debe contener al menos dos asignaturas.
      * @return una {@link ResponseEntity} con:
-     *         - 201 (Created) y el ID del bloque si se crea correctamente.
-     *         - 400 (Bad Request) si se seleccionan menos de dos asignaturas.
-     *         - 404 (Not Found) si alguna asignatura no se encuentra.
-     *         - 409 (Conflict) si alguna asignatura ya está asignada a otro bloque.
-     *         - 500 (Internal Server Error) si ocurre un error inesperado.
+     * - 201 (Created) y el ID del bloque si se crea correctamente.
+     * - 400 (Bad Request) si se seleccionan menos de dos asignaturas.
+     * - 404 (Not Found) si alguna asignatura no se encuentra.
+     * - 409 (Conflict) si alguna asignatura ya está asignada a otro bloque.
+     * - 500 (Internal Server Error) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/bloques")
@@ -120,19 +121,19 @@ public class Paso2AsignaturasYBloquesController
 
             for (String asignaturaString : asignaturas)
             {
-                List<Optional<Asignatura>> optionalAsignatura = this.iAsignaturaRepository.findAsignaturasByCursoEtapaAndNombre(curso, etapa, asignaturaString);
+                List<Asignatura> optionalAsignatura = this.iAsignaturaRepository.findAsignaturasByCursoEtapaAndNombre(curso, etapa, asignaturaString);
 
-                for (Optional<Asignatura> asignatura : optionalAsignatura)
+                for (Asignatura asignatura : optionalAsignatura)
                 {
 
-                    if (asignatura.isEmpty())
+                    if (asignatura == null)
                     {
                         String mensajeError = "La asignatura no fue encontrada";
                         log.error(mensajeError);
                         throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
                     }
 
-                    if (asignatura.get().getBloqueId() != null)
+                    if (asignatura.getBloqueId() != null)
                     {
                         String mensajeError = "Una de las asignaturas ya tiene un bloque asignado";
                         log.error(mensajeError);
@@ -141,9 +142,9 @@ public class Paso2AsignaturasYBloquesController
 
                     this.iBloqueRepository.save(bloque);
 
-                    asignatura.get().setBloqueId(bloque);
+                    asignatura.setBloqueId(bloque);
 
-                    iAsignaturaRepository.saveAndFlush(asignatura.get());
+                    iAsignaturaRepository.saveAndFlush(asignatura);
                 }
             }
 
@@ -201,9 +202,9 @@ public class Paso2AsignaturasYBloquesController
         {
 
             // Buscamos la asignatura
-            Asignatura asignatura = iAsignaturaRepository.encontrarPorCursoYEtapaYNombre(curso, etapa, nombreAsignatura);
+            List<Asignatura> listAsignatura = iAsignaturaRepository.encontrarPorCursoYEtapaYNombre(curso, etapa, nombreAsignatura);
 
-            if (asignatura == null)
+            if (listAsignatura.isEmpty())
             {
                 String mensajeError = "No se han encontrado " + nombreAsignatura + " en " + curso + etapa;
                 log.error(mensajeError);
@@ -211,28 +212,32 @@ public class Paso2AsignaturasYBloquesController
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
-            // Desasociar la asignatura del bloque
-            Bloque bloque = asignatura.getBloqueId();
-            asignatura.setBloqueId(null);
-
-            this.iAsignaturaRepository.saveAndFlush(asignatura);
-
-            if (bloque != null && bloque.getAsignaturas().isEmpty())
+            for (Asignatura asignatura : listAsignatura)
             {
-                iBloqueRepository.delete(bloque);
-            }
-            else
-            {
-                log.info("Queda bloques por eliminar");
+                // Desasociar la asignatura del bloque
+                Bloque bloque = asignatura.getBloqueId();
+                asignatura.setBloqueId(null);
+
+                this.iAsignaturaRepository.saveAndFlush(asignatura);
+
+                if (bloque != null && bloque.getAsignaturas().isEmpty())
+                {
+                    iBloqueRepository.delete(bloque);
+                }
+                else
+                {
+                    log.info("Queda bloques por eliminar");
+                }
+
+                Long bloqueId = -1l;
+                if (bloque != null)
+                {
+                    bloqueId = bloque.getId();
+                }
+
+                log.info("INFO - Bloque " + bloqueId + " eliminado con éxito");
             }
 
-            Long bloqueId = -1l;
-            if (bloque != null)
-            {
-                bloqueId = bloque.getId();
-            }
-
-            log.info("INFO - Bloque " + bloqueId + " eliminado con éxito");
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 
         }
@@ -259,11 +264,11 @@ public class Paso2AsignaturasYBloquesController
      * Permite marcar una asignatura como sin docencia o restaurarla a su estado original.
      *
      * @param nombreAsignatura el nombre de la asignatura a actualizar.
-     * @param sinDocencia true si se desea marcar como sin docencia; false para restaurar.
+     * @param sinDocencia      true si se desea marcar como sin docencia; false para restaurar.
      * @return una {@link ResponseEntity} con:
-     *         - 204 (No Content) si la operación se realiza correctamente.
-     *         - 404 (Not Found) si no se encuentra la asignatura.
-     *         - 500 (Internal Server Error) si ocurre un error inesperado.
+     * - 204 (No Content) si la operación se realiza correctamente.
+     * - 404 (Not Found) si no se encuentra la asignatura.
+     * - 500 (Internal Server Error) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/sinDocencia")
@@ -272,19 +277,21 @@ public class Paso2AsignaturasYBloquesController
     {
         try
         {
-            Optional<Asignatura> asignaturaOpt = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(nombreAsignatura);
 
-            if (asignaturaOpt.isEmpty())
+            List<Asignatura> asignaturas = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(nombreAsignatura);
+
+            if (asignaturas.isEmpty())
             {
                 String mensajeError = "No se ha encontrado " + nombreAsignatura + " en base de datos";
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
-            Asignatura asignatura = asignaturaOpt.get();
-            asignatura.setSinDocencia(sinDocencia);
-
-            this.iAsignaturaRepository.saveAndFlush(asignatura);
+            for (Asignatura asignatura : asignaturas)
+            {
+                asignatura.setSinDocencia(sinDocencia);
+                this.iAsignaturaRepository.saveAndFlush(asignatura);
+            }
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
@@ -313,9 +320,9 @@ public class Paso2AsignaturasYBloquesController
      * @param curso el identificador del curso enviado en la cabecera de la solicitud.
      * @param etapa la etapa educativa enviada en la cabecera de la solicitud.
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) y la lista de asignaturas si se encuentran datos.
-     *         - 404 (Not Found) si no se encuentran asignaturas.
-     *         - 500 (Internal Server Error) si ocurre un error inesperado.
+     * - 200 (OK) y la lista de asignaturas si se encuentran datos.
+     * - 404 (Not Found) si no se encuentran asignaturas.
+     * - 500 (Internal Server Error) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/horas")
@@ -324,7 +331,7 @@ public class Paso2AsignaturasYBloquesController
     {
         try
         {
-            List<AsignaturaHorasDto> listAsignatuasHoras = this.iAsignaturaRepository.findNombreAndHorasByCursoEtapaAndNombres(curso, etapa);
+            List<AsignaturaHorasDto> listAsignatuasHoras = this.iAsignaturaRepository.findNombreAndHorasByCursoEtapa(curso, etapa);
 
             if (listAsignatuasHoras.isEmpty())
             {
@@ -355,14 +362,14 @@ public class Paso2AsignaturasYBloquesController
     /**
      * Asigna un número de horas a una asignatura, identificada por su curso, etapa y nombre.
      *
-     * @param curso el curso en el que se encuentra la asignatura.
-     * @param etapa la etapa educativa correspondiente.
+     * @param curso            el curso en el que se encuentra la asignatura.
+     * @param etapa            la etapa educativa correspondiente.
      * @param nombreAsignatura el nombre de la asignatura a actualizar.
-     * @param horas el número de horas a asignar.
+     * @param horas            el número de horas a asignar.
      * @return una {@link ResponseEntity} con:
-     *         - 204 (No Content) si la operación se realiza correctamente.
-     *         - 404 (Not Found) si no se encuentra la asignatura.
-     *         - 500 (Internal Server Error) si ocurre un error inesperado.
+     * - 204 (No Content) si la operación se realiza correctamente.
+     * - 404 (Not Found) si no se encuentra la asignatura.
+     * - 500 (Internal Server Error) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/horas")
@@ -393,7 +400,7 @@ public class Paso2AsignaturasYBloquesController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(400).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {

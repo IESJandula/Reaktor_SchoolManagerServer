@@ -216,11 +216,6 @@ public class Constants
 	 */
 	public static final int SIN_PROFESORES_ENCONTRADOS = 67;
 
-	/**
-	 * Error - No se encontraron reducciones en la base de datos
-	 */
-	public static final int SIN_REDUCCIONES_ENCONTRADAS = 68;
-
 
 	/************* ERRORES - Generales/De Conexión ***************/
 

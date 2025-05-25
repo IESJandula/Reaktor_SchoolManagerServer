@@ -7,9 +7,7 @@ import java.util.Optional;
 import es.iesjandula.reaktor.school_manager_server.dtos.*;
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
-import es.iesjandula.reaktor.school_manager_server.services.AlumnoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +61,7 @@ public class Paso3CrearGruposController
     private IMatriculaRepository iMatriculaRepository;
 
     @Autowired
-    private AlumnoService alumnoService;
+    private IImpartirRepository iImpartirRepository;
 
     /**
      * Crea un nuevo grupo para un curso y etapa determinados.
@@ -348,7 +346,82 @@ public class Paso3CrearGruposController
     {
         try
         {
-            alumnoService.borrarAlumno(alumnoDto);
+            List<MatriculaDto> listaAlumnosABorrar = iMatriculaRepository.encontrarAlumnoPorNombreYApellidosYGrupo(alumnoDto.getNombre(), alumnoDto.getApellidos(), alumnoDto.getGrupo());
+            List<Integer> idAlumnos = new ArrayList<>();
+
+            if (listaAlumnosABorrar.isEmpty())
+            {
+                String mensajeError = "No se encontraron alumnos para borrar";
+
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);
+            }
+
+            // Por cada matricula del Alumno
+            for (MatriculaDto matriculaDtoAlumnoABorrar : listaAlumnosABorrar)
+            {
+                List<Integer> listaIds = iMatriculaRepository.encontrarIdAlumnoPorCursoEtapaGrupoYNombre(matriculaDtoAlumnoABorrar.getCurso(),
+                        matriculaDtoAlumnoABorrar.getEtapa(),
+                        matriculaDtoAlumnoABorrar.getGrupo(),
+                        matriculaDtoAlumnoABorrar.getNombreAsignatura(),
+                        matriculaDtoAlumnoABorrar.getNombreAlumno(),
+                        matriculaDtoAlumnoABorrar.getApellidosAlumno());
+
+                idAlumnos.add(listaIds.get(listaIds.size() - 1)); //Añado el id encontrado a la lista general
+
+                for (Integer id : listaIds)
+                {
+                    if (this.iMatriculaRepository.numeroAlumnos() == 1)
+                    {
+                        if (iImpartirRepository.encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(matriculaDtoAlumnoABorrar.getNombreAsignatura(), matriculaDtoAlumnoABorrar.getCurso(),
+                                matriculaDtoAlumnoABorrar.getEtapa()) != null)
+                        {
+                            String mensajeError = "No se puede borrar el alumno ya que hay asignaturas asignadas a profeos está asignada a un profesor";
+                            log.error(mensajeError);
+                            throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
+                        }
+                    }
+//                  Eliminar el registro en la tabla Matricula
+                    this.iMatriculaRepository.borrarPorTodo(matriculaDtoAlumnoABorrar.getCurso(), matriculaDtoAlumnoABorrar.getEtapa(),
+                            matriculaDtoAlumnoABorrar.getNombreAsignatura(), id);
+                }
+
+                //Si la matricula actual de asignatura del alumno es la unica de su grupo
+                if (this.iMatriculaRepository.numeroAsignaturasPorNombreYGrupo(matriculaDtoAlumnoABorrar.getNombreAsignatura(), matriculaDtoAlumnoABorrar.getCurso(), matriculaDtoAlumnoABorrar.getEtapa(), matriculaDtoAlumnoABorrar.getGrupo()) == 0)
+                {
+                    Optional<Asignatura> asignaturaEncontrada = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(matriculaDtoAlumnoABorrar.getCurso(), matriculaDtoAlumnoABorrar.getEtapa(),
+                            matriculaDtoAlumnoABorrar.getNombreAsignatura(), matriculaDtoAlumnoABorrar.getGrupo());
+
+                    // Creo la asignatura sin el grupo
+                    Asignatura asignatura = getAsignatura(matriculaDtoAlumnoABorrar, asignaturaEncontrada);
+
+                    this.iAsignaturaRepository.saveAndFlush(asignatura);
+
+                    iAsignaturaRepository.delete(asignaturaEncontrada.get());
+                }
+
+                //Convertir a false el campo asignacion de los alumnos borrados
+                IdCursoEtapa idCursoEtapa = new IdCursoEtapa(matriculaDtoAlumnoABorrar.getCurso(), matriculaDtoAlumnoABorrar.getEtapa());
+                CursoEtapa cursoEtapa = new CursoEtapa(idCursoEtapa, matriculaDtoAlumnoABorrar.isEsoBachillerato());
+
+                List<DatosBrutoAlumnoMatricula> datosBrutoAlumnoMatricula =
+                        this.iDatosBrutoAlumnoMatriculaRepository.findByNombreAndApellidosAndCursoEtapa(matriculaDtoAlumnoABorrar.getNombreAlumno(), matriculaDtoAlumnoABorrar.getApellidosAlumno(), cursoEtapa);
+
+                for (DatosBrutoAlumnoMatricula datosAlumnoBorrado : datosBrutoAlumnoMatricula)
+                {
+                    datosAlumnoBorrado.setAsignado(false);
+                }
+
+                // Guardar el registro en la tabla DatosBrutoAlumnoMatricula
+                this.iDatosBrutoAlumnoMatriculaRepository.saveAllAndFlush(datosBrutoAlumnoMatricula);
+            }
+            List<Integer> listaIdsSinDuplicados = idAlumnos.stream()
+                    .distinct()
+                    .toList();
+            for (Integer id : listaIdsSinDuplicados)
+            {
+                iAlumnoRepository.deleteByNombreAndApellidosAndId(alumnoDto.getNombre(), alumnoDto.getApellidos(), id);
+            }
 
             // Log de información antes de la respuesta
             log.info("INFO - Alumno desasignado correctamente");
@@ -359,7 +432,14 @@ public class Paso3CrearGruposController
         catch (SchoolManagerServerException schoolManagerServerException)
         {
             // Devolver la excepción personalizada y el mensaje de error
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+            if (schoolManagerServerException.getCode() == Constants.SIN_ALUMNOS_ENCONTRADOS)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
         }
         catch (Exception exception)
         {
@@ -373,6 +453,29 @@ public class Paso3CrearGruposController
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+
+    private static Asignatura getAsignatura(MatriculaDto matriculaDtoAlumnoABorrar, Optional<Asignatura> asignaturaEncontrada)
+    {
+        IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+        idCursoEtapaGrupo.setCurso(matriculaDtoAlumnoABorrar.getCurso());
+        idCursoEtapaGrupo.setEtapa(matriculaDtoAlumnoABorrar.getEtapa());
+        idCursoEtapaGrupo.setGrupo(Constants.SIN_GRUPO_ASIGNADO);
+
+        CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+        cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+
+        IdAsignatura idAsignatura = new IdAsignatura();
+        idAsignatura.setNombre(matriculaDtoAlumnoABorrar.getNombreAsignatura());
+        idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo);
+
+        Asignatura asignatura = new Asignatura();
+        asignatura.setIdAsignatura(idAsignatura);
+        asignatura.setHoras(asignaturaEncontrada.get().getHoras());
+        asignatura.setBloqueId(asignaturaEncontrada.get().getBloqueId());
+        asignatura.setSinDocencia(asignaturaEncontrada.get().isSinDocencia());
+
+        return asignatura;
     }
 
     /**

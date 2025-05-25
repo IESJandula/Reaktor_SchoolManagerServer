@@ -48,4 +48,11 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
                                                      @Param("etapa") String etapa,
                                                      @Param("grupo") Character grupo);
 
+    @Query("SELECT i " +
+            "FROM Impartir i " +
+            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+    List<Impartir> encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(@Param("nombreAsignatura") String nombreAsignatura,
+                                                               @Param("curso") Integer curso,
+                                                               @Param("etapa") String etapa);
+
 }
