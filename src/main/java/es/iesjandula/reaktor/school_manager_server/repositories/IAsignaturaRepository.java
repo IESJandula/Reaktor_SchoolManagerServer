@@ -35,7 +35,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			".idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id, a.sinDocencia) "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa "
-			+ "GROUP BY a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id")
+			+ "GROUP BY a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas, a.bloqueId.id, a.sinDocencia")
 	List<AsignaturaDto> findByCursoAndEtapa(@Param("curso") Integer curso,
 										    @Param("etapa") String etapa);
 
