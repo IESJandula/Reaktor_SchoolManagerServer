@@ -288,7 +288,7 @@ public class Paso3CrearGruposController
 
                 for (DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaAsignaturaOpt : datosBrutoAlumnoMatriculaAsignaturasOpt)
                 {
-                    if (datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("MATR") || datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("PEND"))
+                    if (datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals(Constants.ESTADO_MATRICULADO) || datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals(Constants.ESTADO_PENDIENTE))
                     {
                         // Registramos el alumno
                         Alumno alumno = this.asignarAlumnosRegistrarAlumno(curso, etapa, grupo, alumnoDatosBrutos.getNombre(), alumnoDatosBrutos.getApellidos());
@@ -373,10 +373,10 @@ public class Paso3CrearGruposController
                 {
                     if (this.iMatriculaRepository.numeroAlumnos() == 1)
                     {
-                        if (iImpartirRepository.encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(matriculaDtoAlumnoABorrar.getNombreAsignatura(), matriculaDtoAlumnoABorrar.getCurso(),
-                                matriculaDtoAlumnoABorrar.getEtapa()) != null)
+                        if (!iImpartirRepository.encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(matriculaDtoAlumnoABorrar.getNombreAsignatura(), matriculaDtoAlumnoABorrar.getCurso(),
+                                matriculaDtoAlumnoABorrar.getEtapa()).isEmpty())
                         {
-                            String mensajeError = "No se puede borrar el alumno ya que hay asignaturas asignadas a profeos está asignada a un profesor";
+                            String mensajeError = "No se puede borrar el alumno ya que hay asignaturas asignadas a profeos";
                             log.error(mensajeError);
                             throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
                         }
@@ -387,17 +387,36 @@ public class Paso3CrearGruposController
                 }
 
                 //Si la matricula actual de asignatura del alumno es la unica de su grupo
-                if (this.iMatriculaRepository.numeroAsignaturasPorNombreYGrupo(matriculaDtoAlumnoABorrar.getNombreAsignatura(), matriculaDtoAlumnoABorrar.getCurso(), matriculaDtoAlumnoABorrar.getEtapa(), matriculaDtoAlumnoABorrar.getGrupo()) == 0)
-                {
-                    Optional<Asignatura> asignaturaEncontrada = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(matriculaDtoAlumnoABorrar.getCurso(), matriculaDtoAlumnoABorrar.getEtapa(),
-                            matriculaDtoAlumnoABorrar.getNombreAsignatura(), matriculaDtoAlumnoABorrar.getGrupo());
+                if (this.iMatriculaRepository.numeroAsignaturasPorNombreYGrupo(
+                        matriculaDtoAlumnoABorrar.getNombreAsignatura(),
+                        matriculaDtoAlumnoABorrar.getCurso(),
+                        matriculaDtoAlumnoABorrar.getEtapa(),
+                        matriculaDtoAlumnoABorrar.getGrupo()) == 0) {
 
-                    // Creo la asignatura sin el grupo
-                    Asignatura asignatura = getAsignatura(matriculaDtoAlumnoABorrar, asignaturaEncontrada);
+                    Optional<Asignatura> asignaturaEncontrada = iAsignaturaRepository
+                            .encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
+                                    matriculaDtoAlumnoABorrar.getCurso(),
+                                    matriculaDtoAlumnoABorrar.getEtapa(),
+                                    matriculaDtoAlumnoABorrar.getNombreAsignatura(),
+                                    matriculaDtoAlumnoABorrar.getGrupo());
 
-                    this.iAsignaturaRepository.saveAndFlush(asignatura);
+                    // Primero borramos la asignatura actual
+                    if (asignaturaEncontrada.isPresent()) {
+                        iAsignaturaRepository.delete(asignaturaEncontrada.get());
 
-                    iAsignaturaRepository.delete(asignaturaEncontrada.get());
+                        // Verificar si quedan más grupos con esta asignatura
+                        Long gruposRestantes = iAsignaturaRepository.contarGruposPorAsignatura(
+                                matriculaDtoAlumnoABorrar.getNombreAsignatura(),
+                                matriculaDtoAlumnoABorrar.getCurso(),
+                                matriculaDtoAlumnoABorrar.getEtapa());
+
+                        // Solo si no quedan más grupos, creamos la asignatura sin grupo
+                        if (gruposRestantes == 0) {
+                            // Creo la asignatura sin el grupo
+                            Asignatura asignatura = getAsignatura(matriculaDtoAlumnoABorrar, asignaturaEncontrada);
+                            this.iAsignaturaRepository.saveAndFlush(asignatura);
+                        }
+                    }
                 }
 
                 //Convertir a false el campo asignacion de los alumnos borrados
@@ -455,7 +474,7 @@ public class Paso3CrearGruposController
         }
     }
 
-    private static Asignatura getAsignatura(MatriculaDto matriculaDtoAlumnoABorrar, Optional<Asignatura> asignaturaEncontrada)
+    public static Asignatura getAsignatura(MatriculaDto matriculaDtoAlumnoABorrar, Optional<Asignatura> asignaturaEncontrada)
     {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
         idCursoEtapaGrupo.setCurso(matriculaDtoAlumnoABorrar.getCurso());
@@ -474,6 +493,7 @@ public class Paso3CrearGruposController
         asignatura.setHoras(asignaturaEncontrada.get().getHoras());
         asignatura.setBloqueId(asignaturaEncontrada.get().getBloqueId());
         asignatura.setSinDocencia(asignaturaEncontrada.get().isSinDocencia());
+        asignatura.setDesdoble(asignaturaEncontrada.get().isDesdoble());
 
         return asignatura;
     }
@@ -655,8 +675,10 @@ public class Paso3CrearGruposController
                 // Asignamos la clave primaria a la asignatura
                 asignatura.setIdAsignatura(idAsignatura);
 
-                // Asignamos las horas
+                // Asignamos las horas, si tiene docencia y si tiene desdoble
                 asignatura.setHoras(asignaturaExistente.get().getHoras());
+                asignatura.setSinDocencia(asignaturaExistente.get().isSinDocencia());
+                asignatura.setDesdoble(asignaturaExistente.get().isDesdoble());
 
                 if (asignaturaExistente.get().getBloques() != null)
                 {

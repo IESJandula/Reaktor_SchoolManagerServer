@@ -312,6 +312,48 @@ public class Paso2AsignaturasYBloquesController
         }
     }
 
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.PUT, value = "/desdoble")
+    public ResponseEntity<?> asignaturasDesdobles(@RequestHeader("nombreAsignatura") String nombreAsignatura,
+                                                  @RequestHeader("desdoble") Boolean desdoble)
+    {
+        try
+        {
+
+            List<Asignatura> asignaturas = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(nombreAsignatura);
+
+            if (asignaturas.isEmpty())
+            {
+                String mensajeError = "No se ha encontrado la asignatura " + nombreAsignatura + " en base de datos";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
+            }
+
+            for (Asignatura asignatura : asignaturas)
+            {
+                asignatura.setDesdoble(desdoble);
+                this.iAsignaturaRepository.saveAndFlush(asignatura);
+            }
+
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo actualizar el estado del desdoble de la asignatura";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
     /**
      * Obtiene el número de horas de las asignaturas para un curso y etapa determinados.
      * <p>

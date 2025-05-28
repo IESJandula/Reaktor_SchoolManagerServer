@@ -12,4 +12,8 @@ public class HorasYBloquesDto
     private Integer horas;
 
     private Long bloques;
+
+    private boolean sinDocencia;
+
+    private boolean desdoble;
 }

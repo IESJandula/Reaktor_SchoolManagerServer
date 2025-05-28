@@ -393,14 +393,14 @@ public class Paso1CargarMatriculaController
                         Optional<Asignatura> asignaturaExistente = this.iAsignaturaRepository
                                 .encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, asignatura, grupo);
 
-                        // Usamos la asignatura existente o crear una nueva si no existe
+//                      Usamos la asignatura existente o crear una nueva si no existe
                         Asignatura asignaturaParaMatricula = asignaturaExistente.orElseGet(() -> {
                             AsignaturaSinGrupoDto asignaturaABuscar = this.iAsignaturaRepository
                                     .encontrarPorCursoYEtapaYNombre(curso, etapa, asignatura);
 
-                            if (asignaturaABuscar == null) {
-                                String mensajeError = "No se encontró la asignatura " + asignatura +
-                                        " para el curso " + curso + " y etapa " + etapa;
+                            if (asignaturaABuscar == null)
+                            {
+                                String mensajeError = "No se encontró la asignatura " + asignatura +" para el curso " + curso + " y etapa " + etapa;
                                 log.error(mensajeError);
                                 try
                                 {
@@ -429,9 +429,23 @@ public class Paso1CargarMatriculaController
                             nuevaAsignatura.setHoras(asignaturaABuscar.getHoras());
                             nuevaAsignatura.setEsoBachillerato(asignaturaABuscar.isEsoBachillerato());
                             nuevaAsignatura.setSinDocencia(asignaturaABuscar.isSinDocencia());
+                            nuevaAsignatura.setDesdoble(asignaturaABuscar.isDesdoble());
 
                             return this.iAsignaturaRepository.saveAndFlush(nuevaAsignatura);
                         });
+
+//                        Primero buscamos si existe la asignatura con grupo Z y la borramos
+                        Optional<Asignatura> asignaturaGrupoZ = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
+                                curso,
+                                etapa,
+                                asignatura,
+                                Constants.SIN_GRUPO_ASIGNADO);  // Buscamos específicamente el grupo Z
+
+                        if (asignaturaGrupoZ.isPresent()) {
+                            Asignatura asignaturaABorrar = asignaturaGrupoZ.get();
+                            iAsignaturaRepository.delete(asignaturaABorrar);
+                            iAsignaturaRepository.flush();
+                        }
 
                         IdMatricula idMatricula = new IdMatricula(asignaturaParaMatricula, alumno.get());
 
@@ -453,7 +467,45 @@ public class Paso1CargarMatriculaController
                         this.iMatriculaRepository.delete(matricula);
 //                      Después de borrar confirmamos la operación
                         this.iMatriculaRepository.flush();
+
+                        // Si la matricula actual de asignatura del alumno es la única de su grupo
+                        if (this.iMatriculaRepository.numeroAsignaturasPorNombreYGrupo(
+                                asignatura, curso, etapa,
+                                matricula.getIdMatricula().getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo()) == 0)
+                        {
+
+                            Optional<Asignatura> asignaturaEncontrada = iAsignaturaRepository
+                                    .encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
+                                            curso, etapa, asignatura,
+                                            matricula.getIdMatricula().getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo());
+
+                            // Primero borramos la asignatura actual
+                            if (asignaturaEncontrada.isPresent())
+                            {
+                                iAsignaturaRepository.delete(asignaturaEncontrada.get());
+
+                                // Verificar si quedan más grupos con esta asignatura
+                                Long gruposRestantes = iAsignaturaRepository.contarGruposPorAsignatura(
+                                        asignatura,
+                                        curso,
+                                        etapa);
+
+                                // Solo si no quedan más grupos, creamos la asignatura sin grupo
+                                if (gruposRestantes == 0)
+                                {
+                                    // Creo la asignatura sin el grupo
+                                    Asignatura asignaturaSinGrupo = getAsignatura(
+                                            curso,
+                                            etapa,
+                                            asignatura,
+                                            asignaturaEncontrada);
+                                    this.iAsignaturaRepository.saveAndFlush(asignaturaSinGrupo);
+                                }
+                            }
+                        }
+
                     }
+
                 }
             }
 
@@ -490,6 +542,30 @@ public class Paso1CargarMatriculaController
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+
+    private Asignatura getAsignatura(Integer curso, String etapa, String nombreAsignatura, Optional<Asignatura> asignaturaEncontrada)
+    {
+        IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+        idCursoEtapaGrupo.setCurso(curso);
+        idCursoEtapaGrupo.setEtapa(etapa);
+        idCursoEtapaGrupo.setGrupo(Constants.SIN_GRUPO_ASIGNADO);
+
+        CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+        cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+
+        IdAsignatura idAsignatura = new IdAsignatura();
+        idAsignatura.setNombre(nombreAsignatura);
+        idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo);
+
+        Asignatura asignatura = new Asignatura();
+        asignatura.setIdAsignatura(idAsignatura);
+        asignatura.setHoras(asignaturaEncontrada.get().getHoras());
+        asignatura.setBloqueId(asignaturaEncontrada.get().getBloqueId());
+        asignatura.setSinDocencia(asignaturaEncontrada.get().isSinDocencia());
+        asignatura.setDesdoble(asignaturaEncontrada.get().isDesdoble());
+
+        return asignatura;
     }
 
     /**

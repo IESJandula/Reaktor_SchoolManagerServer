@@ -82,7 +82,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	List<AsignaturaHorasDto> findNombreAndHorasByCursoEtapa(@Param("curso") Integer curso,
 															@Param("etapa") String etapa);
 
-	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto(a.horas, a.esoBachillerato, a.sinDocencia) "
+	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto(a.horas, a.esoBachillerato, a.sinDocencia, a.desdoble) "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
 	AsignaturaSinGrupoDto encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
@@ -111,7 +111,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			"GROUP BY a.departamentoReceptor.nombre")
 	List<AsignaturaConDepartamentoDto> encontrarAsignaturasConDepartamento();
 
-	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.HorasYBloquesDto(a.horas, a.bloqueId.id) "
+	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.HorasYBloquesDto(a.horas, a.bloqueId.id, a.sinDocencia, a.desdoble) "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
 	Optional<HorasYBloquesDto> encontrarAsignaturaPorCursoEtapaNombre(@Param("curso") int curso,
@@ -147,4 +147,13 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 			"FROM Asignatura a " +
 			"WHERE a.idAsignatura.nombre = :nombre")
 	List<Asignatura> encontrarAsignaturaPorNombre(@Param("nombre") String nombre);
+
+	@Query("SELECT COUNT(DISTINCT a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
+			"FROM Asignatura a " +
+			"WHERE a.idAsignatura.nombre = :nombre " +
+			"AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+	Long contarGruposPorAsignatura(@Param("nombre") String nombre,
+								   @Param("curso") Integer curso,
+								   @Param("etapa") String etapa);
+
 }

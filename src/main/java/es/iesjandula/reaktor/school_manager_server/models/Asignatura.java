@@ -56,7 +56,13 @@ public class Asignatura
      */
     @Column
     private boolean sinDocencia;
-    
+
+    /**
+     * Asignaturas que podrán ser impartidas por mas de un profesor
+     */
+    @Column
+    private boolean desdoble;
+
     /**
      * Departamento propietario de la asignatura.
      * <p>La asignatura tiene una relación de muchos a uno con el "Departamento" propietario. Se mapea con la columna

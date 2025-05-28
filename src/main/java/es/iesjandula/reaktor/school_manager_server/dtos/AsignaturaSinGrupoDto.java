@@ -15,4 +15,6 @@ public class AsignaturaSinGrupoDto
     private boolean esoBachillerato;
 
     private boolean sinDocencia;
+
+    private boolean desdoble;
 }
