@@ -242,7 +242,6 @@ public class Paso5AsignaturasYDepartamentosController
      * @param grupo el identificador del grupo al que pertenece la asignatura, proporcionado en la cabecera de la solicitud.
      * @return una {@link ResponseEntity} con:
      * - 200 (OK) y una lista de {@link NombreAsignaturaDto} si se encuentran asignaturas.
-     * - 404 (NOT_FOUND) si no se encuentra ninguna asignatura.
      * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -255,13 +254,6 @@ public class Paso5AsignaturasYDepartamentosController
         {
             List<Asignatura> asignaturas = iAsignaturaRepository.asignaturasPorCursoEtapaGrupo(curso, etapa, grupo);
 
-            if (asignaturas.isEmpty())
-            {
-                String mensajeError = "No hay asignaturas registradas para la selección dada";
-                log.warn(mensajeError);
-                throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
-            }
-
             // Convertimos las asignaturas a DTOs
             List<NombreAsignaturaDto> NombreAsignaturaDto = asignaturas.stream().map(asignatura ->
                     new NombreAsignaturaDto(
@@ -269,10 +261,6 @@ public class Paso5AsignaturasYDepartamentosController
                     )).collect(Collectors.toList());
 
             return ResponseEntity.ok(NombreAsignaturaDto);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {

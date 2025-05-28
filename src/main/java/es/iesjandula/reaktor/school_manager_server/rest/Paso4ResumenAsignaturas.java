@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDtoSinGrupo;
+import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturasUnicasDto;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
@@ -55,7 +55,7 @@ public class Paso4ResumenAsignaturas
     {
         try
         {
-            List<AsignaturaDtoSinGrupo> asignaturas = iAsignaturaRepository.findByCursoAndEtapaDistinct(curso, etapa);
+            List<AsignaturasUnicasDto> asignaturas = iAsignaturaRepository.findByCursoAndEtapaDistinct(curso, etapa);
 
             if (asignaturas.isEmpty())
             {

@@ -202,7 +202,7 @@ public class Paso2AsignaturasYBloquesController
         {
 
             // Buscamos la asignatura
-            List<Asignatura> listAsignatura = iAsignaturaRepository.encontrarPorCursoYEtapaYNombre(curso, etapa, nombreAsignatura);
+            List<Asignatura> listAsignatura = iAsignaturaRepository.findNombreByCursoEtapaAndNombres(curso, etapa, nombreAsignatura);
 
             if (listAsignatura.isEmpty())
             {

@@ -40,6 +40,11 @@ public class Constants
     public static final String TIPO_REDUCCION = "Reduccion";
 
 
+	public static final String ESTADO_MATRICULADO = "MATR";
+
+
+	public static final String ESTADO_PENDIENTE = "PEND";
+
 	/*********************************************************/
 	/******************* Ficheros y carpetas *****************/
 	/*********************************************************/
@@ -215,6 +220,9 @@ public class Constants
 	 * Error - No se encontraron profesores en la base de datos
 	 */
 	public static final int SIN_PROFESORES_ENCONTRADOS = 67;
+
+
+	public static final int ALUMNO_NO_ENCONTRADO = 68;
 
 
 	/************* ERRORES - Generales/De Conexión ***************/

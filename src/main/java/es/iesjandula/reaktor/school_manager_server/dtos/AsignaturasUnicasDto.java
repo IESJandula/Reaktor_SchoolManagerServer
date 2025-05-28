@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AsignaturaDtoSinGrupo
+public class AsignaturasUnicasDto
 {
 
 	private Integer curso;

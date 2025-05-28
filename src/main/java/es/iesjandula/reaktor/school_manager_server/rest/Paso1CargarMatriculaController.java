@@ -3,15 +3,19 @@ package es.iesjandula.reaktor.school_manager_server.rest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.models.*;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -73,10 +77,10 @@ public class Paso1CargarMatriculaController
      * @param curso      el identificador del curso al que pertenecen las matrículas, proporcionado en la cabecera.
      * @param etapa      la etapa educativa asociada al curso (por ejemplo, "Primaria", "Secundaria"), proporcionada en la cabecera.
      * @return una {@link ResponseEntity} con:
-     *         - 201 (CREATED) si la carga del archivo y el procesamiento se realizan correctamente.
-     *         - 400 (BAD_REQUEST) si el archivo está vacío.
-     *         - 404 (NOT_FOUND) si no se encuentran asignaturas asociadas al curso y etapa.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error de lectura del archivo.
+     * - 201 (CREATED) si la carga del archivo y el procesamiento se realizan correctamente.
+     * - 400 (BAD_REQUEST) si el archivo está vacío.
+     * - 404 (NOT_FOUND) si no se encuentran asignaturas asociadas al curso y etapa.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error de lectura del archivo.
      * @throws IOException si se produce un error al leer el contenido del archivo CSV.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -180,8 +184,8 @@ public class Paso1CargarMatriculaController
      * de curso y etapa en las que existen registros de matrícula.
      *
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) y una lista de objetos {@code CursoEtapaDto} si la operación es exitosa.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
+     * - 200 (OK) y una lista de objetos {@code CursoEtapaDto} si la operación es exitosa.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
      */
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -215,8 +219,8 @@ public class Paso1CargarMatriculaController
      * @param curso el identificador del curso, proporcionado en la cabecera de la solicitud.
      * @param etapa la etapa educativa asociada al curso, proporcionada en la cabecera de la solicitud.
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) si la operación se realiza correctamente.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante el proceso de eliminación.
+     * - 200 (OK) si la operación se realiza correctamente.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante el proceso de eliminación.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/matriculas")
@@ -286,9 +290,9 @@ public class Paso1CargarMatriculaController
      * @param curso el curso académico, proporcionado en la cabecera de la solicitud.
      * @param etapa la etapa educativa, proporcionada en la cabecera de la solicitud.
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) y una lista de objetos {@code DatosMatriculaDto} si se encuentran datos.
-     *         - 404 (NOT_FOUND) si no hay inscripciones para los parámetros indicados.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     * - 200 (OK) y una lista de objetos {@code DatosMatriculaDto} si se encuentran datos.
+     * - 404 (NOT_FOUND) si no hay inscripciones para los parámetros indicados.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/datosMatriculas")
@@ -329,15 +333,15 @@ public class Paso1CargarMatriculaController
     /**
      * Actualiza el estado de matrícula de un alumno en una asignatura específica, dentro de un curso y etapa determinados.
      *
-     * @param nombre      el nombre del alumno.
-     * @param apellidos   los apellidos del alumno.
-     * @param asignatura  la asignatura relacionada con la matrícula.
-     * @param curso       el curso académico correspondiente.
-     * @param etapa       la etapa educativa correspondiente.
-     * @param estado      el nuevo estado de la matrícula (por ejemplo, ACTIVO o INACTIVO).
+     * @param nombre     el nombre del alumno.
+     * @param apellidos  los apellidos del alumno.
+     * @param asignatura la asignatura relacionada con la matrícula.
+     * @param curso      el curso académico correspondiente.
+     * @param etapa      la etapa educativa correspondiente.
+     * @param estado     el nuevo estado de la matrícula (por ejemplo, ACTIVO o INACTIVO).
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) si la actualización es exitosa.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     * - 200 (OK) si la actualización es exitosa.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/datosMatriculas")
@@ -359,15 +363,121 @@ public class Paso1CargarMatriculaController
                 throw new SchoolManagerServerException(Constants.MATRICULA_ALUMNO_NO_ENCONTRADA, mensajeError);
             }
 
-            datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
+//          Si el alumno ya está asignado a un grupo al cambiar el estado de la matrícula se añade o se borra
+            if (this.iMatriculaRepository.encontrarAlumnoPorNombreAndApellidosAndCursoAndEtaoa(nombre, apellidos, curso, etapa) != null)
+            {
+//              Si el estado de la matricula es MATR o PEND
+                if (estado.equals(Constants.ESTADO_MATRICULADO) || estado.equals(Constants.ESTADO_PENDIENTE))
+                {
+                    if (this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtaoa(nombre, apellidos, asignatura, curso, etapa) == null)
+                    {
+//                      Buscamos el alumno en base de datos
+                        Optional<Alumno> alumno = this.iAlumnoRepository.findByNombreAndApellidos(nombre, apellidos);
+                        if (alumno.isEmpty())
+                        {
+                            String mensajeError = "El alumno " + nombre + apellidos + " no existe en base de datos";
+                            log.error(mensajeError);
+                            throw new SchoolManagerServerException(Constants.ALUMNO_NO_ENCONTRADO, mensajeError);
+                        }
 
+//                      Buscamos el grupo al que pertenece el alumno
+                        Character grupo = this.iMatriculaRepository.encontrarGrupoPorNombreAndApellidosAndCursoAndEtaoa(alumno.get().getNombre(), alumno.get().getApellidos(), curso, etapa);
+                        if (grupo == null)
+                        {
+                            String mensajeError = "El alumno no tiene grupo asignado";
+                            log.error(mensajeError);
+                            throw new SchoolManagerServerException(Constants.GRUPO_NO_ENCONTRADO, mensajeError);
+                        }
+
+//                      Buscamos la asignatura en base de datos
+                        Optional<Asignatura> asignaturaExistente = this.iAsignaturaRepository
+                                .encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, asignatura, grupo);
+
+                        // Usamos la asignatura existente o crear una nueva si no existe
+                        Asignatura asignaturaParaMatricula = asignaturaExistente.orElseGet(() -> {
+                            AsignaturaSinGrupoDto asignaturaABuscar = this.iAsignaturaRepository
+                                    .encontrarPorCursoYEtapaYNombre(curso, etapa, asignatura);
+
+                            if (asignaturaABuscar == null) {
+                                String mensajeError = "No se encontró la asignatura " + asignatura +
+                                        " para el curso " + curso + " y etapa " + etapa;
+                                log.error(mensajeError);
+                                try
+                                {
+                                    throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
+                                }
+                                catch (SchoolManagerServerException schoolManagerServerException)
+                                {
+                                    throw new RuntimeException(schoolManagerServerException);
+                                }
+                            }
+
+                            IdAsignatura idAsignatura = new IdAsignatura();
+                            IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+                            idCursoEtapaGrupo.setCurso(curso);
+                            idCursoEtapaGrupo.setEtapa(etapa);
+                            idCursoEtapaGrupo.setGrupo(grupo);
+
+                            CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+                            cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+
+                            idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo);
+                            idAsignatura.setNombre(asignatura);
+
+                            Asignatura nuevaAsignatura = new Asignatura();
+                            nuevaAsignatura.setIdAsignatura(idAsignatura);
+                            nuevaAsignatura.setHoras(asignaturaABuscar.getHoras());
+                            nuevaAsignatura.setEsoBachillerato(asignaturaABuscar.isEsoBachillerato());
+                            nuevaAsignatura.setSinDocencia(asignaturaABuscar.isSinDocencia());
+
+                            return this.iAsignaturaRepository.saveAndFlush(nuevaAsignatura);
+                        });
+
+                        IdMatricula idMatricula = new IdMatricula(asignaturaParaMatricula, alumno.get());
+
+                        Matricula nuevaMatricula = new Matricula(idMatricula);
+                        this.iMatriculaRepository.saveAndFlush(nuevaMatricula);
+
+                        datosBrutoAlumnoMatriculas.setAsignado(true);
+                        datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
+                    }
+                }
+//              Si es cualquiera de los otros estados
+                else
+                {
+//                  Buscamos la matricula y la eliminamos
+                    Matricula matricula = this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtaoa(nombre, apellidos, asignatura, curso, etapa);
+                    if (matricula != null)
+                    {
+                        datosBrutoAlumnoMatriculas.setAsignado(false);
+                        this.iMatriculaRepository.delete(matricula);
+//                      Después de borrar confirmamos la operación
+                        this.iMatriculaRepository.flush();
+                    }
+                }
+            }
+
+//          Si no solo se modifica el estado en la tabla de datosBrutos
+            datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
             this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculas);
+
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            if (schoolManagerServerException.getCode() == Constants.MATRICULA_ALUMNO_NO_ENCONTRADA)
+            {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else if (schoolManagerServerException.getCode() == Constants.ALUMNO_NO_ENCONTRADO)
+            {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
         }
         catch (Exception exception)
         {
@@ -387,17 +497,17 @@ public class Paso1CargarMatriculaController
      * <p>
      * Valida si el alumno ya está registrado y realiza la operación de matriculación solo si no existe duplicidad.
      *
-     * @param nombre      el nombre del alumno a matricular.
-     * @param apellidos   los apellidos del alumno a matricular.
-     * @param asignatura  la asignatura en la que se va a matricular.
-     * @param curso       el curso académico correspondiente.
-     * @param etapa       la etapa educativa correspondiente.
-     * @param estado      el estado de la matrícula (por ejemplo, ACTIVO).
+     * @param nombre     el nombre del alumno a matricular.
+     * @param apellidos  los apellidos del alumno a matricular.
+     * @param asignatura la asignatura en la que se va a matricular.
+     * @param curso      el curso académico correspondiente.
+     * @param etapa      la etapa educativa correspondiente.
+     * @param estado     el estado de la matrícula (por ejemplo, ACTIVO).
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) si la matrícula es realizada con éxito.
-     *         - 404 (NOT_FOUND) si el alumno no se encuentra registrado.
-     *         - 409 (CONFLICT) si el alumno ya está asignado a un grupo o se produce un conflicto.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     * - 200 (OK) si la matrícula es realizada con éxito.
+     * - 404 (NOT_FOUND) si el alumno no se encuentra registrado.
+     * - 409 (CONFLICT) si el alumno ya está asignado a un grupo o se produce un conflicto.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/datosMatriculas")
@@ -463,17 +573,17 @@ public class Paso1CargarMatriculaController
     /**
      * Elimina la matrícula de un alumno para una asignatura concreta, siempre que no esté asignado a un grupo.
      *
-     * @param nombre      el nombre del alumno que se desea desmatricular.
-     * @param apellidos   los apellidos del alumno.
-     * @param asignatura  la asignatura de la que se desea eliminar la matrícula.
-     * @param curso       el curso académico correspondiente.
-     * @param etapa       la etapa educativa correspondiente.
-     * @param estado      el estado actual de la matrícula.
+     * @param nombre     el nombre del alumno que se desea desmatricular.
+     * @param apellidos  los apellidos del alumno.
+     * @param asignatura la asignatura de la que se desea eliminar la matrícula.
+     * @param curso      el curso académico correspondiente.
+     * @param etapa      la etapa educativa correspondiente.
+     * @param estado     el estado actual de la matrícula.
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) si la matrícula es eliminada con éxito.
-     *         - 404 (NOT_FOUND) si el alumno no está registrado.
-     *         - 409 (CONFLICT) si el alumno está asignado a un grupo o existe otro conflicto.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     * - 200 (OK) si la matrícula es eliminada con éxito.
+     * - 404 (NOT_FOUND) si el alumno no está registrado.
+     * - 409 (CONFLICT) si el alumno está asignado a un grupo o existe otro conflicto.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")

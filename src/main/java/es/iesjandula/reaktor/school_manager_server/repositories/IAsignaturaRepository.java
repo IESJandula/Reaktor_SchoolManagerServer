@@ -39,12 +39,12 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	List<AsignaturaDto> findByCursoAndEtapa(@Param("curso") Integer curso,
 										    @Param("etapa") String etapa);
 
-	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaDtoSinGrupo(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas) "
+	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturasUnicasDto(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas) "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa "
 			+ "GROUP BY a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.nombre, a.horas")
-	List<AsignaturaDtoSinGrupo> findByCursoAndEtapaDistinct(@Param("curso") Integer curso,
-															@Param("etapa") String etapa);
+	List<AsignaturasUnicasDto> findByCursoAndEtapaDistinct(@Param("curso") Integer curso,
+														   @Param("etapa") String etapa);
 
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
@@ -82,17 +82,12 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	List<AsignaturaHorasDto> findNombreAndHorasByCursoEtapa(@Param("curso") Integer curso,
 															@Param("etapa") String etapa);
 
-	@Query("SELECT a "
+	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto(a.horas, a.esoBachillerato, a.sinDocencia) "
 			+ "FROM Asignatura a "
-			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombres")
-	List<Asignatura> encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
-											  @Param("etapa") String etapa,
-											  @Param("nombres") String nombres);
-
-	@Query("SELECT DISTINCT c "
-			+ "FROM CursoEtapaGrupo c "
-			+ "JOIN c.idCursoEtapaGrupo idC")
-	List<CursoEtapaGrupo> distinctCursoEtapaGrupo();
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
+	AsignaturaSinGrupoDto encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
+											    	     @Param("etapa") String etapa,
+											  		     @Param("nombre") String nombre);
 
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
