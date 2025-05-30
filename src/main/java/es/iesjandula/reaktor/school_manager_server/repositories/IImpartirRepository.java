@@ -11,6 +11,7 @@ import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdImpartir;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link Impartir}.
@@ -23,14 +24,15 @@ import java.util.List;
 public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
 {
 
-    @Query("SELECT i " +
+    @Query("SELECT COUNT(i) " +
             "FROM Impartir i " +
-            "WHERE i.asignatura.idAsignatura.nombre = :nombre AND i.cupoHoras = :horas AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
-    Impartir encontrarAsignaturaAsignada(@Param("nombre") String nombre,
-                                         @Param("horas") Integer horas,
-                                         @Param("curso") Integer curso,
-                                         @Param("etapa") String etapa,
-                                         @Param("grupo") Character grupo);
+            "WHERE i.asignatura.idAsignatura.nombre = :nombre AND i.cupoHoras = :horas AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura" +
+            ".cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa " +
+            "GROUP BY i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo")
+    Long encontrarAsignaturaAsignada(@Param("nombre") String nombre,
+                                              @Param("horas") Integer horas,
+                                              @Param("curso") Integer curso,
+                                              @Param("etapa") String etapa);
 
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto(i.asignatura.idAsignatura.nombre, i.asignatura.horas, i.cupoHoras, i.asignatura.idAsignatura.cursoEtapaGrupo" +
             ".idCursoEtapaGrupo.curso, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo, i.asignadoDireccion) " +

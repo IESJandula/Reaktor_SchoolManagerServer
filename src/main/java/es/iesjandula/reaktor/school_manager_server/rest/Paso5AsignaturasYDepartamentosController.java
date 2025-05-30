@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.*;
+import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,9 @@ public class Paso5AsignaturasYDepartamentosController
 
     @Autowired
     private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
+
+    @Autowired
+    private IImpartirRepository iImpartirRepository;
 
     /**
      * Recupera todos los departamentos registrados en la base de datos y los convierte en objetos DTO.
@@ -370,6 +374,15 @@ public class Paso5AsignaturasYDepartamentosController
             Asignatura asignatura = asignaturaOpt.get();
             asignatura.setDepartamentoPropietario(null);
             asignatura.setDepartamentoReceptor(null);
+
+//          Comprobamos si la asignatura ya está asignada a profesores
+            if (!iImpartirRepository.encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(asignatura.getIdAsignatura().getNombre(), asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getCurso(),
+                    asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getEtapa()).isEmpty())
+            {
+                String mensajeError = "No se puede borrar la asignatura ya que está asignadas a profesores";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
+            }
 
             // Guardar cambios en la base de datos
             iAsignaturaRepository.saveAndFlush(asignatura);

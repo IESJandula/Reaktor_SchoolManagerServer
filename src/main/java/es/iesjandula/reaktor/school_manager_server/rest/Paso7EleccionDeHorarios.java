@@ -162,7 +162,7 @@ public class Paso7EleccionDeHorarios
      * <p>
      * Esta operación solo está permitida para usuarios con el rol "ROLE_PROFESOR".
      *
-     * @param usuario           el usuario autenticado que realiza la solicitud.
+     * @param usuario          el usuario autenticado que realiza la solicitud.
      * @param nombreAsignatura el nombre de la asignatura a asignar.
      * @param horas            la cantidad de horas asignadas a la asignatura.
      * @param curso            el curso al que pertenece la asignatura.
@@ -191,17 +191,24 @@ public class Paso7EleccionDeHorarios
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
 
-            Impartir asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, grupo);
+//          Contamos las asignaturas que hay por nombre, horas, curso y etapa
+            Long asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa);
 
-            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR) && asignaturaImpartir != null)
-            {
-                String mensajeError = "La asignatura '" + nombreAsignatura + "' ya ha sido asignada a otro profesor para el curso " + curso + grupo + " de la etapa " + etapa;
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
-            }
+//          Contamos los grupos que hay por asignaturas
+            long cantidadGrupos = this.iAsignaturaRepository.contarGruposPorAsignatura(nombreAsignatura, curso, etapa);
+
+            boolean desabilitado = this.iAsignaturaRepository.isDesabilitado(nombreAsignatura, curso, etapa);
 
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
+
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR) && asignaturaImpartir == cantidadGrupos && !desabilitado)
+            {
+                Profesor profesor = this.iProfesorRepository.findByEmail(email);
+                String mensajeError ="La asignatura " + nombreAsignatura + " ya ha sido asignada al profesor " + profesor.getNombre() + " " + profesor.getApellidos();
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
+            }
 
             this.iImpartirRepository.saveAndFlush(asignarAsignatura);
 
@@ -318,14 +325,14 @@ public class Paso7EleccionDeHorarios
      * Este método se encarga de guardar tanto las observaciones como las preferencias de tramos horarios,
      * realizando las validaciones necesarias y gestionando posibles excepciones.
      *
-     * @param usuario               el usuario autenticado que realiza la solicitud, representado como {@link DtoUsuarioExtended}.
-     * @param conciliacion          indica si el profesor solicita una observación conciliadora.
-     * @param trabajarPrimeraHora  indica si el profesor desea trabajar en la primera hora.
-     * @param otrasObservaciones    observaciones adicionales sobre la disponibilidad horaria del profesor (opcional).
-     * @param diasDesc              descripción del/de los día(s) aplicables para el horario.
-     * @param tramo                 el tramo horario que se desea modificar.
-     * @param tipoHorario           el tipo de horario o jornada laboral.
-     * @param email                 el correo electrónico del profesor al que se aplican las observaciones.
+     * @param usuario             el usuario autenticado que realiza la solicitud, representado como {@link DtoUsuarioExtended}.
+     * @param conciliacion        indica si el profesor solicita una observación conciliadora.
+     * @param trabajarPrimeraHora indica si el profesor desea trabajar en la primera hora.
+     * @param otrasObservaciones  observaciones adicionales sobre la disponibilidad horaria del profesor (opcional).
+     * @param diasDesc            descripción del/de los día(s) aplicables para el horario.
+     * @param tramo               el tramo horario que se desea modificar.
+     * @param tipoHorario         el tipo de horario o jornada laboral.
+     * @param email               el correo electrónico del profesor al que se aplican las observaciones.
      * @return una {@link ResponseEntity} con:
      * - 204 (NO_CONTENT) si la operación se realiza correctamente.
      * - 400 (NOT_FOUND) si se lanza una excepción de tipo {@link SchoolManagerServerException} durante la validación.
@@ -349,8 +356,13 @@ public class Paso7EleccionDeHorarios
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
 
-            Profesor profesor = new Profesor();
-            profesor.setEmail(email);
+            Profesor profesor = this.iProfesorRepository.findByEmail(email);
+            if (profesor == null)
+            {
+                String mensajeError = "No se encontró ningún profesor con el email: " + email;
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
+            }
 
             IdObservacionesAdicionales idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
 
@@ -367,7 +379,8 @@ public class Paso7EleccionDeHorarios
             tramo--;
 
             Integer dias = this.iDiasTramosRepository.encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(tramo, tipoHorario, diasDesc);
-            if (dias == null) {
+            if (dias == null)
+            {
                 String mensajeError = "No se pudo encontrar el identificador del día/tramo/tipoHorario especificado.";
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS, mensajeError);
@@ -390,7 +403,14 @@ public class Paso7EleccionDeHorarios
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            if (schoolManagerServerException.getCode() == Constants.PROFESOR_NO_ENCONTRADO)
+            {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
         }
         catch (Exception exception)
         {
@@ -474,12 +494,12 @@ public class Paso7EleccionDeHorarios
      * El tipo de solicitud a eliminar (asignatura o reducción) se determina a partir de los encabezados incluidos
      * en la solicitud. El acceso está restringido según los permisos del usuario autenticado.
      *
-     * @param usuario           el usuario autenticado que realiza la solicitud, representado como {@link DtoUsuarioExtended}.
-     * @param email             el correo electrónico del profesor asociado a la solicitud (opcional).
-     * @param nombreAsignatura  el nombre de la asignatura a eliminar, requerido si se trata de una solicitud de asignatura.
-     * @param horasAsignatura   las horas asociadas a la asignatura, opcional.
-     * @param curso             el curso escolar de la asignatura, opcional.
-     * @param etapa             la etapa educativa de la asignatura, opcional.
+     * @param usuario          el usuario autenticado que realiza la solicitud, representado como {@link DtoUsuarioExtended}.
+     * @param email            el correo electrónico del profesor asociado a la solicitud (opcional).
+     * @param nombreAsignatura el nombre de la asignatura a eliminar, requerido si se trata de una solicitud de asignatura.
+     * @param horasAsignatura  las horas asociadas a la asignatura, opcional.
+     * @param curso            el curso escolar de la asignatura, opcional.
+     * @param etapa            la etapa educativa de la asignatura, opcional.
      * @return una {@link ResponseEntity} con:
      * - 204 (NO_CONTENT) si la eliminación se realizó correctamente.
      * - 404 (NOT_FOUND) si no se encuentra la solicitud a eliminar.
@@ -541,7 +561,7 @@ public class Paso7EleccionDeHorarios
      * <p>
      * En caso de error durante la operación, se devuelven respuestas apropiadas indicando la causa.
      *
-     * @param email           el correo electrónico del usuario que realiza la solicitud.
+     * @param email            el correo electrónico del usuario que realiza la solicitud.
      * @param nombreAsignatura el nombre de la asignatura que se desea asignar.
      * @param horasAsignatura  el número de horas asignadas a la asignatura.
      * @param curso            el curso académico al que pertenece la asignatura.
@@ -593,10 +613,10 @@ public class Paso7EleccionDeHorarios
      * <p>
      * El método filtra los grupos que coincidan con los parámetros especificados en los encabezados de la solicitud.
      *
-     * @param nombreAsignatura  el nombre de la asignatura a buscar.
-     * @param horasAsignatura   el número de horas asignadas a la asignatura.
-     * @param curso             el curso académico de la asignatura.
-     * @param etapa             la etapa educativa correspondiente a la asignatura.
+     * @param nombreAsignatura el nombre de la asignatura a buscar.
+     * @param horasAsignatura  el número de horas asignadas a la asignatura.
+     * @param curso            el curso académico de la asignatura.
+     * @param etapa            la etapa educativa correspondiente a la asignatura.
      * @return una {@link ResponseEntity} con:
      * - 200 (OK) y una lista de {@link GrupoAsignaturaDto} si se encuentran resultados.
      * - 404 (NOT_FOUND) si no se encuentra ningún grupo que coincida.
@@ -644,9 +664,9 @@ public class Paso7EleccionDeHorarios
      * <p>
      * Busca la reducción asignada al profesor identificado por su correo electrónico, con el nombre y las horas indicadas.
      *
-     * @param email            el correo electrónico del profesor.
-     * @param nombreReduccion  el nombre de la reducción asignada al profesor.
-     * @param horasReduccion   el número de horas de la reducción.
+     * @param email           el correo electrónico del profesor.
+     * @param nombreReduccion el nombre de la reducción asignada al profesor.
+     * @param horasReduccion  el número de horas de la reducción.
      * @return una instancia de {@link ProfesorReduccion} con los datos correspondientes.
      * @throws SchoolManagerServerException si no se encuentra una reducción asignada al profesor con los datos especificados.
      */
@@ -669,11 +689,11 @@ public class Paso7EleccionDeHorarios
      * <p>
      * Esta instancia incluye los identificadores compuestos relacionados con la asignatura y el profesor.
      *
-     * @param email          el correo electrónico del profesor.
+     * @param email            el correo electrónico del profesor.
      * @param nombreAsignatura el nombre de la asignatura.
-     * @param curso          el curso al que pertenece la asignatura.
-     * @param etapa          la etapa educativa de la asignatura (por ejemplo, primaria, secundaria).
-     * @param grupoAntiguo   el grupo antiguo asociado a la asignatura.
+     * @param curso            el curso al que pertenece la asignatura.
+     * @param etapa            la etapa educativa de la asignatura (por ejemplo, primaria, secundaria).
+     * @param grupoAntiguo     el grupo antiguo asociado a la asignatura.
      * @return una instancia de {@code IdImpartir} que contiene los identificadores compuestos.
      */
     private IdImpartir construirIdImpartir(String email, String nombreAsignatura, Integer curso, String etapa, Character grupoAntiguo)
@@ -703,12 +723,12 @@ public class Paso7EleccionDeHorarios
      * Construye una instancia de la clase {@code Impartir} asociándola con
      * un identificador único y estableciendo el número de horas asignadas.
      *
-     * @param email           el correo electrónico de la persona responsable de impartir la asignatura.
+     * @param email            el correo electrónico de la persona responsable de impartir la asignatura.
      * @param nombreAsignatura el nombre de la asignatura a impartir.
      * @param horasAsignatura  la cantidad de horas asignadas a la asignatura.
-     * @param curso           el curso en el que se imparte la asignatura.
-     * @param etapa           la etapa educativa en la que se imparte la asignatura.
-     * @param grupo           el identificador del grupo asignado a la asignatura.
+     * @param curso            el curso en el que se imparte la asignatura.
+     * @param etapa            la etapa educativa en la que se imparte la asignatura.
+     * @param grupo            el identificador del grupo asignado a la asignatura.
      * @return una nueva instancia de {@code Impartir} con los detalles especificados.
      */
     private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo)
@@ -729,13 +749,13 @@ public class Paso7EleccionDeHorarios
      * Este método verifica la existencia de una asignación docente previa, la elimina y crea una nueva asignación
      * con el grupo y detalles actualizados.
      *
-     * @param email           el correo electrónico del profesor.
+     * @param email            el correo electrónico del profesor.
      * @param nombreAsignatura el nombre de la asignatura.
      * @param horasAsignatura  la cantidad de horas asignadas a la asignatura.
-     * @param curso           el curso académico de la asignación.
-     * @param etapa           la etapa educativa (por ejemplo, primaria, secundaria).
-     * @param grupoAntiguo    el grupo anterior asignado al profesor para esta asignación docente.
-     * @param grupoNuevo      el nuevo grupo que se asignará al profesor para esta asignación docente.
+     * @param curso            el curso académico de la asignación.
+     * @param etapa            la etapa educativa (por ejemplo, primaria, secundaria).
+     * @param grupoAntiguo     el grupo anterior asignado al profesor para esta asignación docente.
+     * @param grupoNuevo       el nuevo grupo que se asignará al profesor para esta asignación docente.
      * @return una nueva instancia de {@code Impartir} que representa la asignación docente actualizada.
      * @throws SchoolManagerServerException si la asignación docente previa no existe o no se puede encontrar.
      */

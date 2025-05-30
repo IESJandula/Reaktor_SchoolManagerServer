@@ -37,7 +37,7 @@ public class Constants
     /**
      * Tipo de solicitud: Reducción.
      */
-    public static final String TIPO_REDUCCION = "Reduccion";
+    public static final String TIPO_REDUCCION = "Reducción";
 
 
 	public static final String ESTADO_MATRICULADO = "MATR";

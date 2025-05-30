@@ -156,4 +156,12 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 								   @Param("curso") Integer curso,
 								   @Param("etapa") String etapa);
 
+    @Query("SELECT DISTINCT a.desdoble " +
+            "FROM Asignatura  a " +
+            "WHERE a.idAsignatura.nombre = :nombre " +
+            "AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+    Boolean isDesabilitado(@Param("nombre") String nombre,
+                           @Param("curso") Integer curso,
+                           @Param("etapa") String etapa);
+
 }

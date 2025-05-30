@@ -373,10 +373,11 @@ public class Paso3CrearGruposController
                 {
                     if (this.iMatriculaRepository.numeroAlumnos() == 1)
                     {
+//                      Comprobamos si la asignatura que está asociada al alumno está asignada a un profesor
                         if (!iImpartirRepository.encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(matriculaDtoAlumnoABorrar.getNombreAsignatura(), matriculaDtoAlumnoABorrar.getCurso(),
                                 matriculaDtoAlumnoABorrar.getEtapa()).isEmpty())
                         {
-                            String mensajeError = "No se puede borrar el alumno ya que hay asignaturas asignadas a profeos";
+                            String mensajeError = "No se puede borrar el alumno ya que hay asignaturas asignadas a profesores";
                             log.error(mensajeError);
                             throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
                         }

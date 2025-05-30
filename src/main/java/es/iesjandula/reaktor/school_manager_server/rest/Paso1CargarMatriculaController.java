@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.Scanner;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
@@ -255,6 +256,19 @@ public class Paso1CargarMatriculaController
             List<Long> bloques = this.iAsignaturaRepository.encontrarBloquePorCursoEtapa(curso, etapa);
 
             this.iAsignaturaRepository.borrarPorCursoYEtapa(curso, etapa);
+
+//          Obtenemos el curosEtapaGrupo y lo borramos
+            List<CursoEtapaGrupoDto> cursoEtapaGrupoDto = this.iCursoEtapaGrupoRepository.encontrarCursoEtapaGruposCreados(curso, etapa);
+            CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+            for (CursoEtapaGrupoDto cursoEtapaGrupoDtoABorrar : cursoEtapaGrupoDto)
+            {
+                IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, cursoEtapaGrupoDtoABorrar.getGrupo());
+                cursoEtapaGrupo.setEsoBachillerato(cursoEtapaGrupoDtoABorrar.getEsBachillerato());
+                cursoEtapaGrupo.setHorarioMatutino(cursoEtapaGrupoDtoABorrar.getHorarioMatutino());
+                cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+
+                this.iCursoEtapaGrupoRepository.delete(cursoEtapaGrupo);
+            }
 
             Bloque bloque = new Bloque();
             for (Long cantidadBloques : bloques)

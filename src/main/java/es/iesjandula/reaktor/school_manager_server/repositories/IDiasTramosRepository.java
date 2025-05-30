@@ -15,7 +15,8 @@ public interface IDiasTramosRepository extends JpaRepository<DiasTramosTipoHorar
 {
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.DiasTramosTipoHorarioDto(d.diasDesc, d.idDiasTramosTipoHorario.tramo + 1, d.idDiasTramosTipoHorario.tipoHorario) " +
             "FROM DiasTramosTipoHorario d " +
-            "WHERE NOT ((d.idDiasTramosTipoHorario.dia = 0 AND d.idDiasTramosTipoHorario.tramo = 0) OR (d.idDiasTramosTipoHorario.dia = 4 AND d.idDiasTramosTipoHorario.tramo = 5))")
+            "WHERE NOT ((d.idDiasTramosTipoHorario.dia = 0 AND d.idDiasTramosTipoHorario.tramo = 0) OR (d.idDiasTramosTipoHorario.dia = 4 AND d.idDiasTramosTipoHorario.tramo = 5)) " +
+            "ORDER BY d.idDiasTramosTipoHorario.tipoHorario ASC, d.idDiasTramosTipoHorario.dia ASC, d.idDiasTramosTipoHorario.tramo ASC")
     List<DiasTramosTipoHorarioDto> findByTipoHorario();
 
     @Query("SELECT d.idDiasTramosTipoHorario.dia " +

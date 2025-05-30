@@ -178,7 +178,7 @@ public class CommonController
 
             if(optionalProfesorReduccion.isPresent())
             {
-                String mensajeError = "La reducción " + nombreReduccion + " ya ha sido asignada " + profesor.getNombre();
+                String mensajeError = "La reducción " + nombreReduccion + " ya ha sido asignada " + profesor.getNombre() + " " + profesor.getApellidos();
 
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.REDUCCION_ASIGNADA, mensajeError);
