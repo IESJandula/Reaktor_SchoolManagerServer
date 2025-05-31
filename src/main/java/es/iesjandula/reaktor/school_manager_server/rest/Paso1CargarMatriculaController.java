@@ -230,7 +230,6 @@ public class Paso1CargarMatriculaController
     {
         try
         {
-
             List<CursoEtapaDto> listAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso(curso, etapa);
 
             if (listAlumnoMatriculas.isEmpty())
@@ -368,6 +367,7 @@ public class Paso1CargarMatriculaController
     {
         try
         {
+//            TODO: cuando un alumno ya está asignado a un grupo y lo matriculas en usa asignatura optativa
             DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
 
             if (datosBrutoAlumnoMatriculas == null)

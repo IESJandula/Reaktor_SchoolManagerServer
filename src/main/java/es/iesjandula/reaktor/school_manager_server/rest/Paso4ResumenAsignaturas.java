@@ -2,6 +2,7 @@ package es.iesjandula.reaktor.school_manager_server.rest;
 
 import java.util.List;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,32 @@ public class Paso4ResumenAsignaturas
 
     @Autowired
     private IAsignaturaRepository iAsignaturaRepository;
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/grupos")
+    public ResponseEntity<?> obtenerTodosGrupos(@RequestHeader(value = "curso", required = true) Integer curso,
+                                           @RequestHeader(value = "etapa", required = true) String etapa)
+    {
+        try
+        {
+            // Obtener la lista de grupos según curso y etapa
+            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.buscaTodosCursoEtapaGruposCreados(curso, etapa);
+
+            // Devolver la lista de cursos, etapas y grupos encontrados
+            return ResponseEntity.ok().body(cursosEtapasGrupos);
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo encontrar el grupo";
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
 
     /**
      * Carga las asignaturas únicas disponibles según el curso y la etapa educativa proporcionados.

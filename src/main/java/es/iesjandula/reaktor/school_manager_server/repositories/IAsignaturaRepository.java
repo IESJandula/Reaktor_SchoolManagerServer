@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.*;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 
 /**
@@ -64,7 +64,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre "
-			+ "AND (a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo OR a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = 'Optativa')")
+			+ "AND (a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo OR a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "')")
 	Optional<Asignatura> encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(@Param("curso") int curso,
 																		@Param("etapa") String etapa,
 																		@Param("nombre") String nombre,
@@ -135,8 +135,9 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirAsignaturaDto(a.idAsignatura.nombre, a.horas, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a" +
 			".idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo)" +
 			"FROM Asignatura a " +
-			"WHERE a.departamentoReceptor.nombre = :departamento AND a.sinDocencia = false AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = 'A'")
-	List<ImpartirAsignaturaDto>  encontrarAsignaturasPorDepartamento(@Param("departamento") String departamento);
+			"WHERE a.departamentoReceptor.nombre = :departamento AND a.sinDocencia = false AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_INICIAL + "' " +
+			"OR a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "'")
+	List<ImpartirAsignaturaDto> encontrarAsignaturasPorDepartamento(@Param("departamento") String departamento);
 
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.GrupoAsignaturaDto(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
 			"FROM Asignatura a " +

@@ -346,6 +346,7 @@ public class Paso3CrearGruposController
     {
         try
         {
+//            TODO: Hacer que se borren los grupos de optativas
             List<MatriculaDto> listaAlumnosABorrar = iMatriculaRepository.encontrarAlumnoPorNombreYApellidosYGrupo(alumnoDto.getNombre(), alumnoDto.getApellidos(), alumnoDto.getGrupo());
             List<Integer> idAlumnos = new ArrayList<>();
 
@@ -661,6 +662,24 @@ public class Paso3CrearGruposController
                 // La borramos
                 this.iAsignaturaRepository.delete(asignatura);
 
+//                Comprobamos si la asignatura está asignada a un bloque
+                if (asignatura.getBloqueId() != null)
+                {
+                    if (this.iCursoEtapaGrupoRepository.buscarCursosEtapasGrupoOptativas(curso, etapa) == null)
+                    {
+                        CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+                        cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS));
+                        this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo);
+                    }
+
+                    asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(Constants.GRUPO_OPTATIVAS);
+                }
+                else
+                {
+                    // Cambiamos el valor por el del grupo
+                    asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(grupo);
+                }
+
                 // Guardamos la asignatura
                 this.iAsignaturaRepository.saveAndFlush(asignatura);
             }
@@ -674,7 +693,15 @@ public class Paso3CrearGruposController
 
                 // Asignamos cada uno de los campos
                 CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
-                cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, grupo));
+
+                if (asignaturaExistente.get().getBloques() != null)
+                {
+                    cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS));
+                }
+                else
+                {
+                    cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, grupo));
+                }
 
                 idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo);
                 idAsignatura.setNombre(nombreAsignatura);

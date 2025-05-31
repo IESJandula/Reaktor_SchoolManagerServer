@@ -31,6 +31,12 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
             + "WHERE c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "'")
     public List<CursoEtapaGrupo> buscarTodosLosCursosEtapasGrupos();
 
+    @Query("SELECT c "
+            + "FROM CursoEtapaGrupo c "
+            + "WHERE c.idCursoEtapaGrupo.grupo = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo = 'Optativas'")
+    CursoEtapaGrupo buscarCursosEtapasGrupoOptativas(@Param("curso") int curso,
+                                                     @Param("etapa") String etapa);
+
     /**
      * Cuenta el número de elementos en la tabla {@link CursoEtapaGrupo} que corresponden a un curso y etapa 
      * específicos.
@@ -41,20 +47,32 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
      */
     @Query("SELECT COUNT(c) "
     		+ "FROM CursoEtapaGrupo c "
-    		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "'")
+    		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "' AND c.idCursoEtapaGrupo.grupo <> '" + Constants.GRUPO_OPTATIVAS + "'")
     public int cuentaCursoEtapaGruposCreados(@Param("curso") int curso, @Param("etapa") String etapa);
-    
+
     /**
-     * Obtiene una lista de los grupos que corresponden a un curso y etapa específicos.
-     * 
-     * @param curso 		- El curso para el que se desea obtener los grupos.
-     * @param etapa 		- La etapa para la que se desea obtener los grupos.
+     * Obtiene una lista de los grupos que corresponden a un curso y etapa específicos excepto los grupos Sin grupo y Optativas.
+     *
+     * @param curso - El curso para el que se desea obtener los grupos.
+     * @param etapa - La etapa para la que se desea obtener los grupos.
      * @return List<String> - Los grupos correspondientes al curso y etapa proporcionados.
      */
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto(c.idCursoEtapaGrupo.curso, c.idCursoEtapaGrupo.etapa, c.idCursoEtapaGrupo.grupo, c.horarioMatutino, c.esoBachillerato) "
-    		+ "FROM CursoEtapaGrupo c "
-    		+ "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "'")
+            + "FROM CursoEtapaGrupo c "
+            + "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "' AND c.idCursoEtapaGrupo.grupo <> '" + Constants.GRUPO_OPTATIVAS + "'")
     public List<CursoEtapaGrupoDto> buscaCursoEtapaGruposCreados(@Param("curso") int curso, @Param("etapa") String etapa);
+
+    /**
+     * Obtiene una lista de los grupos que corresponden a un curso y etapa específicos.
+     *
+     * @param curso - El curso para el que se desea obtener los grupos.
+     * @param etapa - La etapa para la que se desea obtener los grupos.
+     * @return List<String> - Los grupos correspondientes al curso y etapa proporcionados.
+     */
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto(c.idCursoEtapaGrupo.curso, c.idCursoEtapaGrupo.etapa, c.idCursoEtapaGrupo.grupo, c.horarioMatutino, c.esoBachillerato) "
+            + "FROM CursoEtapaGrupo c "
+            + "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "'")
+    public List<CursoEtapaGrupoDto> buscaTodosCursoEtapaGruposCreados(@Param("curso") int curso, @Param("etapa") String etapa);
 
     /**
      * Obtiene una lista de los grupos incluidos los del grupo Z que corresponden a un curso y etapa específicos.
