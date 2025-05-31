@@ -17,7 +17,7 @@ CursoEtapaGrupoDto
 	private String etapa ;
 	
 	/** Grupo */
-	private Character grupo;
+	private String grupo;
 
 	/** Booleano a true si es horario matutino */
 	private Boolean horarioMatutino ;

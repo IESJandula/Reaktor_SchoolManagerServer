@@ -21,13 +21,19 @@ public class Constants
 	 * Letra para el grupo inicial inicial
 	 * <p>Indica el grupo base asignado, comenzando con 'A'.</p>
 	 */
-	public static final char GRUPO_INICIAL = 'A';
+	public static final String GRUPO_INICIAL = "A";
 
 	/**
-	 * Letra para el grupo sin grupo asignado
-	 * <p>Indica que no hay grupo asignado, comenzando con 'Z'.</p>
+	 * Constate que representa el grupo sin grupo asignado
+	 * <p>Indica que no hay grupo asignado.</p>
 	 */
-	public static final char SIN_GRUPO_ASIGNADO = 'Z';
+	public static final String SIN_GRUPO_ASIGNADO = "Sin grupo";
+
+	/**
+	 * Constante que representa el grupo de asignaturas optativas.
+	 * <p>Este valor se utiliza para identificar o gestionar asignaturas optativas dentro del sistema.</p>
+	 */
+	public static final String GRUPO_OPTATIVAS = "Optativas";
 
     /**
      * Tipo de solicitud: Asignatura.
@@ -41,6 +47,7 @@ public class Constants
 
 
 	public static final String ESTADO_MATRICULADO = "MATR";
+	public static final String ESTADO_NO_MATRICULADO = "NO_MATR";
 
 
 	public static final String ESTADO_PENDIENTE = "PEND";
@@ -85,6 +92,11 @@ public class Constants
 	/*********************************************************/
 
 	/************* ERRORES - Lógica de negocio ***************/
+
+	/**
+	 *	Error - Datos no procesados
+	 */
+	public static final int DATOS_NO_PROCESADO = 39;
 
 	/**
 	 * Error - No se encontró el profesor

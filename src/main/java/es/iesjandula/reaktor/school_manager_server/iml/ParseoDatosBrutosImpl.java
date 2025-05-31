@@ -89,7 +89,7 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
                         
                         if(valoresRegistro[i + 1].trim().equals("")) 
                         {
-                        	datosBrutoAlumnoMatricula.setEstadoMatricula("NO_MATR");;
+                        	datosBrutoAlumnoMatricula.setEstadoMatricula(Constants.ESTADO_NO_MATRICULADO);;
                         }
                         else 
                         {
@@ -105,10 +105,8 @@ public class ParseoDatosBrutosImpl implements IParseoDatosBrutos
         catch (Exception exception) 
         {
         	 // Captura cualquier excepción y lanza una excepción personalizada
-        	SchoolManagerServerException matriculasHorariosServerException = new SchoolManagerServerException(1, "ERROR - Los datos de los cursos no han podido ser procesados", exception);
+        	SchoolManagerServerException matriculasHorariosServerException = new SchoolManagerServerException(Constants.DATOS_NO_PROCESADO, "ERROR - Los datos de los cursos no han podido ser procesados", exception);
         	log.error(matriculasHorariosServerException.getBodyExceptionMessage().toString());
-           
-            
         }
         finally 
         {

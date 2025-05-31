@@ -91,12 +91,12 @@ public class Paso3CrearGruposController
             int contador = this.iCursoEtapaGrupoRepository.cuentaCursoEtapaGruposCreados(curso, etapa);
 
             // Asignar la letra A
-            char grupo = Constants.GRUPO_INICIAL;
+            String grupo = Constants.GRUPO_INICIAL;
 
             // Asignar la letra según el numero de veces que este repetido en BD
             for (int i = 0; i < contador; i++)
             {
-                grupo++;
+                grupo = incrementarGrupo(grupo);
             }
 
             // Crear registro de Curso Etapa Grupo
@@ -158,7 +158,7 @@ public class Paso3CrearGruposController
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnos")
     public ResponseEntity<?> obtenerAlumnosConGrupo(@RequestHeader(value = "curso", required = true) Integer curso,
                                                     @RequestHeader(value = "etapa", required = true) String etapa,
-                                                    @RequestHeader(value = "grupo", required = true) Character grupo)
+                                                    @RequestHeader(value = "grupo", required = true) String grupo)
     {
         try
         {
@@ -224,7 +224,7 @@ public class Paso3CrearGruposController
 
             if (listaDatosBrutoAlumnoMatriculas.isEmpty())
             {
-                String mensajeError = "No se ha alumnos para ese curso y etapa";
+                String mensajeError = "No se ha alumnos para " + curso + " " + etapa;
 
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);
@@ -271,7 +271,7 @@ public class Paso3CrearGruposController
     public ResponseEntity<?> asignarAlumnos(@RequestBody List<AlumnoDto2> alumnos,
                                             @RequestHeader(value = "curso", required = true) Integer curso,
                                             @RequestHeader(value = "etapa", required = true) String etapa,
-                                            @RequestHeader(value = "grupo", required = true) Character grupo)
+                                            @RequestHeader(value = "grupo", required = true) String grupo)
     {
         try
         {
@@ -519,7 +519,7 @@ public class Paso3CrearGruposController
     @RequestMapping(method = RequestMethod.POST, value = "/turnoHorario")
     public ResponseEntity<?> actualizarTurnoHorario(@RequestHeader(value = "curso", required = true) Integer curso,
                                                     @RequestHeader(value = "etapa", required = true) String etapa,
-                                                    @RequestHeader(value = "grupo", required = true) Character grupo,
+                                                    @RequestHeader(value = "grupo", required = true) String grupo,
                                                     @RequestHeader(value = "esHorarioMatutino", required = true) Boolean esHorarioMatutino)
     {
         try
@@ -568,12 +568,24 @@ public class Paso3CrearGruposController
     }
 
     /**
+     * Incrementa la letra del grupo (A -> B, B -> C, etc.)
+     *
+     * @param grupo letra actual del grupo
+     * @return siguiente letra del grupo
+     */
+    private String incrementarGrupo(String grupo) {
+        char letraGrupo = grupo.charAt(0);
+        return String.valueOf((char) (letraGrupo + 1));
+    }
+
+
+    /**
      * Método para asignar alumnos y registrarlos en la tabla Alumno
      *
      * @param datosBrutoAlumnoMatriculaAsignaturaOpt - El objeto DatosBrutoAlumnoMatricula que contiene los datos del alumno a asignar
      * @return Alumno - El alumno asignado y registrado en la tabla Alumno
      */
-    private Alumno asignarAlumnosRegistrarAlumno(int curso, String etapa, Character grupo, String nombreAlumno, String apellidosAlumno)
+    private Alumno asignarAlumnosRegistrarAlumno(int curso, String etapa, String grupo, String nombreAlumno, String apellidosAlumno)
     {
         // Creamos un nuevo Alumno
         Alumno alumno = null;
@@ -622,7 +634,7 @@ public class Paso3CrearGruposController
      * @param esoBachillerato  - Indica si es ESO o Bachillerato
      * @return Asignatura - La asignatura encontrada en la base de datos
      */
-    private Asignatura asignarAlumnosRegistrarAsignatura(Integer curso, String etapa, Character grupo, String nombreAsignatura, Boolean esoBachillerato)
+    private Asignatura asignarAlumnosRegistrarAsignatura(Integer curso, String etapa, String grupo, String nombreAsignatura, Boolean esoBachillerato)
     {
         Asignatura asignatura = new Asignatura();
 
@@ -637,7 +649,7 @@ public class Paso3CrearGruposController
         }
         else
         {
-            // Buscamos la asignatura por su nombre, curso, etapa y grupo Z
+            // Buscamos la asignatura por su nombre, curso, etapa y grupo 'Sin grupo'
             optionalAsignatura = this.iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, nombreAsignatura, Constants.SIN_GRUPO_ASIGNADO);
 
             // Si existe, la asignamos
@@ -648,9 +660,6 @@ public class Paso3CrearGruposController
 
                 // La borramos
                 this.iAsignaturaRepository.delete(asignatura);
-
-                // Cambiamos el valor por el del grupo
-                asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().setGrupo(grupo);
 
                 // Guardamos la asignatura
                 this.iAsignaturaRepository.saveAndFlush(asignatura);
@@ -719,8 +728,8 @@ public class Paso3CrearGruposController
 
         this.iDatosBrutoAlumnoMatriculaRepository.saveAndFlush(datosBrutoAlumnoMatriculaAsignaturaOpt);
 
-        if (datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("MATR") ||
-                datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals("PEND"))
+        if (datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals(Constants.ESTADO_MATRICULADO) ||
+                datosBrutoAlumnoMatriculaAsignaturaOpt.getEstadoMatricula().equals(Constants.ESTADO_PENDIENTE))
         {
             // Guardar el registro en la tabla Matricula
             this.iMatriculaRepository.saveAndFlush(matricula);

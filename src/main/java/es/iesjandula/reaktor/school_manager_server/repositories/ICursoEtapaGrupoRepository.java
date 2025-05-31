@@ -73,12 +73,12 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
      *
      * @param curso 		- El curso para el que se desea obtener los grupos.
      * @param etapa 		- La etapa para la que se desea obtener los grupos.
-     * @return List<Character> - Los grupos correspondientes al curso y etapa proporcionados.
+     * @return List<String> - Los grupos correspondientes al curso y etapa proporcionados.
      */
     @Query("SELECT c.idCursoEtapaGrupo.grupo "
             + "FROM CursoEtapaGrupo c "
             + "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "'")
-    public List<Character> buscaLetrasGruposDeCursoEtapas(@Param("curso") int curso, @Param("etapa") String etapa);
+    public List<String> buscaLetrasGruposDeCursoEtapas(@Param("curso") int curso, @Param("etapa") String etapa);
 
     @Transactional
     @Modifying

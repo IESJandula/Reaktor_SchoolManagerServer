@@ -48,7 +48,7 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
                                                      @Param("horas") Integer horas,
                                                      @Param("curso") Integer curso,
                                                      @Param("etapa") String etapa,
-                                                     @Param("grupo") Character grupo);
+                                                     @Param("grupo") String grupo);
 
     @Query("SELECT i " +
             "FROM Impartir i " +

@@ -30,22 +30,18 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 	@Query("SELECT DISTINCT m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo "
 			+ "FROM Matricula m "
 			+ "JOIN m.idMatricula idM "
-			+ "WHERE m.idMatricula.alumno.nombre = :nombre AND m.idMatricula.alumno.apellidos = :apellidos AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND idM" +
-			".asignatura" +
-			".idAsignatura" +
-			".cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa ")
-	Character encontrarGrupoPorNombreAndApellidosAndCursoAndEtaoa(@Param("nombre") String nombre,
-																  @Param("apellidos") String apellidos,
-																  @Param("curso") Integer curso,
-																  @Param("etapa") String etapa);
+			+ "WHERE m.idMatricula.alumno.nombre = :nombre AND m.idMatricula.alumno.apellidos = :apellidos AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso "
+			+ "AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa ")
+	String encontrarGrupoPorNombreAndApellidosAndCursoAndEtaoa(@Param("nombre") String nombre,
+															   @Param("apellidos") String apellidos,
+															   @Param("curso") Integer curso,
+															   @Param("etapa") String etapa);
 
 	@Query("SELECT DISTINCT  new es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto(m.idMatricula.alumno.nombre, m.idMatricula.alumno.apellidos) "
 			+ "FROM Matricula m "
 			+ "JOIN m.idMatricula idM "
-			+ "WHERE m.idMatricula.alumno.nombre = :nombre AND m.idMatricula.alumno.apellidos = :apellidos AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND idM" +
-			".asignatura" +
-			".idAsignatura" +
-			".cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa ")
+			+ "WHERE m.idMatricula.alumno.nombre = :nombre AND m.idMatricula.alumno.apellidos = :apellidos AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso "
+			+ "AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa ")
 	AlumnoDto encontrarAlumnoPorNombreAndApellidosAndCursoAndEtaoa(@Param("nombre") String nombre,
 																   @Param("apellidos") String apellidos,
 																   @Param("curso") Integer curso,
@@ -54,14 +50,8 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 	@Query("SELECT m "
 			+ "FROM Matricula m "
 			+ "JOIN m.idMatricula idM "
-			+ "WHERE m.idMatricula.alumno.nombre = :nombre AND m.idMatricula.alumno.apellidos = :apellidos AND m.idMatricula.asignatura.idAsignatura.nombre = :nombreAsignatura AND idM.asignatura.idAsignatura" +
-			".cursoEtapaGrupo" +
-			".idCursoEtapaGrupo" +
-			".curso = :curso " +
-			"AND idM" +
-			".asignatura" +
-			".idAsignatura" +
-			".cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa ")
+			+ "WHERE m.idMatricula.alumno.nombre = :nombre AND m.idMatricula.alumno.apellidos = :apellidos AND m.idMatricula.asignatura.idAsignatura.nombre = :nombreAsignatura "
+			+ "AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa ")
 	Matricula encontrarMatriculaPorNombreAndApellidosAndCursoAndEtaoa(@Param("nombre") String nombre,
 																	  @Param("apellidos") String apellidos,
 																	  @Param("nombreAsignatura") String nombreAsignatura,
@@ -76,7 +66,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "WHERE alu.nombre = :nombre AND alu.apellidos = :apellidos AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
 	List<MatriculaDto> encontrarAlumnoPorNombreYApellidosYGrupo(@Param("nombre") String nombre,
 																@Param("apellidos") String apellidos,
-																@Param("grupo") Character grupo);
+																@Param("grupo") String grupo);
 
 	@Query("SELECT COUNT(m.idMatricula.asignatura.idAsignatura.nombre) "
 			+ "FROM Matricula m "
@@ -84,7 +74,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 	Integer numeroAsignaturasPorNombreYGrupo(@Param("nombreAsignatura") String nombreAsignatura,
 											 @Param("curso") Integer curso,
 											 @Param("etapa") String etapa,
-											 @Param("grupo") Character grupo);
+											 @Param("grupo") String grupo);
 
 	//Al estar en un metodo transaccional hay que limpiar manualmente cualquier registro de matricula para que deje hacer flush al final
 	@Modifying(clearAutomatically = true)
@@ -104,7 +94,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "WHERE idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
 	List<Integer> encontrarIdAlumnoPorCursoEtapaYGrupo(@Param("curso") Integer curso,
 													   @Param("etapa") String etapa,
-													   @Param("grupo") Character grupo);
+													   @Param("grupo") String grupo);
 
 	@Query("SELECT alumno.id "
       + "FROM Matricula m "
@@ -114,7 +104,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
       + "WHERE ceg.curso = :curso AND ceg.etapa = :etapa AND ceg.grupo = :grupo AND asig.idAsignatura.nombre = :nombreAsignatura AND alumno.nombre = :nombre AND alumno.apellidos = :apellidos")
 	List<Integer> encontrarIdAlumnoPorCursoEtapaGrupoYNombre(@Param("curso") Integer curso,
 													   		 @Param("etapa") String etapa,
-													   		 @Param("grupo") Character grupo,
+													   		 @Param("grupo") String grupo,
 													   		 @Param("nombreAsignatura") String nombreAsignatura,
 															 @Param("nombre") String nombre,
 															 @Param("apellidos") String apellidos);
@@ -131,7 +121,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "WHERE m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND m.idMatricula.asignatura.idAsignatura.nombre = :asignatura")
 	Long numeroAlumnosPorGrupoYAsignatura(@Param("curso") Integer curso,
 										  @Param("etapa") String etapa,
-										  @Param("grupo") Character grupo,
+										  @Param("grupo") String grupo,
 										  @Param("asignatura") String asignatura);
 
 	@Query("SELECT m.idMatricula.alumno "
@@ -140,7 +130,7 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo AND idM.alumno.nombre = :nombreAlumno AND idM.alumno.apellidos = :apellidosAlumno")
 	Optional<Alumno> buscarAlumnoPorCursoEtapaNombreApellidos(@Param("curso") Integer curso,
 															  @Param("etapa") String etapa,
-															  @Param("grupo") Character grupo,
+															  @Param("grupo") String grupo,
 															  @Param("nombreAlumno") String nombreAlumno,
 															  @Param("apellidosAlumno") String apellidosAlumno) ;
 

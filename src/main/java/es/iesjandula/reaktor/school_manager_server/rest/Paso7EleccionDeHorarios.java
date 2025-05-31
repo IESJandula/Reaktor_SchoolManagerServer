@@ -181,7 +181,7 @@ public class Paso7EleccionDeHorarios
                                                @RequestHeader(value = "horas") Integer horas,
                                                @RequestHeader(value = "curso") Integer curso,
                                                @RequestHeader(value = "etapa") String etapa,
-                                               @RequestHeader(value = "grupo") Character grupo,
+                                               @RequestHeader(value = "grupo") String grupo,
                                                @RequestHeader(value = "email") String email)
     {
         try
@@ -513,7 +513,7 @@ public class Paso7EleccionDeHorarios
                                                  @RequestHeader(value = "horasAsignatura", required = false) Integer horasAsignatura,
                                                  @RequestHeader(value = "curso", required = false) Integer curso,
                                                  @RequestHeader(value = "etapa", required = false) String etapa,
-                                                 @RequestHeader(value = "grupo", required = false) Character grupo,
+                                                 @RequestHeader(value = "grupo", required = false) String grupo,
                                                  @RequestHeader(value = "nombreReduccion", required = false) String nombreReduccion,
                                                  @RequestHeader(value = "horasReduccion", required = false) Integer horasReduccion)
     {
@@ -580,8 +580,8 @@ public class Paso7EleccionDeHorarios
                                                 @RequestHeader(value = "horasAsignatura") Integer horasAsignatura,
                                                 @RequestHeader(value = "curso") Integer curso,
                                                 @RequestHeader(value = "etapa") String etapa,
-                                                @RequestHeader(value = "grupoAntiguo") Character grupoAntiguo,
-                                                @RequestHeader(value = "grupoNuevo") Character grupoNuevo)
+                                                @RequestHeader(value = "grupoAntiguo") String grupoAntiguo,
+                                                @RequestHeader(value = "grupoNuevo") String grupoNuevo)
     {
         try
         {
@@ -696,7 +696,7 @@ public class Paso7EleccionDeHorarios
      * @param grupoAntiguo     el grupo antiguo asociado a la asignatura.
      * @return una instancia de {@code IdImpartir} que contiene los identificadores compuestos.
      */
-    private IdImpartir construirIdImpartir(String email, String nombreAsignatura, Integer curso, String etapa, Character grupoAntiguo)
+    private IdImpartir construirIdImpartir(String email, String nombreAsignatura, Integer curso, String etapa, String grupoAntiguo)
     {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
         idCursoEtapaGrupo.setCurso(curso);
@@ -731,7 +731,7 @@ public class Paso7EleccionDeHorarios
      * @param grupo            el identificador del grupo asignado a la asignatura.
      * @return una nueva instancia de {@code Impartir} con los detalles especificados.
      */
-    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo)
+    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, String grupo)
     {
 
         IdImpartir idImpartir = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupo);
@@ -759,7 +759,7 @@ public class Paso7EleccionDeHorarios
      * @return una nueva instancia de {@code Impartir} que representa la asignación docente actualizada.
      * @throws SchoolManagerServerException si la asignación docente previa no existe o no se puede encontrar.
      */
-    private Impartir construirSolicitudGuardarImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupoAntiguo, Character grupoNuevo) throws SchoolManagerServerException
+    private Impartir construirSolicitudGuardarImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, String grupoAntiguo, String grupoNuevo) throws SchoolManagerServerException
     {
 
         IdImpartir idImpartirGrupoViejo = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupoAntiguo);
@@ -829,7 +829,7 @@ public class Paso7EleccionDeHorarios
      * @return la entidad {@code Impartir} creada con los datos proporcionados.
      * @throws SchoolManagerServerException si no se encuentra la asignatura asignada al profesor.
      */
-    private Impartir construirSolicitudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, Character grupo) throws SchoolManagerServerException
+    private Impartir construirSolicitudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, String grupo) throws SchoolManagerServerException
     {
         ImpartirDto asignaturaImpartidaDto = this.iImpartirRepository.encontrarAsignaturaImpartidaPorEmail(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
 

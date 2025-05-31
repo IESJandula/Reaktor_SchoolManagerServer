@@ -252,7 +252,7 @@ public class Paso5AsignaturasYDepartamentosController
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturasPorCursoEtapaGrupo")
     public ResponseEntity<?> obtenerAsignaturasPorCursoEtapaGrupo(@RequestParam("curso") int curso,
                                                                   @RequestParam("etapa") String etapa,
-                                                                  @RequestParam("grupo") Character grupo)
+                                                                  @RequestParam("grupo") String grupo)
     {
         try
         {
@@ -354,7 +354,7 @@ public class Paso5AsignaturasYDepartamentosController
     @RequestMapping(method = RequestMethod.PATCH, value = "/asignaturas/quitarDepartamentos")
     public ResponseEntity<?> quitarAsignaturasDeDepartamentos(@RequestParam("curso") int curso,
                                                               @RequestParam("etapa") String etapa,
-                                                              @RequestParam("grupo") Character grupo,
+                                                              @RequestParam("grupo") String grupo,
                                                               @RequestParam("nombre") String nombre)
     {
         try
@@ -427,7 +427,7 @@ public class Paso5AsignaturasYDepartamentosController
     @RequestMapping(method = RequestMethod.PATCH, value = "/asignaturas/asignarDepartamentos")
     public ResponseEntity<?> asignarAsignaturasADepartamentos(@RequestParam("curso") int curso,
                                                               @RequestParam("etapa") String etapa,
-                                                              @RequestParam("grupo") Character grupo,
+                                                              @RequestParam("grupo") String grupo,
                                                               @RequestParam("nombre") String nombre,
                                                               @RequestParam("departamentoPropietario") String departamentoPropietario,
                                                               @RequestParam(value = "departamentoReceptor") String departamentoReceptor)

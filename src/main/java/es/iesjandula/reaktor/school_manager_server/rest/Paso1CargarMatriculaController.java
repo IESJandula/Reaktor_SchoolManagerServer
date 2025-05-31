@@ -235,7 +235,7 @@ public class Paso1CargarMatriculaController
 
             if (listAlumnoMatriculas.isEmpty())
             {
-                String mensajeError = "No se ha encontrado matriculas para el" + curso + " y " + etapa;
+                String mensajeError = "No se ha encontrado matriculas para " + curso + " " + etapa;
 
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.MATRICULA_NO_ENCONTRADA, mensajeError);
@@ -319,7 +319,7 @@ public class Paso1CargarMatriculaController
 
             if (listDatosBrutoAlumnoMatriculas.isEmpty())
             {
-                String mensajeError = "No se ha encontrado datos de matriculas para el " + curso + " y " + etapa;
+                String mensajeError = "No se ha encontrado datos de matriculas para " + curso + " " + etapa;
 
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.DATOS_MATRICULA_NO_ENCONTRADA, mensajeError);
@@ -395,7 +395,7 @@ public class Paso1CargarMatriculaController
                         }
 
 //                      Buscamos el grupo al que pertenece el alumno
-                        Character grupo = this.iMatriculaRepository.encontrarGrupoPorNombreAndApellidosAndCursoAndEtaoa(alumno.get().getNombre(), alumno.get().getApellidos(), curso, etapa);
+                        String grupo = this.iMatriculaRepository.encontrarGrupoPorNombreAndApellidosAndCursoAndEtaoa(alumno.get().getNombre(), alumno.get().getApellidos(), curso, etapa);
                         if (grupo == null)
                         {
                             String mensajeError = "El alumno no tiene grupo asignado";

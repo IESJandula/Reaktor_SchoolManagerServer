@@ -37,5 +37,5 @@ public class AlumnoDto2
      * Los apellidos del alumno.
      * <p>Representa los apellidos del alumno, usualmente en formato completo.</p>
      */
-    private Character grupo;
+    private String grupo;
 }

@@ -17,5 +17,5 @@ public class ImpartirDto
 
     private String etapa ;
 
-    private Character grupo;
+    private String grupo;
 }

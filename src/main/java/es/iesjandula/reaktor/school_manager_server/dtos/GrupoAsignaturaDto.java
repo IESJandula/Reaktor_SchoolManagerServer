@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class GrupoAsignaturaDto
 {
-    private Character grupo;
+    private String grupo;
 }

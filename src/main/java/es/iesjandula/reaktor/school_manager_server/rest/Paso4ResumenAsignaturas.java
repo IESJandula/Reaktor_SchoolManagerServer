@@ -104,12 +104,12 @@ public class Paso4ResumenAsignaturas
     @RequestMapping(method = RequestMethod.GET, value = "/numeroAlumnosEnAsignatura")
     public ResponseEntity<?> obtenerCantidadAlumnosEnGrupoPorAsignatura(@RequestHeader(value = "curso", required = true) Integer curso,
                                                                         @RequestHeader(value = "etapa", required = true) String etapa,
-                                                                        @RequestHeader(value = "grupo", required = true) Character grupo,
+                                                                        @RequestHeader(value = "grupo", required = true) String grupo,
                                                                         @RequestHeader(value = "asignatura", required = true) String asignatura)
     {
         try
         {
-            List<Character> listaGrupos = iCursoEtapaGrupoRepository.buscaLetrasGruposDeCursoEtapas(curso, etapa);
+            List<String> listaGrupos = iCursoEtapaGrupoRepository.buscaLetrasGruposDeCursoEtapas(curso, etapa);
 
             // Si no esta ese grupo lanzar excepcion
             if (!listaGrupos.contains(grupo))

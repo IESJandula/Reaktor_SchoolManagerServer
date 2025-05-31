@@ -7,12 +7,19 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class AsignaturaInfoDto {
+public class AsignaturaInfoDto
+{
     private String nombre;
+
     private int curso;
+
     private String etapa;
-    private Character grupo;
+
+    private String grupo;
+
     private String departamentoPropietario;
+
     private String departamentoDonante;
+
     private Integer horas;
 }

@@ -42,6 +42,6 @@ public class IdCursoEtapaGrupo implements Serializable
 	/**
 	 * Grupo específico dentro de la etapa (por ejemplo, "A", "B").
 	 */
-	@Column(length = 1)
-	private char grupo;
+	@Column(length = 20)
+	private String grupo;
 }

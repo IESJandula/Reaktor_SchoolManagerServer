@@ -18,7 +18,7 @@ public class MatriculaDto
 	
 	private String etapa;
 	
-	private Character grupo;
+	private String grupo;
 	
 	private String nombreAsignatura;
 
