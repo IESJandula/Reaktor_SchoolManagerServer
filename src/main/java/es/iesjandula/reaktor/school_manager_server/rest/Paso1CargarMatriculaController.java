@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
-import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.*;
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
@@ -16,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -25,9 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto3;
-import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
@@ -378,12 +373,12 @@ public class Paso1CargarMatriculaController
             }
 
 //          Si el alumno ya está asignado a un grupo al cambiar el estado de la matrícula se añade o se borra
-            if (this.iMatriculaRepository.encontrarAlumnoPorNombreAndApellidosAndCursoAndEtaoa(nombre, apellidos, curso, etapa) != null)
+            if (this.iMatriculaRepository.encontrarAlumnoPorNombreAndApellidosAndCursoAndEtapa(nombre, apellidos, curso, etapa) != null)
             {
 //              Si el estado de la matricula es MATR o PEND
                 if (estado.equals(Constants.ESTADO_MATRICULADO) || estado.equals(Constants.ESTADO_PENDIENTE))
                 {
-                    if (this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtaoa(nombre, apellidos, asignatura, curso, etapa) == null)
+                    if (this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtapa(nombre, apellidos, asignatura, curso, etapa) == null)
                     {
 //                      Buscamos el alumno en base de datos
                         Optional<Alumno> alumno = this.iAlumnoRepository.findByNombreAndApellidos(nombre, apellidos);
@@ -395,19 +390,104 @@ public class Paso1CargarMatriculaController
                         }
 
 //                      Buscamos el grupo al que pertenece el alumno
-                        String grupo = this.iMatriculaRepository.encontrarGrupoPorNombreAndApellidosAndCursoAndEtaoa(alumno.get().getNombre(), alumno.get().getApellidos(), curso, etapa);
-                        if (grupo == null)
+                        List<String> listaGrupos = this.iMatriculaRepository.encontrarGrupoPorNombreAndApellidosAndCursoAndEtapa(alumno.get().getNombre(), alumno.get().getApellidos(), curso, etapa);
+
+                        if (listaGrupos.isEmpty())
                         {
                             String mensajeError = "El alumno no tiene grupo asignado";
                             log.error(mensajeError);
                             throw new SchoolManagerServerException(Constants.GRUPO_NO_ENCONTRADO, mensajeError);
                         }
 
+                        String grupo = listaGrupos.stream().findFirst().get();
+
+                        //Si la lista de grupos contiene entradas de optativas
+                        if (listaGrupos.contains(Constants.GRUPO_OPTATIVAS)){
+
+                           // Buscamos la asignatura en base de datos
+                            Optional<Asignatura> asignaturaExistente = this.iAsignaturaRepository
+                                    .encontrarAsignaturaPorNombreYCursoYEtapaYGrupoOptativas(curso, etapa, asignatura);
+                            Bloque bloqueDeOptativas = new Bloque();
+                            if (asignaturaExistente.isPresent()){
+                                bloqueDeOptativas = asignaturaExistente.get().getBloqueId();
+                            }
+
+//                      Usamos la asignatura existente o crear una nueva si no existe
+                            Bloque finalBloqueDeOptativas = bloqueDeOptativas;
+                            Asignatura asignaturaParaMatricula = asignaturaExistente.orElseGet(() -> {
+                                AsignaturaSinGrupoDto asignaturaABuscar = this.iAsignaturaRepository
+                                        .encontrarPorCursoYEtapaYNombre(curso, etapa, asignatura);
+
+                                if (asignaturaABuscar == null)
+                                {
+                                    String mensajeError = "No se encontró la asignatura " + asignatura +" para el curso " + curso + " y etapa " + etapa;
+                                    log.error(mensajeError);
+                                    try
+                                    {
+                                        throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
+                                    }
+                                    catch (SchoolManagerServerException schoolManagerServerException)
+                                    {
+                                        throw new RuntimeException(schoolManagerServerException);
+                                    }
+                                }
+
+                                IdAsignatura idAsignatura = new IdAsignatura();
+                                IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+                                idCursoEtapaGrupo.setCurso(curso);
+                                idCursoEtapaGrupo.setEtapa(etapa);
+                                idCursoEtapaGrupo.setGrupo(Constants.GRUPO_OPTATIVAS);
+
+
+                                CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+                                cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+
+                                idAsignatura.setCursoEtapaGrupo(cursoEtapaGrupo);
+                                idAsignatura.setNombre(asignatura);
+
+                                Asignatura nuevaAsignatura = new Asignatura();
+                                nuevaAsignatura.setIdAsignatura(idAsignatura);
+                                nuevaAsignatura.setHoras(asignaturaABuscar.getHoras());
+                                nuevaAsignatura.setEsoBachillerato(asignaturaABuscar.isEsoBachillerato());
+                                nuevaAsignatura.setSinDocencia(asignaturaABuscar.isSinDocencia());
+                                nuevaAsignatura.setDesdoble(asignaturaABuscar.isDesdoble());
+                                //Aqui seteo el idBloque de la asignatura encontrada
+                                nuevaAsignatura.setBloqueId(finalBloqueDeOptativas);
+
+                                return this.iAsignaturaRepository.saveAndFlush(nuevaAsignatura);
+                            });
+
+//                        Primero buscamos si existe la asignatura con grupo "sin grupo" y la borramos
+                            Optional<Asignatura> asignaturaGrupoZ = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
+                                    curso,
+                                    etapa,
+                                    asignatura,
+                                    Constants.SIN_GRUPO_ASIGNADO);  // Buscamos específicamente el grupo "sin grupo"
+
+                            if (asignaturaGrupoZ.isPresent()) {
+                                Asignatura asignaturaABorrar = asignaturaGrupoZ.get();
+                                iAsignaturaRepository.delete(asignaturaABorrar);
+                                iAsignaturaRepository.flush();
+                            }
+
+                            IdMatricula idMatricula = new IdMatricula(asignaturaParaMatricula, alumno.get());
+
+                            Matricula nuevaMatricula = new Matricula(idMatricula);
+                            this.iMatriculaRepository.saveAndFlush(nuevaMatricula);
+
+                            datosBrutoAlumnoMatriculas.setAsignado(true);
+                            datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
+                        }
+                        else{
 //                      Buscamos la asignatura en base de datos
                         Optional<Asignatura> asignaturaExistente = this.iAsignaturaRepository
                                 .encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, asignatura, grupo);
-
+                        Bloque bloqueDeOptativas = new Bloque();
+                            if (asignaturaExistente.isPresent()){
+                                bloqueDeOptativas = asignaturaExistente.get().getBloqueId();
+                            }
 //                      Usamos la asignatura existente o crear una nueva si no existe
+                        Bloque finalBloqueDeOptativas = bloqueDeOptativas;
                         Asignatura asignaturaParaMatricula = asignaturaExistente.orElseGet(() -> {
                             AsignaturaSinGrupoDto asignaturaABuscar = this.iAsignaturaRepository
                                     .encontrarPorCursoYEtapaYNombre(curso, etapa, asignatura);
@@ -430,7 +510,13 @@ public class Paso1CargarMatriculaController
                             IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
                             idCursoEtapaGrupo.setCurso(curso);
                             idCursoEtapaGrupo.setEtapa(etapa);
-                            idCursoEtapaGrupo.setGrupo(grupo);
+
+                            if(asignaturaABuscar.getIdBloque()!=null){
+                                idCursoEtapaGrupo.setGrupo(Constants.GRUPO_OPTATIVAS);
+                            }
+                            else{
+                                idCursoEtapaGrupo.setGrupo(grupo);
+                            }
 
                             CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
                             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
@@ -444,16 +530,18 @@ public class Paso1CargarMatriculaController
                             nuevaAsignatura.setEsoBachillerato(asignaturaABuscar.isEsoBachillerato());
                             nuevaAsignatura.setSinDocencia(asignaturaABuscar.isSinDocencia());
                             nuevaAsignatura.setDesdoble(asignaturaABuscar.isDesdoble());
+                            //Aqui seteo el idBloque de la asignatura encontrada
+                            nuevaAsignatura.setBloqueId(finalBloqueDeOptativas);
 
                             return this.iAsignaturaRepository.saveAndFlush(nuevaAsignatura);
                         });
 
-//                        Primero buscamos si existe la asignatura con grupo Z y la borramos
+//                        Primero buscamos si existe la asignatura con grupo "sin grupo" y la borramos
                         Optional<Asignatura> asignaturaGrupoZ = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
                                 curso,
                                 etapa,
                                 asignatura,
-                                Constants.SIN_GRUPO_ASIGNADO);  // Buscamos específicamente el grupo Z
+                                Constants.SIN_GRUPO_ASIGNADO);  // Buscamos específicamente el grupo "sin grupo"
 
                         if (asignaturaGrupoZ.isPresent()) {
                             Asignatura asignaturaABorrar = asignaturaGrupoZ.get();
@@ -469,12 +557,13 @@ public class Paso1CargarMatriculaController
                         datosBrutoAlumnoMatriculas.setAsignado(true);
                         datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
                     }
+                  }
                 }
 //              Si es cualquiera de los otros estados
                 else
                 {
 //                  Buscamos la matricula y la eliminamos
-                    Matricula matricula = this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtaoa(nombre, apellidos, asignatura, curso, etapa);
+                    Matricula matricula = this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtapa(nombre, apellidos, asignatura, curso, etapa);
                     if (matricula != null)
                     {
                         datosBrutoAlumnoMatriculas.setAsignado(false);

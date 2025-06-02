@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Entidad - Alumno
@@ -54,7 +55,8 @@ public class Alumno
      */
     @Column(length = 100)
     private String apellidos;
-    
+
+    @ToString.Exclude
     @OneToMany(mappedBy = "idMatricula.alumno", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Matricula> alumnos;
 }

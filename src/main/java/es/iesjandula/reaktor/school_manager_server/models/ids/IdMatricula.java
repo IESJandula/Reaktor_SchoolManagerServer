@@ -12,6 +12,7 @@ import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 /**
  * Clase que representa la clave primaria compuesta para la entidad {@link Matricula}.
@@ -51,6 +52,7 @@ public class IdMatricula implements Serializable
      * Representa una relación con la entidad {@link Alumno}.
      */
     @ManyToOne(cascade = CascadeType.ALL)
+	@ToString.Exclude
     @JoinColumn(name = "alumno_id", referencedColumnName = "id")
     private Alumno alumno;
 }

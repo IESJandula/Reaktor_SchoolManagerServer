@@ -346,7 +346,6 @@ public class Paso3CrearGruposController
     {
         try
         {
-//            TODO: Hacer que se borren los grupos de optativas
             List<MatriculaDto> listaAlumnosABorrar = iMatriculaRepository.encontrarAlumnoPorNombreYApellidosYGrupo(alumnoDto.getNombre(), alumnoDto.getApellidos(), alumnoDto.getGrupo());
             List<Integer> idAlumnos = new ArrayList<>();
 

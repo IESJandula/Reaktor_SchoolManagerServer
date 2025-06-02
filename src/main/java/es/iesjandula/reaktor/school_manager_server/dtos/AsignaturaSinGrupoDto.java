@@ -17,4 +17,6 @@ public class AsignaturaSinGrupoDto
     private boolean sinDocencia;
 
     private boolean desdoble;
+
+    private Long idBloque;
 }

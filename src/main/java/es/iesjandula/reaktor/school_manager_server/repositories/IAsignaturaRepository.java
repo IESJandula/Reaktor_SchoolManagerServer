@@ -64,11 +64,18 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre "
-			+ "AND (a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo OR a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "')")
+			+ "AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo ")
 	Optional<Asignatura> encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(@Param("curso") int curso,
 																		@Param("etapa") String etapa,
 																		@Param("nombre") String nombre,
 																		@Param("grupo") String grupo);
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre "
+			+ "AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "'")
+	Optional<Asignatura> encontrarAsignaturaPorNombreYCursoYEtapaYGrupoOptativas(@Param("curso") int curso,
+																		@Param("etapa") String etapa,
+																		@Param("nombre") String nombre);
 
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
@@ -83,7 +90,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 	List<AsignaturaHorasDto> findNombreAndHorasByCursoEtapa(@Param("curso") Integer curso,
 															@Param("etapa") String etapa);
 
-	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto(a.horas, a.esoBachillerato, a.sinDocencia, a.desdoble) "
+	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto(a.horas, a.esoBachillerato, a.sinDocencia, a.desdoble , a.bloqueId.id ) "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre")
 	AsignaturaSinGrupoDto encontrarPorCursoYEtapaYNombre(@Param("curso") int curso,
