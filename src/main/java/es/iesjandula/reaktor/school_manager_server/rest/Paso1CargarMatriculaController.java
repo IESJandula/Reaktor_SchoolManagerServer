@@ -10,11 +10,13 @@ import es.iesjandula.reaktor.school_manager_server.dtos.*;
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -351,6 +353,7 @@ public class Paso1CargarMatriculaController
      * - 200 (OK) si la actualización es exitosa.
      * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
      */
+    @Transactional
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/datosMatriculas")
     public ResponseEntity<?> matricularAsignatura(@RequestHeader(value = "nombre") String nombre,
@@ -481,7 +484,7 @@ public class Paso1CargarMatriculaController
                         else{
 //                      Buscamos la asignatura en base de datos
                         Optional<Asignatura> asignaturaExistente = this.iAsignaturaRepository
-                                .encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(curso, etapa, asignatura, grupo);
+                                .encontrarAsignaturaPorNombreYCursoYEtapaYGrupoOSinEl(curso, etapa, asignatura, grupo);
                         Bloque bloqueDeOptativas = new Bloque();
                             if (asignaturaExistente.isPresent()){
                                 bloqueDeOptativas = asignaturaExistente.get().getBloqueId();
@@ -536,26 +539,57 @@ public class Paso1CargarMatriculaController
                             return this.iAsignaturaRepository.saveAndFlush(nuevaAsignatura);
                         });
 
-//                        Primero buscamos si existe la asignatura con grupo "sin grupo" y la borramos
-                        Optional<Asignatura> asignaturaGrupoZ = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
-                                curso,
-                                etapa,
-                                asignatura,
-                                Constants.SIN_GRUPO_ASIGNADO);  // Buscamos específicamente el grupo "sin grupo"
+// 1) Recupero la fila antigua:
+                            Asignatura vieja = asignaturaExistente.get();
+// 2) Recupero el CursoEtapaGrupo “(curso, etapa, "A")” de BD:
+                            CursoEtapaGrupo cegA;
+                            if(vieja.isOptativa()){
+                                 cegA = iCursoEtapaGrupoRepository
+                                        .findById(new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS))
+                                        .orElseThrow();
+                            }
+                            else{
+                                 cegA = iCursoEtapaGrupoRepository
+                                        .findById(new IdCursoEtapaGrupo(curso, etapa, grupo))
+                                        .orElseThrow();
+                            }
+// 3) Creo la nueva Asignatura con grupo="A":
+                            IdAsignatura nuevoId = new IdAsignatura();
+                            nuevoId.setCursoEtapaGrupo(cegA);
+                            nuevoId.setNombre(vieja.getIdAsignatura().getNombre());
 
-                        if (asignaturaGrupoZ.isPresent()) {
-                            Asignatura asignaturaABorrar = asignaturaGrupoZ.get();
-                            iAsignaturaRepository.delete(asignaturaABorrar);
+                            Asignatura copia = new Asignatura();
+                            copia.setIdAsignatura(nuevoId);
+                            copia.setHoras(vieja.getHoras());
+                            copia.setEsoBachillerato(vieja.isEsoBachillerato());
+                            copia.setSinDocencia(vieja.isSinDocencia());
+                            copia.setDesdoble(vieja.isDesdoble());
+                            copia.setBloqueId(vieja.getBloqueId());
+                            iAsignaturaRepository.saveAndFlush(copia);
+
+// 4) Después, creo la Matricula sobre “copia”:
+                            IdMatricula idMat = new IdMatricula(copia, alumno.get());
+                            iMatriculaRepository.saveAndFlush(new Matricula(idMat));
+
+// 5) Por último, si quiero eliminar la fila vieja ("sin grupo"), hago:
+                            iAsignaturaRepository.delete(vieja);
                             iAsignaturaRepository.flush();
-                        }
-
-                        IdMatricula idMatricula = new IdMatricula(asignaturaParaMatricula, alumno.get());
-
-                        Matricula nuevaMatricula = new Matricula(idMatricula);
-                        this.iMatriculaRepository.saveAndFlush(nuevaMatricula);
 
                         datosBrutoAlumnoMatriculas.setAsignado(true);
                         datosBrutoAlumnoMatriculas.setEstadoMatricula(estado);
+
+                            //Primero buscamos si existe la asignatura con grupo "sin grupo" y la borramos
+                            Optional<Asignatura> asignaturaGrupoZ = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
+                                    curso,
+                                    etapa,
+                                    asignatura,
+                                    Constants.SIN_GRUPO_ASIGNADO);  // Buscamos específicamente el grupo "sin grupo"
+
+                            if (asignaturaGrupoZ.isPresent()) {
+                                Asignatura asignaturaABorrar = asignaturaGrupoZ.get();
+                                iAsignaturaRepository.delete(asignaturaABorrar);
+                                iAsignaturaRepository.flush();
+                            }
                     }
                   }
                 }

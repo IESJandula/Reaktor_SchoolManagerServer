@@ -69,6 +69,18 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
 																		@Param("etapa") String etapa,
 																		@Param("nombre") String nombre,
 																		@Param("grupo") String grupo);
+
+	@Query("SELECT a "
+			+ "FROM Asignatura a "
+			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre "
+			+ "AND (a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo "
+			+        "OR a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '"
+			+        Constants.SIN_GRUPO_ASIGNADO + "')")
+	Optional<Asignatura> encontrarAsignaturaPorNombreYCursoYEtapaYGrupoOSinEl(@Param("curso") int curso,
+																		@Param("etapa") String etapa,
+																		@Param("nombre") String nombre,
+																		@Param("grupo") String grupo);
+
 	@Query("SELECT a "
 			+ "FROM Asignatura a "
 			+ "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND a.idAsignatura.nombre = :nombre "
