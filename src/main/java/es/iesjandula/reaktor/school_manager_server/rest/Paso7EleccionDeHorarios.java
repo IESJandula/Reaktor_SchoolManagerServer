@@ -193,6 +193,7 @@ public class Paso7EleccionDeHorarios
 
 //          Contamos las asignaturas que hay por nombre, horas, curso y etapa
             Long asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa);
+            long asignaturaCount = asignaturaImpartir == null ? 0 : asignaturaImpartir;
 
 //          Contamos los grupos que hay por asignaturas
             long cantidadGrupos = this.iAsignaturaRepository.contarGruposPorAsignatura(nombreAsignatura, curso, etapa);
@@ -202,7 +203,7 @@ public class Paso7EleccionDeHorarios
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
 
-            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR) && asignaturaImpartir == cantidadGrupos && !desabilitado)
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR) && asignaturaCount == cantidadGrupos && !desabilitado)
             {
                 Profesor profesor = this.iProfesorRepository.findByEmail(email);
                 String mensajeError ="La asignatura " + nombreAsignatura + " ya ha sido asignada al profesor " + profesor.getNombre() + " " + profesor.getApellidos();

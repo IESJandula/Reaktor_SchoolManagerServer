@@ -73,9 +73,9 @@ public class Paso3CrearGruposController
      * @param curso el identificador del curso, enviado en la cabecera de la solicitud (HTTP header).
      * @param etapa la etapa educativa, enviada en la cabecera de la solicitud (HTTP header).
      * @return una {@link ResponseEntity} que contiene:
-     *         - 200 (OK) si el grupo se crea correctamente.
-     *         - 400 (BAD_REQUEST) si la validación del curso o etapa falla.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la creación del grupo.
+     * - 200 (OK) si el grupo se crea correctamente.
+     * - 400 (BAD_REQUEST) si la validación del curso o etapa falla.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la creación del grupo.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/grupos")
@@ -151,8 +151,8 @@ public class Paso3CrearGruposController
      * @param etapa la etapa educativa, enviada en la cabecera de la solicitud (HTTP header).
      * @param grupo la letra que identifica el grupo dentro del curso y etapa, enviada en la cabecera (HTTP header).
      * @return una {@link ResponseEntity} que contiene:
-     *         - una lista de {@link AlumnoDto2} si la operación es exitosa.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante la consulta.
+     * - una lista de {@link AlumnoDto2} si la operación es exitosa.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante la consulta.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnos")
@@ -209,9 +209,9 @@ public class Paso3CrearGruposController
      * @param curso el identificador del curso, enviado en la cabecera de la solicitud (HTTP header).
      * @param etapa la etapa educativa, enviada en la cabecera de la solicitud (HTTP header).
      * @return una {@link ResponseEntity} que contiene:
-     *         - una lista de {@link AlumnoDto3} si se encuentran alumnos sin grupo asignado.
-     *         - 404 (NOT_FOUND) si no se encuentran alumnos para el curso y etapa indicados.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante el procesamiento de la solicitud.
+     * - una lista de {@link AlumnoDto3} si se encuentran alumnos sin grupo asignado.
+     * - 404 (NOT_FOUND) si no se encuentran alumnos para el curso y etapa indicados.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante el procesamiento de la solicitud.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/gruposAlumnosTotales")
@@ -258,13 +258,13 @@ public class Paso3CrearGruposController
      * y la matrícula en base a los datos encontrados.
      *
      * @param alumnos lista de objetos {@link AlumnoDto2} con los datos de los alumnos que se desean asignar.
-     * @param curso el identificador del curso (enviado en la cabecera HTTP) al que pertenecen los alumnos.
-     * @param etapa la etapa educativa (enviada en la cabecera HTTP) correspondiente al curso.
-     * @param grupo el identificador del grupo (enviado en la cabecera HTTP) al que se asignarán los alumnos.
+     * @param curso   el identificador del curso (enviado en la cabecera HTTP) al que pertenecen los alumnos.
+     * @param etapa   la etapa educativa (enviada en la cabecera HTTP) correspondiente al curso.
+     * @param grupo   el identificador del grupo (enviado en la cabecera HTTP) al que se asignarán los alumnos.
      * @return un objeto {@link ResponseEntity} con:
-     *         - HTTP 200 OK si la asignación se realiza correctamente.
-     *         - HTTP 400 BAD REQUEST con un mensaje de error si ocurre una excepción controlada.
-     *         - HTTP 500 INTERNAL SERVER ERROR con un mensaje de error si se produce una excepción inesperada.
+     * - HTTP 200 OK si la asignación se realiza correctamente.
+     * - HTTP 400 BAD REQUEST con un mensaje de error si ocurre una excepción controlada.
+     * - HTTP 500 INTERNAL SERVER ERROR con un mensaje de error si se produce una excepción inesperada.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/gruposAlumnos")
@@ -336,9 +336,9 @@ public class Paso3CrearGruposController
      *
      * @param alumnoDto objeto {@link AlumnoDto2} que contiene los datos del alumno que se desea desasignar del grupo.
      * @return un objeto {@link ResponseEntity} con:
-     *         - HTTP 200 OK si el alumno se ha desasignado correctamente.
-     *         - HTTP 400 BAD REQUEST si ocurre una {@link SchoolManagerServerException} controlada.
-     *         - HTTP 500 INTERNAL SERVER ERROR si se produce una excepción inesperada durante la operación.
+     * - HTTP 200 OK si el alumno se ha desasignado correctamente.
+     * - HTTP 400 BAD REQUEST si ocurre una {@link SchoolManagerServerException} controlada.
+     * - HTTP 500 INTERNAL SERVER ERROR si se produce una excepción inesperada durante la operación.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.DELETE, value = "/gruposAlumnos")
@@ -392,7 +392,8 @@ public class Paso3CrearGruposController
                         matriculaDtoAlumnoABorrar.getNombreAsignatura(),
                         matriculaDtoAlumnoABorrar.getCurso(),
                         matriculaDtoAlumnoABorrar.getEtapa(),
-                        matriculaDtoAlumnoABorrar.getGrupo()) == 0) {
+                        matriculaDtoAlumnoABorrar.getGrupo()) == 0)
+                {
 
                     Optional<Asignatura> asignaturaEncontrada = iAsignaturaRepository
                             .encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
@@ -402,7 +403,8 @@ public class Paso3CrearGruposController
                                     matriculaDtoAlumnoABorrar.getGrupo());
 
                     // Primero borramos la asignatura actual
-                    if (asignaturaEncontrada.isPresent()) {
+                    if (asignaturaEncontrada.isPresent())
+                    {
                         iAsignaturaRepository.delete(asignaturaEncontrada.get());
 
                         // Verificar si quedan más grupos con esta asignatura
@@ -412,7 +414,8 @@ public class Paso3CrearGruposController
                                 matriculaDtoAlumnoABorrar.getEtapa());
 
                         // Solo si no quedan más grupos, creamos la asignatura sin grupo
-                        if (gruposRestantes == 0) {
+                        if (gruposRestantes == 0)
+                        {
                             // Creo la asignatura sin el grupo
                             Asignatura asignatura = getAsignatura(matriculaDtoAlumnoABorrar, asignaturaEncontrada);
                             this.iAsignaturaRepository.saveAndFlush(asignatura);
@@ -506,14 +509,14 @@ public class Paso3CrearGruposController
      * identificando de forma única dicho grupo por su curso, etapa y letra.
      * La operación está restringida a usuarios con rol de dirección.
      *
-     * @param curso identificador del curso. Obligatorio.
-     * @param etapa etapa educativa del grupo. Obligatoria.
-     * @param grupo identificador del grupo dentro del curso y etapa. Obligatorio.
+     * @param curso             identificador del curso. Obligatorio.
+     * @param etapa             etapa educativa del grupo. Obligatoria.
+     * @param grupo             identificador del grupo dentro del curso y etapa. Obligatorio.
      * @param esHorarioMatutino indica si el grupo tiene turno de mañana ({@code true}) o no ({@code false}). Obligatorio.
      * @return un objeto {@link ResponseEntity} con:
-     *         - HTTP 200 OK si el turno horario se actualizó correctamente.
-     *         - HTTP 400 BAD REQUEST si no se encontró el grupo indicado.
-     *         - HTTP 500 INTERNAL SERVER ERROR si ocurrió un error inesperado durante la operación.
+     * - HTTP 200 OK si el turno horario se actualizó correctamente.
+     * - HTTP 400 BAD REQUEST si no se encontró el grupo indicado.
+     * - HTTP 500 INTERNAL SERVER ERROR si ocurrió un error inesperado durante la operación.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/turnoHorario")
@@ -573,7 +576,8 @@ public class Paso3CrearGruposController
      * @param grupo letra actual del grupo
      * @return siguiente letra del grupo
      */
-    private String incrementarGrupo(String grupo) {
+    private String incrementarGrupo(String grupo)
+    {
         char letraGrupo = grupo.charAt(0);
         return String.valueOf((char) (letraGrupo + 1));
     }
