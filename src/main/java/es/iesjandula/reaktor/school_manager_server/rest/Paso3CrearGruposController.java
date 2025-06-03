@@ -224,7 +224,7 @@ public class Paso3CrearGruposController
 
             if (listaDatosBrutoAlumnoMatriculas.isEmpty())
             {
-                String mensajeError = "No se ha alumnos para " + curso + " " + etapa;
+                String mensajeError = "No se han encontrado alumnos para " + curso + " " + etapa;
 
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.SIN_ALUMNOS_ENCONTRADOS, mensajeError);

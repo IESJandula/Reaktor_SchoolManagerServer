@@ -198,16 +198,44 @@ public class Paso7EleccionDeHorarios
 //          Contamos los grupos que hay por asignaturas
             long cantidadGrupos = this.iAsignaturaRepository.contarGruposPorAsignatura(nombreAsignatura, curso, etapa);
 
-            boolean desabilitado = this.iAsignaturaRepository.isDesabilitado(nombreAsignatura, curso, etapa);
+            boolean desdoble = this.iAsignaturaRepository.isDesdoble(nombreAsignatura, curso, etapa);
 
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
 
-            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION) && !usuario.getRoles().contains(BaseConstants.ROLE_ADMINISTRADOR) && asignaturaCount == cantidadGrupos && !desabilitado)
+            if (asignaturaCount >= cantidadGrupos && !desdoble)
             {
-                Profesor profesor = this.iProfesorRepository.findByEmail(email);
-                String mensajeError ="La asignatura " + nombreAsignatura + " ya ha sido asignada al profesor " + profesor.getNombre() + " " + profesor.getApellidos();
-                log.error(mensajeError);
+                List<ProfesorImpartirDto> listProfesores = this.iImpartirRepository.encontrarProfesorPorNombreAndCursoEtpa(nombreAsignatura, curso, etapa);
+                String mensajeError = null;
+                if (listProfesores.size() > 1)
+                {
+                    StringBuilder profesores = new StringBuilder();
+                    for (int i = 0; i < listProfesores.size(); i++)
+                    {
+                        ProfesorImpartirDto profesorDto = listProfesores.get(i);
+                        profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
+                        if (i == listProfesores.size() - 1) {
+                            // Último profesor
+                            profesores.append(" y ").append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
+                        } else if (i == listProfesores.size() - 2) {
+                            // Penúltimo profesor (no añadir coma después)
+                            profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
+                        } else {
+                            // Resto de profesores
+                            profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos()).append(", ");
+                        }
+
+                    }
+                    mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada a los profesores " + profesores;
+                    log.error(mensajeError);
+                }
+                else if (!listProfesores.isEmpty())
+                {
+                    ProfesorImpartirDto profesorDto = listProfesores.get(0);
+                    mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada al profesor " + profesorDto.getNombre() + " " + profesorDto.getApellidos();
+                    log.error(mensajeError);
+                }
+
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
             }
 

@@ -140,7 +140,7 @@ public class Paso2AsignaturasYBloquesController
                         throw new SchoolManagerServerException(Constants.ASIGNATURA_CON_BLOQUE, mensajeError);
                     }
 
-                    this.iBloqueRepository.save(bloque);
+                    this.iBloqueRepository.saveAndFlush(bloque);
 
                     asignatura.setBloqueId(bloque);
 

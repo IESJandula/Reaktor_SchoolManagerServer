@@ -2,6 +2,7 @@ package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorImpartirDto;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,5 +57,11 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
     List<Impartir> encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(@Param("nombreAsignatura") String nombreAsignatura,
                                                                @Param("curso") Integer curso,
                                                                @Param("etapa") String etapa);
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ProfesorImpartirDto(i.idImpartir.profesor.nombre, i.idImpartir.profesor.apellidos) " +
+            "FROM Impartir i " +
+            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+    List<ProfesorImpartirDto> encontrarProfesorPorNombreAndCursoEtpa(@Param("nombreAsignatura") String nombreAsignatura,
+                                                            @Param("curso") Integer curso,
+                                                            @Param("etapa") String etapa);
 
 }
