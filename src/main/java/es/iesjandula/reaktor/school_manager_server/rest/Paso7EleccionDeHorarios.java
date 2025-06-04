@@ -407,7 +407,7 @@ public class Paso7EleccionDeHorarios
             }
 
 
-//            tramo--; No hace falta
+            tramo--;
 
             Integer dias = this.iDiasTramosRepository.encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(tramo, tipoHorario, diasDesc);
             if (dias == null)
