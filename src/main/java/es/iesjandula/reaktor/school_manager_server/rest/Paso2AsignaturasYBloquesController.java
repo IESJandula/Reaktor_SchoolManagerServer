@@ -1,8 +1,16 @@
 package es.iesjandula.reaktor.school_manager_server.rest;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
+import es.iesjandula.reaktor.school_manager_server.models.Matricula;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,6 +43,12 @@ public class Paso2AsignaturasYBloquesController
 
     @Autowired
     private IBloqueRepository iBloqueRepository;
+
+    @Autowired
+    private IMatriculaRepository iMatriculaRepository;
+
+    @Autowired
+    private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
 
     /**
      * Obtiene la lista de asignaturas de un curso y etapa determinados.
@@ -140,11 +154,40 @@ public class Paso2AsignaturasYBloquesController
                         throw new SchoolManagerServerException(Constants.ASIGNATURA_CON_BLOQUE, mensajeError);
                     }
 
+                    if (!Objects.equals(asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo(), Constants.GRUPO_OPTATIVAS))
+                    {
+//                      Creo un grupo Optativas para la asignatura que se va a asignar.
+                        IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS);
+                        CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+                        cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+                        this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo);
+
+//                      Busco todas la matriculas de esa asignatura
+                        List<Matricula> matriculaABorrar = this.iMatriculaRepository.encontrarMatriculaPorNombreAsignaturaAndCursoAndEtapa(asignatura.getIdAsignatura().getNombre(), curso, etapa);
+//                      Borro las matrículas de la asignatura con el grupo viejo.
+                        this.iMatriculaRepository.deleteAll(matriculaABorrar);
+//                      Borro la asignatura con el grupo viejo.
+                        this.iAsignaturaRepository.delete(asignatura);
+
+//                      Creo la asignatura con el grupo nuevo.
+                        Asignatura asignaturaOptativas = getAsignatura(curso, etapa, asignatura);
+                        this.iAsignaturaRepository.saveAndFlush(asignaturaOptativas);
+
+                        for (Matricula matricula : matriculaABorrar)
+                        {
+//                          Creo las matrículas con el grupo nuevo.
+                            IdMatricula idMatricula = getIdMatricula(curso, etapa, matricula);
+                            matricula.setIdMatricula(idMatricula);
+
+                            this.iMatriculaRepository.saveAndFlush(matricula);
+                        }
+                    }
+
                     this.iBloqueRepository.saveAndFlush(bloque);
 
                     asignatura.setBloqueId(bloque);
 
-                    iAsignaturaRepository.saveAndFlush(asignatura);
+                    this.iAsignaturaRepository.saveAndFlush(asignatura);
                 }
             }
 
@@ -455,6 +498,27 @@ public class Paso2AsignaturasYBloquesController
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+
+    private static Asignatura getAsignatura(int curso, String etapa, Asignatura asignatura)
+    {
+        IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS);
+        CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+        cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+        IdAsignatura idAsignatura = new IdAsignatura(cursoEtapaGrupo, asignatura.getIdAsignatura().getNombre());
+        asignatura.setIdAsignatura(idAsignatura);
+        return asignatura;
+    }
+
+    private static IdMatricula getIdMatricula(int curso, String etapa, Matricula matricula)
+    {
+        IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS);
+        CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+        cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+        IdAsignatura idAsignatura = new IdAsignatura(cursoEtapaGrupo, matricula.getIdMatricula().getAsignatura().getIdAsignatura().getNombre());
+        Asignatura asignaturaOptativas = new Asignatura();
+        asignaturaOptativas.setIdAsignatura(idAsignatura);
+        return new IdMatricula(asignaturaOptativas, matricula.getIdMatricula().getAlumno());
     }
 }
 
