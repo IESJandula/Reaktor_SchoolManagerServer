@@ -400,12 +400,14 @@ public class Paso7EleccionDeHorarios
             this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales);
 
             List<PreferenciasHorariasProfesor> listPreferenciasHorariasProfesorABuscar = this.iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(email);
+
             if (listPreferenciasHorariasProfesorABuscar.size() == 3)
             {
                 this.iPreferenciasHorariasRepository.deleteAll(listPreferenciasHorariasProfesorABuscar);
             }
 
-            tramo--;
+
+//            tramo--; No hace falta
 
             Integer dias = this.iDiasTramosRepository.encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(tramo, tipoHorario, diasDesc);
             if (dias == null)
