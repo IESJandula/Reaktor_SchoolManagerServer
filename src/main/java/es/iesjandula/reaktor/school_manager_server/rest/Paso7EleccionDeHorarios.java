@@ -454,6 +454,98 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/observaciones/usuario")
+    public ResponseEntity<?> obtenerObervacionesAdicionales(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                          @RequestHeader(value = "email") String email) throws SchoolManagerServerException {
+        if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+        {
+            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+        }
+        try
+        {
+            Profesor profesorEncontrado = iProfesorRepository.findByEmail(email);
+            Optional<ObservacionesAdicionales> observacionesEncontradas = iObservacionesAdicionalesRepository.findByIdObservacionesAdicionales_Profesor(profesorEncontrado);
+
+            if (observacionesEncontradas.isEmpty())
+            {
+                String mensajeError = "No se han encontrado observaciones para este usuario.";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.ERROR_OBTENIENDO_PARAMETROS, mensajeError);
+            }
+            ObservacionesDto observacionesDto = new ObservacionesDto();
+
+            observacionesDto.setConciliacion(observacionesEncontradas.get().getConciliacion());
+            observacionesDto.setTrabajarPrimeraHora(observacionesEncontradas.get().getTrabajarPrimeraHora());
+            observacionesDto.setOtrasObservaciones(observacionesEncontradas.get().getOtrasObservaciones());
+
+            return ResponseEntity.ok().body(observacionesDto);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se produjo un error inesperado al recuperar las observaciones del profesor.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/preferencias/usuario")
+    public ResponseEntity<?> obtenerTramosHorariosUsuario(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                            @RequestHeader(value = "email") String email) throws SchoolManagerServerException {
+        if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+        {
+            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+        }
+        try
+        {
+            Profesor profesorEncontrado = iProfesorRepository.findByEmail(email);
+            List<PreferenciasHorariasProfesor> preferenciasHorariasEncontradas = iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(profesorEncontrado.getEmail());
+            List<DiasTramosTipoHorarioDto> tramosDto = new ArrayList<>(List.of());
+
+            for (PreferenciasHorariasProfesor tramo :preferenciasHorariasEncontradas){
+                DiasTramosTipoHorarioDto tramoElegido = new DiasTramosTipoHorarioDto();
+                tramoElegido.setDia(String.valueOf(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getDia()));
+                tramoElegido.setTramo(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getTramo());
+                tramoElegido.setTipoHorario(String.valueOf(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getTipoHorario()));
+                tramosDto.add(tramoElegido);
+            }
+
+            if (preferenciasHorariasEncontradas.isEmpty())
+            {
+                String mensajeError = "No se han encontrado preferencias horarias para este usuario.";
+                log.error(mensajeError);
+                throw new SchoolManagerServerException(Constants.ERROR_OBTENIENDO_PARAMETROS, mensajeError);
+            }
+
+            return ResponseEntity.ok().body(tramosDto);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se produjo un error inesperado al recuperar las preferencias del profesor.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
     /**
      * Recupera la lista de asignaturas y reducciones asociadas a un profesor en función de su correo electrónico.
      * <p>
