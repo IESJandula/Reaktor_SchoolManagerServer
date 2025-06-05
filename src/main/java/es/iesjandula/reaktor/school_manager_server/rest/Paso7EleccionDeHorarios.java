@@ -456,9 +456,20 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Recupera los datos de las observaciones adicionales(conciliacion, preferencias, detalles adicionales) de un profesor a traves de su email.
+     * <p>
+     * Devuelve un dto de salida con la información de los campos equivalentes encontrados en el front.
+     *
+     * @param email el correo electrónico del profesor del que se desea obtener la información.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de observaciones adicionales.
+     * - 404 (NOT_FOUND) si no se encuentra información asociada al profesor.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/observaciones/usuario")
-    public ResponseEntity<?> obtenerObervacionesAdicionales(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+    public ResponseEntity<?> obtenerObservacionesAdicionales(@AuthenticationPrincipal DtoUsuarioExtended usuario,
                                                           @RequestHeader(value = "email") String email) throws SchoolManagerServerException {
         if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
         {
@@ -500,6 +511,17 @@ public class Paso7EleccionDeHorarios
         }
     }
 
+    /**
+     * Recupera la lista de dias con sus tramos horarios asociados a un profesor en función de su correo electrónico.
+     * <p>
+     * Devuelve un dto de salida con la información necesaria para mostrar las preferencias del profesor.
+     *
+     * @param email el correo electrónico del profesor del que se desea obtener la información.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de franjas horarias.
+     * - 404 (NOT_FOUND) si no se encuentra información asociada al profesor.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/preferencias/usuario")
     public ResponseEntity<?> obtenerTramosHorariosUsuario(@AuthenticationPrincipal DtoUsuarioExtended usuario,
