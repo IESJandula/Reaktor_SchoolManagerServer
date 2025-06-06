@@ -44,6 +44,10 @@
 					(keystore) del filtrado -->
 					<exclude>**/*.csv</exclude>					<!-- Excluir archivos .csv del
 					filtrado -->
+					<exclude>**/*.txt</exclude>					<!-- Excluir archivos .txt del
+					filtrado -->
+					<exclude>**/*.mwb</exclude>					<!-- Excluir archivos .mwb del
+					filtrado -->
 				</excludes>
 			</resource>
 			<!-- Añadir otra sección de recursos para incluir archivos binarios
@@ -56,6 +60,8 @@
 					<include>**/*.p12</include>
 					<include>**/*.pem</include>
 					<include>**/*.csv</include>
+					<include>**/*.txt</include>
+					<include>**/*.mwb</include>
 				</includes>
 			</resource>
 			<!-- FIN - Util para la asignación de secretos desde Github -->

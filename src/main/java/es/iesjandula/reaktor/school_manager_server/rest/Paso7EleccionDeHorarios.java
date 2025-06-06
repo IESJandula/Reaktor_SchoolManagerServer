@@ -199,7 +199,15 @@ public class Paso7EleccionDeHorarios
 
             boolean desdoble = this.iAsignaturaRepository.isDesdoble(nombreAsignatura, curso, etapa);
 
-            Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, Constants.GRUPO_INICIAL);
+            List<Asignatura> asignaturas = this.iAsignaturaRepository.findNombreByCursoEtapaAndNombres(curso, etapa, nombreAsignatura);
+
+            String grupo = Constants.GRUPO_INICIAL;
+            if (asignaturas != null && !asignaturas.isEmpty() && asignaturas.get(0).isOptativa())
+            {
+                grupo = Constants.GRUPO_OPTATIVAS;
+            }
+
+            Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
 
             if (asignaturaCount >= cantidadGrupos && !desdoble)
@@ -212,23 +220,13 @@ public class Paso7EleccionDeHorarios
                     for (int i = 0; i < listProfesores.size(); i++)
                     {
                         ProfesorImpartirDto profesorDto = listProfesores.get(i);
-                        profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
-                        if (i == listProfesores.size() - 1)
-                        {
-                            // Último profesor
-                            profesores.append(" y ").append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
-                        }
-                        else if (i == listProfesores.size() - 2)
-                        {
-                            // Penúltimo profesor (no añadir coma después)
-                            profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
-                        }
-                        else
-                        {
-                            // Resto de profesores
-                            profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos()).append(", ");
-                        }
 
+                        profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
+
+                        if (i < listProfesores.size() - 1)
+                        {
+                            profesores.append(", ");
+                        }
                     }
                     mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada a los profesores " + profesores;
                     log.error(mensajeError);
