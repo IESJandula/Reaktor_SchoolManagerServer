@@ -181,7 +181,6 @@ public class Paso7EleccionDeHorarios
                                                @RequestHeader(value = "horas") Integer horas,
                                                @RequestHeader(value = "curso") Integer curso,
                                                @RequestHeader(value = "etapa") String etapa,
-                                               @RequestHeader(value = "grupo") String grupo,
                                                @RequestHeader(value = "email") String email)
     {
         try
@@ -200,7 +199,7 @@ public class Paso7EleccionDeHorarios
 
             boolean desdoble = this.iAsignaturaRepository.isDesdoble(nombreAsignatura, curso, etapa);
 
-            Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
+            Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, Constants.GRUPO_INICIAL);
             asignarAsignatura.setAsignadoDireccion(false);
 
             if (asignaturaCount >= cantidadGrupos && !desdoble)

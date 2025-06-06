@@ -153,10 +153,9 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
     List<Asignatura> buscaOptativasRelacionadas(@Param("asignatura") Asignatura asignatura);
 
 	@Query("SELECT DISTINCT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirAsignaturaDto(a.idAsignatura.nombre, a.horas, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, a" +
-			".idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo)" +
+			".idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa)" +
 			"FROM Asignatura a " +
-			"WHERE a.departamentoReceptor.nombre = :departamento AND a.sinDocencia = false AND (a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_INICIAL + "' " +
-			"OR a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "')")
+			"WHERE a.departamentoReceptor.nombre = :departamento AND a.sinDocencia = false ")
 	List<ImpartirAsignaturaDto> encontrarAsignaturasPorDepartamento(@Param("departamento") String departamento);
 
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.GrupoAsignaturaDto(a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
