@@ -7,12 +7,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface IPreferenciasHorariasRepository extends JpaRepository<PreferenciasHorariasProfesor, IdPreferenciasHorariasProfesor>
 {
     @Query("SELECT p " +
             "FROM PreferenciasHorariasProfesor p " +
             "WHERE p.idPreferenciasHorariasProfesor.profesor.email = :email")
-    List<PreferenciasHorariasProfesor> encontrarPrefenciasPorEmail(@Param("email") String email);
+    Optional<List<PreferenciasHorariasProfesor>> encontrarPrefenciasPorEmail(@Param("email") String email);
 
 }

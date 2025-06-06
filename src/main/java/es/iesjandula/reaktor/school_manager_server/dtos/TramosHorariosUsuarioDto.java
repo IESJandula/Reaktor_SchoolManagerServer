@@ -2,21 +2,18 @@ package es.iesjandula.reaktor.school_manager_server.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class ObservacionesDto {
-
+public class TramosHorariosUsuarioDto
+{
     private Boolean tieneObservaciones;
 
-    private Boolean conciliacion;
+    private List<DiasTramosTipoHorarioDto> tramosHorarios;
 
-    private Boolean trabajarPrimeraHora;
-
-    private String otrasObservaciones;
-
-    public ObservacionesDto()
+    public TramosHorariosUsuarioDto()
     {
         this.tieneObservaciones = false;
     }

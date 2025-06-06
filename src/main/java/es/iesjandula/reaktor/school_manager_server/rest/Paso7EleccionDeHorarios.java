@@ -213,13 +213,18 @@ public class Paso7EleccionDeHorarios
                     {
                         ProfesorImpartirDto profesorDto = listProfesores.get(i);
                         profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
-                        if (i == listProfesores.size() - 1) {
+                        if (i == listProfesores.size() - 1)
+                        {
                             // Último profesor
                             profesores.append(" y ").append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
-                        } else if (i == listProfesores.size() - 2) {
+                        }
+                        else if (i == listProfesores.size() - 2)
+                        {
                             // Penúltimo profesor (no añadir coma después)
                             profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
-                        } else {
+                        }
+                        else
+                        {
                             // Resto de profesores
                             profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos()).append(", ");
                         }
@@ -398,13 +403,12 @@ public class Paso7EleccionDeHorarios
 
             this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales);
 
-            List<PreferenciasHorariasProfesor> listPreferenciasHorariasProfesorABuscar = this.iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(email);
+            Optional<List<PreferenciasHorariasProfesor>> listPreferenciasHorariasProfesorABuscar = this.iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(email);
 
-            if (listPreferenciasHorariasProfesorABuscar.size() == 3)
+            if (listPreferenciasHorariasProfesorABuscar.isPresent() && listPreferenciasHorariasProfesorABuscar.get().size() == 3)
             {
-                this.iPreferenciasHorariasRepository.deleteAll(listPreferenciasHorariasProfesorABuscar);
+                this.iPreferenciasHorariasRepository.deleteAll(listPreferenciasHorariasProfesorABuscar.get());
             }
-
 
             tramo--;
 
@@ -469,27 +473,27 @@ public class Paso7EleccionDeHorarios
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/observaciones/usuario")
     public ResponseEntity<?> obtenerObservacionesAdicionales(@AuthenticationPrincipal DtoUsuarioExtended usuario,
-                                                          @RequestHeader(value = "email") String email) throws SchoolManagerServerException {
-        if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
-        {
-            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
-        }
+                                                             @RequestHeader(value = "email") String email)
+    {
         try
         {
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
             Profesor profesorEncontrado = iProfesorRepository.findByEmail(email);
             Optional<ObservacionesAdicionales> observacionesEncontradas = iObservacionesAdicionalesRepository.findByIdObservacionesAdicionales_Profesor(profesorEncontrado);
 
-            if (observacionesEncontradas.isEmpty())
-            {
-                String mensajeError = "No se han encontrado observaciones para este usuario.";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.ERROR_OBTENIENDO_PARAMETROS, mensajeError);
-            }
             ObservacionesDto observacionesDto = new ObservacionesDto();
 
-            observacionesDto.setConciliacion(observacionesEncontradas.get().getConciliacion());
-            observacionesDto.setTrabajarPrimeraHora(observacionesEncontradas.get().getTrabajarPrimeraHora());
-            observacionesDto.setOtrasObservaciones(observacionesEncontradas.get().getOtrasObservaciones());
+            if (observacionesEncontradas.isPresent())
+            {
+                observacionesDto.setTieneObservaciones(true);
+                observacionesDto.setConciliacion(observacionesEncontradas.get().getConciliacion());
+                observacionesDto.setTrabajarPrimeraHora(observacionesEncontradas.get().getTrabajarPrimeraHora());
+                observacionesDto.setOtrasObservaciones(observacionesEncontradas.get().getOtrasObservaciones());
+            }
+
 
             return ResponseEntity.ok().body(observacionesDto);
         }
@@ -524,33 +528,34 @@ public class Paso7EleccionDeHorarios
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/preferencias/usuario")
     public ResponseEntity<?> obtenerTramosHorariosUsuario(@AuthenticationPrincipal DtoUsuarioExtended usuario,
-                                                            @RequestHeader(value = "email") String email) throws SchoolManagerServerException {
-        if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
-        {
-            this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
-        }
+                                                          @RequestHeader(value = "email") String email)
+    {
         try
         {
-            Profesor profesorEncontrado = iProfesorRepository.findByEmail(email);
-            List<PreferenciasHorariasProfesor> preferenciasHorariasEncontradas = iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(profesorEncontrado.getEmail());
-            List<DiasTramosTipoHorarioDto> tramosDto = new ArrayList<>(List.of());
-
-            for (PreferenciasHorariasProfesor tramo :preferenciasHorariasEncontradas){
-                DiasTramosTipoHorarioDto tramoElegido = new DiasTramosTipoHorarioDto();
-                tramoElegido.setDia(String.valueOf(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getDia()));
-                tramoElegido.setTramo(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getTramo());
-                tramoElegido.setTipoHorario(String.valueOf(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getTipoHorario()));
-                tramosDto.add(tramoElegido);
-            }
-
-            if (preferenciasHorariasEncontradas.isEmpty())
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
             {
-                String mensajeError = "No se han encontrado preferencias horarias para este usuario.";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.ERROR_OBTENIENDO_PARAMETROS, mensajeError);
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
 
-            return ResponseEntity.ok().body(tramosDto);
+            Optional<List<PreferenciasHorariasProfesor>> preferenciasHorariasEncontradas = iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(email);
+            TramosHorariosUsuarioDto tramosHorariosUsuarioDto = new TramosHorariosUsuarioDto();
+            List<DiasTramosTipoHorarioDto> tramosDto = new ArrayList<>(List.of());
+            if (preferenciasHorariasEncontradas.isPresent() && !preferenciasHorariasEncontradas.get().isEmpty())
+            {
+                tramosHorariosUsuarioDto.setTieneObservaciones(true);
+
+                for (PreferenciasHorariasProfesor tramo : preferenciasHorariasEncontradas.get())
+                {
+                    DiasTramosTipoHorarioDto tramoElegido = new DiasTramosTipoHorarioDto();
+                    tramoElegido.setDia(String.valueOf(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getDia()));
+                    tramoElegido.setTramo(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getTramo());
+                    tramoElegido.setTipoHorario(String.valueOf(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getTipoHorario()));
+                    tramosDto.add(tramoElegido);
+                }
+                tramosHorariosUsuarioDto.setTramosHorarios(tramosDto);
+            }
+
+            return ResponseEntity.ok().body(tramosHorariosUsuarioDto);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
