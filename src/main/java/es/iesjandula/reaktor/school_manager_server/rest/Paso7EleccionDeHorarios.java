@@ -190,12 +190,28 @@ public class Paso7EleccionDeHorarios
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
 
-//          Contamos las asignaturas que hay por nombre, horas, curso y etapa
-            Long asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa);
-            long asignaturaCount = asignaturaImpartir == null ? 0 : asignaturaImpartir;
+//            Buscar el departamento receptor
+            List<DepartamentoDto> listDepartamentoDto = this.iAsignaturaRepository.encontrarDepartamentoReceptor(nombreAsignatura, curso, etapa);
+            List<String> listDepartamento = listDepartamentoDto.stream().map(DepartamentoDto::getNombre).toList();
 
-//          Contamos los grupos que hay por asignaturas
-            long cantidadGrupos = this.iAsignaturaRepository.contarGruposPorAsignatura(nombreAsignatura, curso, etapa);
+            long asignaturaCount = 0;
+            String nombreAsignaturaBuscada = null;
+            Map<Integer, Long> mapAsignaturasPorDepartamento = new HashMap<>();
+            Map<Integer, Long> mapAsignaturasAComparar = new HashMap<>();
+            int contador = 0;
+//          Contamos las asignaturas que hay por nombre, horas, curso y etapa
+            for (String departamento : listDepartamento)
+            {
+                Long asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, departamento);
+                asignaturaCount = asignaturaImpartir == null ? 0 : asignaturaImpartir;
+                mapAsignaturasPorDepartamento.put(contador, asignaturaCount);
+
+//              Contamos los grupos que hay por asignaturas
+                long cantidadGrupos = this.iAsignaturaRepository.contarGruposPorNombreCursoEtapaDepartamento(nombreAsignatura, curso, etapa, departamento);
+                mapAsignaturasAComparar.put(contador, cantidadGrupos);
+                contador++;
+
+            }
 
             boolean desdoble = this.iAsignaturaRepository.isDesdoble(nombreAsignatura, curso, etapa);
 
@@ -210,35 +226,45 @@ public class Paso7EleccionDeHorarios
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
 
-            if (asignaturaCount >= cantidadGrupos && !desdoble)
+            for (Integer claveAsignatura : mapAsignaturasPorDepartamento.keySet())
             {
-                List<ProfesorImpartirDto> listProfesores = this.iImpartirRepository.encontrarProfesorPorNombreAndCursoEtpa(nombreAsignatura, curso, etapa);
-                String mensajeError = null;
-                if (listProfesores.size() > 1)
+                long a = 0, b = 0;
+                if (mapAsignaturasAComparar.containsKey(claveAsignatura) && !desdoble)
                 {
-                    StringBuilder profesores = new StringBuilder();
-                    for (int i = 0; i < listProfesores.size(); i++)
+                    a = mapAsignaturasPorDepartamento.get(claveAsignatura);
+                    b = mapAsignaturasAComparar.get(claveAsignatura);
+                }
+
+                if (a >= b && !desdoble)
+                {
+                    List<ProfesorImpartirDto> listProfesores = this.iImpartirRepository.encontrarProfesorPorNombreAndCursoEtpa(nombreAsignatura, curso, etapa);
+                    String mensajeError = null;
+                    if (listProfesores.size() > 1)
                     {
-                        ProfesorImpartirDto profesorDto = listProfesores.get(i);
-
-                        profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
-
-                        if (i < listProfesores.size() - 1)
+                        StringBuilder profesores = new StringBuilder();
+                        for (int i = 0; i < listProfesores.size(); i++)
                         {
-                            profesores.append(", ");
-                        }
-                    }
-                    mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada a los profesores " + profesores;
-                    log.error(mensajeError);
-                }
-                else if (!listProfesores.isEmpty())
-                {
-                    ProfesorImpartirDto profesorDto = listProfesores.get(0);
-                    mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada al profesor " + profesorDto.getNombre() + " " + profesorDto.getApellidos();
-                    log.error(mensajeError);
-                }
+                            ProfesorImpartirDto profesorDto = listProfesores.get(i);
 
-                throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
+                            profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
+
+                            if (i < listProfesores.size() - 1)
+                            {
+                                profesores.append(", ");
+                            }
+                        }
+                        mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada a los profesores " + profesores;
+                        log.error(mensajeError);
+                    }
+                    else if (!listProfesores.isEmpty())
+                    {
+                        ProfesorImpartirDto profesorDto = listProfesores.get(0);
+                        mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada al profesor " + profesorDto.getNombre() + " " + profesorDto.getApellidos();
+                        log.error(mensajeError);
+                    }
+
+                    throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
+                }
             }
 
             this.iImpartirRepository.saveAndFlush(asignarAsignatura);

@@ -9,7 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class DepartamentoDto 
 {
-	
 	   private String nombre;
-	   
 }
