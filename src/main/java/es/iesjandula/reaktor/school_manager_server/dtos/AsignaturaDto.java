@@ -21,5 +21,7 @@ public class AsignaturaDto
 	private Long bloqueId;
 
 	private Boolean sinDocencia;
+
+	private Boolean desdoble;
 	
 }

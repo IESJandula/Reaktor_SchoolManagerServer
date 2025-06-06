@@ -3,12 +3,16 @@ package es.iesjandula.reaktor.school_manager_server.rest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto;
+import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Matricula;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
+import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -49,6 +53,9 @@ public class Paso2AsignaturasYBloquesController
 
     @Autowired
     private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
+
+    @Autowired
+    private IAlumnoRepository iAlumnoRepository;
 
     /**
      * Obtiene la lista de asignaturas de un curso y etapa determinados.
@@ -315,13 +322,15 @@ public class Paso2AsignaturasYBloquesController
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/sinDocencia")
-    public ResponseEntity<?> asignaturasSinDocencia(@RequestHeader("nombreAsignatura") String nombreAsignatura,
+    public ResponseEntity<?> asignaturasSinDocencia(@RequestHeader(value = "curso", required = true) Integer curso,
+                                                    @RequestHeader(value = "etapa", required = true) String etapa,
+                                                    @RequestHeader("nombreAsignatura") String nombreAsignatura,
                                                     @RequestHeader("sinDocencia") Boolean sinDocencia)
     {
         try
         {
 
-            List<Asignatura> asignaturas = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(nombreAsignatura);
+            List<Asignatura> asignaturas = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(curso, etapa, nombreAsignatura);
 
             if (asignaturas.isEmpty())
             {
@@ -357,13 +366,15 @@ public class Paso2AsignaturasYBloquesController
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/desdoble")
-    public ResponseEntity<?> asignaturasDesdobles(@RequestHeader("nombreAsignatura") String nombreAsignatura,
+    public ResponseEntity<?> asignaturasDesdobles(@RequestHeader(value = "curso") Integer curso,
+                                                  @RequestHeader(value = "etapa") String etapa,
+                                                  @RequestHeader("nombreAsignatura") String nombreAsignatura,
                                                   @RequestHeader("desdoble") Boolean desdoble)
     {
         try
         {
 
-            List<Asignatura> asignaturas = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(nombreAsignatura);
+            List<Asignatura> asignaturas = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(curso, etapa, nombreAsignatura);
 
             if (asignaturas.isEmpty())
             {
