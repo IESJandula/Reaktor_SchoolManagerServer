@@ -147,4 +147,14 @@ public interface IMatriculaRepository extends JpaRepository<Matricula, IdMatricu
 	List<Matricula> encontrarMatriculaPorNombreAsignaturaAndCursoAndEtapa(@Param("nombreAsignatura") String nombreAsignatura,
 																		  @Param("curso") Integer curso,
 																		  @Param("etapa") String etapa);
+
+	@Query("SELECT DISTINCT m.idMatricula.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo "
+			+ "FROM Matricula m "
+			+ "JOIN m.idMatricula idM "
+			+ "WHERE idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso "
+			+ "AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND idM.alumno.id = :idAlumno AND idM.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo"
+			+ " <> '" + Constants.GRUPO_OPTATIVAS + "'")
+	String encontrarGrupoPorMatricula(@Param("curso") Integer curso,
+									  @Param("etapa") String etapa,
+									  @Param("idAlumno") Integer idAlumno);
 }

@@ -105,6 +105,13 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
     public void borrarPorCursoEtapa(@Param("curso") Integer curso,
                                     @Param("etapa") String etapa) ;
 
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM CursoEtapaGrupo c "
+            + "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "'")
+    public void borrarPorCursoEtapaGrupo(@Param("curso") Integer curso,
+                                         @Param("etapa") String etapa);
+
     
 
 

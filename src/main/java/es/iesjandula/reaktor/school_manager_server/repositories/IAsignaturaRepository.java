@@ -205,5 +205,4 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
                                                      @Param("curso") Integer curso,
                                                      @Param("etapa") String etapa,
                                                      @Param("departamento") String departamento);
-
 }
