@@ -194,22 +194,21 @@ public class Paso7EleccionDeHorarios
             List<DepartamentoDto> listDepartamentoDto = this.iAsignaturaRepository.encontrarDepartamentoReceptor(nombreAsignatura, curso, etapa);
             List<String> listDepartamento = listDepartamentoDto.stream().map(DepartamentoDto::getNombre).toList();
 
-            long asignaturaCount = 0;
-            String nombreAsignaturaBuscada = null;
-            Map<Integer, Long> mapAsignaturasPorDepartamento = new HashMap<>();
-            Map<Integer, Long> mapAsignaturasAComparar = new HashMap<>();
-            int contador = 0;
+            String departamentoProfesor = this.iProfesorRepository.buscarDepartamentoPorEmail(email);
+
+            Map<String, Long> mapAsignaturasPorDepartamento = new HashMap<>();
+            Map<String, Long> mapAsignaturasAComparar = new HashMap<>();
+
 //          Contamos las asignaturas que hay por nombre, horas, curso y etapa
             for (String departamento : listDepartamento)
             {
-                Long asignaturaImpartir = this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, departamento);
-                asignaturaCount = asignaturaImpartir == null ? 0 : asignaturaImpartir;
-                mapAsignaturasPorDepartamento.put(contador, asignaturaCount);
+                Long asignaturaImpartir = Optional.ofNullable(this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, departamento)).orElse(0L); //Si es nulo a 0
+
+                mapAsignaturasPorDepartamento.put(departamento, asignaturaImpartir);
 
 //              Contamos los grupos que hay por asignaturas
                 long cantidadGrupos = this.iAsignaturaRepository.contarGruposPorNombreCursoEtapaDepartamento(nombreAsignatura, curso, etapa, departamento);
-                mapAsignaturasAComparar.put(contador, cantidadGrupos);
-                contador++;
+                mapAsignaturasAComparar.put(departamento, cantidadGrupos);
 
             }
 
@@ -222,20 +221,41 @@ public class Paso7EleccionDeHorarios
             {
                 grupo = Constants.GRUPO_OPTATIVAS;
             }
+            else {
+//              Lista de impartidas actuales
+                List<ImpartidaGrupoDeptDto> gruposDistintosPorAsignaturaImpartida = iImpartirRepository.encontrarGruposYDeptAsignaturaImpartidaPorNombreAndCursoEtapa(nombreAsignatura, curso, etapa);
+
+//              Este stream filtra las asignaturas de la lista original que sean del departamento del profesor a asignar
+                assert asignaturas != null;
+                List<Asignatura> posiblesEnMiDept = asignaturas.stream()
+                        .filter(a -> a.getDepartamentoReceptor()
+                                .getNombre()
+                                .equals(departamentoProfesor)).toList();
+
+//              Este de aquí se queda con el primer grupo de la lista anterior que no este ya en la segunda, la de las impartidas
+//              Si no quedan grupos libres le vuelve a dejar el A, lo que solo es visible si la asignatura tiene desdoble haciendo además que la asignacion sea inocua
+                Optional<String> grupoLibre = posiblesEnMiDept.stream()
+                        .map(a -> a.getIdAsignatura()
+                                .getCursoEtapaGrupo()
+                                .getIdCursoEtapaGrupo().getGrupo())
+                        .filter(g -> gruposDistintosPorAsignaturaImpartida.stream().noneMatch(dto ->
+                                dto.getGrupo().equals(g) &&
+                                        dto.getDepartamento().equals(departamentoProfesor)
+                        ))
+                        .findFirst();
+                grupo = grupoLibre.orElse(grupo);
+            }
 
             Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
 
-            for (Integer claveAsignatura : mapAsignaturasPorDepartamento.keySet())
-            {
-                long a = 0, b = 0;
-                if (mapAsignaturasAComparar.containsKey(claveAsignatura) && !desdoble)
-                {
-                    a = mapAsignaturasPorDepartamento.get(claveAsignatura);
-                    b = mapAsignaturasAComparar.get(claveAsignatura);
-                }
 
-                if (a >= b && !desdoble)
+
+            long yaAsignadas = mapAsignaturasPorDepartamento.getOrDefault(departamentoProfesor, 0L);
+            long maxPermitidas = mapAsignaturasAComparar.getOrDefault(departamentoProfesor, 0L);
+
+
+                if (!desdoble && yaAsignadas >= maxPermitidas)
                 {
                     List<ProfesorImpartirDto> listProfesores = this.iImpartirRepository.encontrarProfesorPorNombreAndCursoEtpa(nombreAsignatura, curso, etapa);
                     String mensajeError = null;
@@ -265,7 +285,7 @@ public class Paso7EleccionDeHorarios
 
                     throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
                 }
-            }
+
 
             this.iImpartirRepository.saveAndFlush(asignarAsignatura);
 

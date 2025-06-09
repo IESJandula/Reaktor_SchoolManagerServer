@@ -1,5 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.ImpartidaGrupoDeptDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorImpartirDto;
@@ -12,7 +13,6 @@ import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdImpartir;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link Impartir}.
@@ -64,5 +64,13 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
     List<ProfesorImpartirDto> encontrarProfesorPorNombreAndCursoEtpa(@Param("nombreAsignatura") String nombreAsignatura,
                                                             @Param("curso") Integer curso,
                                                             @Param("etapa") String etapa);
+
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartidaGrupoDeptDto(i.idImpartir.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo, a.departamentoReceptor.nombre)  " +
+            "FROM Impartir i " +
+            "JOIN i.asignatura a " +
+            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+    List<ImpartidaGrupoDeptDto> encontrarGruposYDeptAsignaturaImpartidaPorNombreAndCursoEtapa(@Param("nombreAsignatura") String nombreAsignatura,
+                                                                                         @Param("curso") Integer curso,
+                                                                                         @Param("etapa") String etapa);
 
 }
