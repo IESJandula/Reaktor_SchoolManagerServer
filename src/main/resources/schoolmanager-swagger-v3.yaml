@@ -1,0 +1,1455 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+  - url: http://localhost:8087
+    description: Generated server url
+paths:
+  /schoolManager/eleccionDeHorarios/solicitudes:
+    get:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: obtenerSolicitudes
+      parameters:
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    put:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: guardarSolicitudes
+      parameters:
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: nombreAsignatura
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: horasAsignatura
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: grupoAntiguo
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: grupoNuevo
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    delete:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: eliminarSolicitudes
+      parameters:
+        - name: email
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: nombreAsignatura
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: horasAsignatura
+          in: header
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: curso
+          in: header
+          required: false
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: grupo
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: nombreReduccion
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: horasReduccion
+          in: header
+          required: false
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/eleccionDeHorarios/observaciones:
+    get:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: obtenerDiasTramosTipoHorario
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    put:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: actualizarObservaciones
+      parameters:
+        - name: conciliacion
+          in: header
+          required: true
+          schema:
+            type: boolean
+        - name: trabajarPrimeraHora
+          in: header
+          required: true
+          schema:
+            type: boolean
+        - name: otrasObservaciones
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: dia
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: tramo
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: tipoHorario
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/cargarMatriculas/datosMatriculas:
+    get:
+      tags:
+        - paso-1-cargar-matricula-controller
+      operationId: obtenerDatosMatriculas
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    put:
+      tags:
+        - paso-1-cargar-matricula-controller
+      operationId: matricularAsignatura
+      parameters:
+        - name: nombre
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: apellidos
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: asignatura
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: estado
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    post:
+      tags:
+        - paso-1-cargar-matricula-controller
+      operationId: matricularAlumno
+      parameters:
+        - name: nombre
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: apellidos
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: asignatura
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: estado
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    delete:
+      tags:
+        - paso-1-cargar-matricula-controller
+      operationId: desmatricularAlumno
+      parameters:
+        - name: nombre
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: apellidos
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: asignatura
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: estado
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYDepartamentos/departamentos:
+    get:
+      tags:
+        - paso-5-asignaturas-y-departamentos-controller
+      operationId: obtenerDepartamentos
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    put:
+      tags:
+        - paso-5-asignaturas-y-departamentos-controller
+      operationId: asignarProfesoresADepartamentos
+      parameters:
+        - name: nombre
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: plantilla
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYBloques/sinDocencia:
+    put:
+      tags:
+        - paso-2-asignaturas-y-bloques-controller
+      operationId: asignaturasSinDocencia
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: nombreAsignatura
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: sinDocencia
+          in: header
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYBloques/horas:
+    get:
+      tags:
+        - paso-2-asignaturas-y-bloques-controller
+      operationId: mostrarHoras
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    put:
+      tags:
+        - paso-2-asignaturas-y-bloques-controller
+      operationId: asignarHoras
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: nombreAsignatura
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: horas
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYBloques/desdoble:
+    put:
+      tags:
+        - paso-2-asignaturas-y-bloques-controller
+      operationId: asignaturasDesdobles
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: nombreAsignatura
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: desdoble
+          in: header
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/generadorHorarios/forzarDetencion:
+    post:
+      tags:
+        - paso-x-generador
+      operationId: forzarDetencion
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/eleccionDeHorarios/asignaturas:
+    get:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: obtenerAsignaturas
+      parameters:
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    post:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: asignarAsignatura
+      parameters:
+        - name: nombre
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: horas
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/crearReducciones/reducciones:
+    get:
+      tags:
+        - paso-6-reducciones
+      operationId: cargarReducciones
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    post:
+      tags:
+        - paso-6-reducciones
+      operationId: crearReduccion
+      parameters:
+        - name: nombre
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: horas
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: decideDireccion
+          in: header
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    delete:
+      tags:
+        - paso-6-reducciones
+      operationId: borrarReduccion
+      parameters:
+        - name: nombre
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: horas
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: decideDireccion
+          in: header
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/crearGrupos/turnoHorario:
+    post:
+      tags:
+        - paso-3-crear-grupos-controller
+      operationId: actualizarTurnoHorario
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: grupo
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: esHorarioMatutino
+          in: header
+          required: true
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/crearGrupos/grupos:
+    post:
+      tags:
+        - paso-3-crear-grupos-controller
+      operationId: crearGrupo
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/crearGrupos/gruposAlumnos:
+    get:
+      tags:
+        - paso-3-crear-grupos-controller
+      operationId: obtenerAlumnosConGrupo
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: grupo
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    post:
+      tags:
+        - paso-3-crear-grupos-controller
+      operationId: asignarAlumnos
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: grupo
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AlumnoDto2'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    delete:
+      tags:
+        - paso-3-crear-grupos-controller
+      operationId: borrarAlumno
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlumnoDto2'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/constants:
+    get:
+      tags:
+        - constantes-controller
+      operationId: actualizarConstantes_1
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+    post:
+      tags:
+        - constantes-controller
+      operationId: actualizarConstantes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/DtoConstantes'
+        required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+  /schoolManager/common/asignarReducciones:
+    post:
+      tags:
+        - common-controller
+      operationId: asignarReduccion
+      parameters:
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: reduccion
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: horas
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/cargarMatriculas/matriculas:
+    get:
+      tags:
+        - paso-1-cargar-matricula-controller
+      operationId: cargarMatriculas
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    post:
+      tags:
+        - paso-1-cargar-matricula-controller
+      operationId: subirFicheros
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - csv
+              type: object
+              properties:
+                csv:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    delete:
+      tags:
+        - paso-1-cargar-matricula-controller
+      operationId: borrarMatriculas
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYBloques/bloques:
+    post:
+      tags:
+        - paso-2-asignaturas-y-bloques-controller
+      operationId: crearBloques
+      parameters:
+        - name: curso
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: asignaturas
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    delete:
+      tags:
+        - paso-2-asignaturas-y-bloques-controller
+      operationId: eliminarBloque
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: nombre
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYDepartamentos/asignaturas/quitarDepartamentos:
+    patch:
+      tags:
+        - paso-5-asignaturas-y-departamentos-controller
+      operationId: quitarAsignaturasDeDepartamentos
+      parameters:
+        - name: curso
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: grupo
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: nombre
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYDepartamentos/asignaturas/asignarDepartamentos:
+    patch:
+      tags:
+        - paso-5-asignaturas-y-departamentos-controller
+      operationId: asignarAsignaturasADepartamentos
+      parameters:
+        - name: curso
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: grupo
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: nombre
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: departamentoPropietario
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: departamentoReceptor
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/resumenAsignaturas/numeroAlumnosEnAsignatura:
+    get:
+      tags:
+        - paso-4-resumen-asignaturas
+      operationId: obtenerCantidadAlumnosEnGrupoPorAsignatura
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: grupo
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: asignatura
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/resumenAsignaturas/grupos:
+    get:
+      tags:
+        - paso-4-resumen-asignaturas
+      operationId: obtenerTodosGrupos
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/resumenAsignaturas/asignaturasUnicas:
+    get:
+      tags:
+        - paso-4-resumen-asignaturas
+      operationId: cargarAsignaturasUnicas
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/generadorHorarios/lanzar:
+    get:
+      tags:
+        - paso-x-generador
+      operationId: arrancarGenerador
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/eleccionDeHorarios/reduccion:
+    get:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: obtenerReducciones
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/eleccionDeHorarios/profesores:
+    get:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: obtenerProfesoresHorarios
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/eleccionDeHorarios/preferencias/usuario:
+    get:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: obtenerTramosHorariosUsuario
+      parameters:
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/eleccionDeHorarios/observaciones/usuario:
+    get:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: obtenerObservacionesAdicionales
+      parameters:
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/eleccionDeHorarios/gruposAsignaturas:
+    get:
+      tags:
+        - paso-7-eleccion-de-horarios
+      operationId: obtenerGruposDeAsignaturas
+      parameters:
+        - name: nombreAsignatura
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: horasAsignatura
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/crearReducciones/profesores:
+    get:
+      tags:
+        - paso-6-reducciones
+      operationId: obtenerProfesores
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/crearReducciones/asignarReducciones:
+    get:
+      tags:
+        - paso-6-reducciones
+      operationId: obtenerReduccionesProfesores
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+    delete:
+      tags:
+        - paso-6-reducciones
+      operationId: borrarReduccionesProfesores
+      parameters:
+        - name: email
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: reduccion
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: horas
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/crearGrupos/gruposAlumnosTotales:
+    get:
+      tags:
+        - paso-3-crear-grupos-controller
+      operationId: obtenerAlumnosSinGrupos
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/common/grupos:
+    get:
+      tags:
+        - common-controller
+      operationId: obtenerGrupos
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/common/cursoEtapa:
+    get:
+      tags:
+        - common-controller
+      operationId: obtenerCursoEtapa
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYDepartamentos/curso:
+    get:
+      tags:
+        - paso-5-asignaturas-y-departamentos-controller
+      operationId: obtenerCursosEtapasGrupos
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYDepartamentos/asignaturas:
+    get:
+      tags:
+        - paso-5-asignaturas-y-departamentos-controller
+      operationId: obtenerTodasLasAsignaturas
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYDepartamentos/asignaturasPorCursoEtapaGrupo:
+    get:
+      tags:
+        - paso-5-asignaturas-y-departamentos-controller
+      operationId: obtenerAsignaturasPorCursoEtapaGrupo
+      parameters:
+        - name: curso
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: grupo
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYDepartamentos/asignaturas/infoDepartamentos:
+    get:
+      tags:
+        - paso-5-asignaturas-y-departamentos-controller
+      operationId: obtenerDatosDepartamentosConAsignaturas
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+  /schoolManager/asignaturasYBloques/asignaturas:
+    get:
+      tags:
+        - paso-2-asignaturas-y-bloques-controller
+      operationId: cargarAsignaturas
+      parameters:
+        - name: curso
+          in: header
+          required: true
+          schema:
+            type: integer
+            format: int32
+        - name: etapa
+          in: header
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: object
+components:
+  schemas:
+    AlumnoDto2:
+      type: object
+      properties:
+        nombre:
+          type: string
+        apellidos:
+          type: string
+        grupo:
+          type: string
+    DtoConstantes:
+      type: object
+      properties:
+        clave:
+          type: string
+        valor:
+          type: string
