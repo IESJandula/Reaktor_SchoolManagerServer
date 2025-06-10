@@ -28,8 +28,7 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
     @Query("SELECT COUNT(i) " +
             "FROM Impartir i " +
             "WHERE i.asignatura.idAsignatura.nombre = :nombre AND i.cupoHoras = :horas AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura" +
-            ".cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND i.asignatura.departamentoReceptor.nombre = :departamento " +
-            "GROUP BY i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo")
+            ".cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND i.asignatura.departamentoReceptor.nombre = :departamento ")
     Long encontrarAsignaturaAsignada(@Param("nombre") String nombre,
                                               @Param("horas") Integer horas,
                                               @Param("curso") Integer curso,

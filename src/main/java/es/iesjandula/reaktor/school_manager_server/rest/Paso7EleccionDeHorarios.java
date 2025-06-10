@@ -221,7 +221,8 @@ public class Paso7EleccionDeHorarios
             {
                 grupo = Constants.GRUPO_OPTATIVAS;
             }
-            else {
+            else
+            {
 //              Lista de impartidas actuales
                 List<ImpartidaGrupoDeptDto> gruposDistintosPorAsignaturaImpartida = iImpartirRepository.encontrarGruposYDeptAsignaturaImpartidaPorNombreAndCursoEtapa(nombreAsignatura, curso, etapa);
 
@@ -250,41 +251,40 @@ public class Paso7EleccionDeHorarios
             asignarAsignatura.setAsignadoDireccion(false);
 
 
-
             long yaAsignadas = mapAsignaturasPorDepartamento.getOrDefault(departamentoProfesor, 0L);
             long maxPermitidas = mapAsignaturasAComparar.getOrDefault(departamentoProfesor, 0L);
 
 
-                if (!desdoble && yaAsignadas >= maxPermitidas)
+            if (!desdoble && yaAsignadas >= maxPermitidas)
+            {
+                List<ProfesorImpartirDto> listProfesores = this.iImpartirRepository.encontrarProfesorPorNombreAndCursoEtpa(nombreAsignatura, curso, etapa);
+                String mensajeError = null;
+                if (listProfesores.size() > 1)
                 {
-                    List<ProfesorImpartirDto> listProfesores = this.iImpartirRepository.encontrarProfesorPorNombreAndCursoEtpa(nombreAsignatura, curso, etapa);
-                    String mensajeError = null;
-                    if (listProfesores.size() > 1)
+                    StringBuilder profesores = new StringBuilder();
+                    for (int i = 0; i < listProfesores.size(); i++)
                     {
-                        StringBuilder profesores = new StringBuilder();
-                        for (int i = 0; i < listProfesores.size(); i++)
+                        ProfesorImpartirDto profesorDto = listProfesores.get(i);
+
+                        profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
+
+                        if (i < listProfesores.size() - 1)
                         {
-                            ProfesorImpartirDto profesorDto = listProfesores.get(i);
-
-                            profesores.append(profesorDto.getNombre()).append(" ").append(profesorDto.getApellidos());
-
-                            if (i < listProfesores.size() - 1)
-                            {
-                                profesores.append(", ");
-                            }
+                            profesores.append(", ");
                         }
-                        mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada a los profesores " + profesores;
-                        log.error(mensajeError);
                     }
-                    else if (!listProfesores.isEmpty())
-                    {
-                        ProfesorImpartirDto profesorDto = listProfesores.get(0);
-                        mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada al profesor " + profesorDto.getNombre() + " " + profesorDto.getApellidos();
-                        log.error(mensajeError);
-                    }
-
-                    throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
+                    mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada a los profesores " + profesores;
+                    log.error(mensajeError);
                 }
+                else if (!listProfesores.isEmpty())
+                {
+                    ProfesorImpartirDto profesorDto = listProfesores.get(0);
+                    mensajeError = "La asignatura " + nombreAsignatura + " ya ha sido asignada al profesor " + profesorDto.getNombre() + " " + profesorDto.getApellidos();
+                    log.error(mensajeError);
+                }
+
+                throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
+            }
 
 
             this.iImpartirRepository.saveAndFlush(asignarAsignatura);

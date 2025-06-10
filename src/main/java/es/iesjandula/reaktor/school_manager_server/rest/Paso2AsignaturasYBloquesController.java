@@ -161,7 +161,14 @@ public class Paso2AsignaturasYBloquesController
                         throw new SchoolManagerServerException(Constants.ASIGNATURA_CON_BLOQUE, mensajeError);
                     }
 
-                    if ( !Objects.equals(asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo(), Constants.GRUPO_OPTATIVAS))
+                    if (asignatura.getDepartamentoReceptor() != null)
+                    {
+                        String mensajeError = "La asignatura " + asignatura.getIdAsignatura().getNombre() + " está asignada a un departamento, desvinculalá primero";
+                        log.error(mensajeError);
+                        throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_DEPARTAMENTO, mensajeError);
+                    }
+
+                    if (!Objects.equals(asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo(), Constants.GRUPO_OPTATIVAS))
                     {
 //                      Creo un grupo Optativas para la asignatura que se va a asignar.
                         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS);
@@ -208,12 +215,15 @@ public class Paso2AsignaturasYBloquesController
             {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
             }
+            else if (schoolManagerServerException.getCode() == Constants.ASIGNATURA_ASIGNADA_A_DEPARTAMENTO)
+            {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
             else
             {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
             }
         }
-
 
         catch (Exception exception)
         {
@@ -263,6 +273,12 @@ public class Paso2AsignaturasYBloquesController
 
             for (Asignatura asignatura : listAsignatura)
             {
+                if (asignatura.getDepartamentoReceptor() != null)
+                {
+                    String mensajeError = "La asignatura " + asignatura.getIdAsignatura().getNombre() + " está asignada a un departamento, desvinculalá primero";
+                    log.error(mensajeError);
+                    throw new SchoolManagerServerException(Constants.ASIGNATURA_CON_BLOQUE, mensajeError);
+                }
                 // Desasociar la asignatura del bloque
                 Bloque bloque = asignatura.getBloqueId();
 
@@ -289,7 +305,7 @@ public class Paso2AsignaturasYBloquesController
 
 //                      Creo las matrículas con el grupo nuevo.
                         IdMatricula idMatricula = getIdMatricula(curso, etapa, grupoAlumno, alumno.get().getId(),
-                        matricula.getIdMatricula().getAsignatura().getIdAsignatura().getNombre());
+                                matricula.getIdMatricula().getAsignatura().getIdAsignatura().getNombre());
                         Matricula matriculaNueva = new Matricula();
                         matriculaNueva.setIdMatricula(idMatricula);
 
@@ -347,7 +363,14 @@ public class Paso2AsignaturasYBloquesController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            if (schoolManagerServerException.getCode() == Constants.ASIGNATURA_NO_ENCONTRADA)
+            {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
         }
         catch (Exception exception)
         {
@@ -573,7 +596,8 @@ public class Paso2AsignaturasYBloquesController
         cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
         IdAsignatura idAsignatura = new IdAsignatura(cursoEtapaGrupo, nombre);
         Bloque bloqueObjeto = null;
-        if (bloque != null) {
+        if (bloque != null)
+        {
             bloqueObjeto = new Bloque();
             bloqueObjeto.setId(bloque);
         }

@@ -45,11 +45,19 @@ public class Constants
      */
     public static final String TIPO_REDUCCION = "Reducción";
 
-
+	/**
+	 * Tipo de estado: Matriculado.
+	 */
 	public static final String ESTADO_MATRICULADO = "MATR";
+
+	/**
+	 * Tipo de estado: No matriculado.
+	 */
 	public static final String ESTADO_NO_MATRICULADO = "NO_MATR";
 
-
+	/**
+	 * Tipo de estado: Pendiente.
+	 */
 	public static final String ESTADO_PENDIENTE = "PEND";
 
 	/*********************************************************/
@@ -233,9 +241,15 @@ public class Constants
 	 */
 	public static final int SIN_PROFESORES_ENCONTRADOS = 67;
 
-
+	/**
+	 * Error - No se ha encontrado el alumno en la base de datos
+	 */
 	public static final int ALUMNO_NO_ENCONTRADO = 68;
 
+	/**
+	 * Error - La asignatura está asigna a un departamento
+	 */
+	public static final int ASIGNATURA_ASIGNADA_A_DEPARTAMENTO = 69;
 
 	/************* ERRORES - Generales/De Conexión ***************/
 
