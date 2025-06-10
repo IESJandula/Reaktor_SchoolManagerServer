@@ -97,7 +97,7 @@ public class Paso6Reducciones
 
             if (reduccion.isPresent())
             {
-                String mensajeError = "Ya existe una reducción con esos parametros";
+                String mensajeError = "Ya existe una reducción con esos parámetros";
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.REDUCCION_EXISTENTE, mensajeError);
             }
@@ -162,7 +162,6 @@ public class Paso6Reducciones
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
-
     }
 
     /**

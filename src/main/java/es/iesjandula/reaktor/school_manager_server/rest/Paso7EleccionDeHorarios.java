@@ -160,7 +160,8 @@ public class Paso7EleccionDeHorarios
     /**
      * Asigna una asignatura a un profesor en función de los datos suministrados en los encabezados de la solicitud.
      * <p>
-     * Esta operación solo está permitida para usuarios con el rol "ROLE_PROFESOR".
+     * Valida los roles del usuario autenticado y realiza comprobaciones para garantizar que
+     * la asignación sea válida. Si todo es correcto, persiste la información en la base de datos.
      *
      * @param usuario          el usuario autenticado que realiza la solicitud.
      * @param nombreAsignatura el nombre de la asignatura a asignar.
@@ -285,7 +286,6 @@ public class Paso7EleccionDeHorarios
 
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_ASIGNADA_A_PROFESOR, mensajeError);
             }
-
 
             this.iImpartirRepository.saveAndFlush(asignarAsignatura);
 
@@ -537,7 +537,6 @@ public class Paso7EleccionDeHorarios
                 observacionesDto.setTrabajarPrimeraHora(observacionesEncontradas.get().getTrabajarPrimeraHora());
                 observacionesDto.setOtrasObservaciones(observacionesEncontradas.get().getOtrasObservaciones());
             }
-
 
             return ResponseEntity.ok().body(observacionesDto);
         }
@@ -828,7 +827,7 @@ public class Paso7EleccionDeHorarios
 
             if (grupoAsignaturaDtos.isEmpty())
             {
-                String mensajeError = "No se han encontro grupos para esa asignatrua";
+                String mensajeError = "No se han encontró grupos para esa asignatura";
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.GRUPOS_NO_ENCONTRADOS_PARA_ASIGNATURA, mensajeError);
             }
@@ -869,7 +868,7 @@ public class Paso7EleccionDeHorarios
 
         if (reduccionProfesoresDto == null)
         {
-            String mensajeError = "No se han encontro una reduccion con esos datos asignada a este profesor";
+            String mensajeError = "No se ha encontrado una reducción con esos datos asignada a este profesor";
             log.error(mensajeError);
             throw new SchoolManagerServerException(Constants.REDUCCION_NO_ASIGNADA_A_PROFESOR, mensajeError);
         }

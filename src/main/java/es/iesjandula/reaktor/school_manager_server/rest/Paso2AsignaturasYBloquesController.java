@@ -80,7 +80,7 @@ public class Paso2AsignaturasYBloquesController
 
             if (asignaturas.isEmpty())
             {
-                String mensajeError = "No existen asignaturas para " + curso + etapa;
+                String mensajeError = "No existen asignaturas para " + curso + " " + etapa;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
@@ -108,7 +108,7 @@ public class Paso2AsignaturasYBloquesController
      * Crea un nuevo bloque de asignaturas para un curso y etapa determinados.
      * <p>
      * El método valida que se hayan seleccionado al menos dos asignaturas, verifica que existan
-     * y comprueba que no estén ya asignadas a otro bloque antes de crear uno nuevo.
+     * y comprueba que no estén ya asignadas a otro bloque o a un departamento antes de crear uno nuevo.
      *
      * @param curso       el identificador del curso para el que se crea el bloque.
      * @param etapa       la etapa educativa asociada al bloque.
@@ -119,6 +119,7 @@ public class Paso2AsignaturasYBloquesController
      * - 400 (Bad Request) si se seleccionan menos de dos asignaturas.
      * - 404 (Not Found) si alguna asignatura no se encuentra.
      * - 409 (Conflict) si alguna asignatura ya está asignada a otro bloque.
+     * - 409 (CONFLICT) si la asignatura ya tiene un departamento asignado
      * - 500 (Internal Server Error) si ocurre un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -249,6 +250,7 @@ public class Paso2AsignaturasYBloquesController
      * @return una {@link ResponseEntity} con:
      * - 204 (NO_CONTENT) si el bloque se eliminó correctamente.
      * - 404 (NOT_FOUND) si no se encontró la asignatura.
+     * - 409 (CONFLICT) si la asignatura ya tiene un departamento asignado
      * - 500 (INTERNAL_SERVER_ERROR) si ocurrió un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -265,7 +267,7 @@ public class Paso2AsignaturasYBloquesController
 
             if (listAsignatura.isEmpty())
             {
-                String mensajeError = "No se han encontrado " + nombreAsignatura + " en " + curso + etapa;
+                String mensajeError = "No se han encontrado " + nombreAsignatura + " en " + curso + " " + etapa;
                 log.error(mensajeError);
 
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
@@ -386,16 +388,20 @@ public class Paso2AsignaturasYBloquesController
     }
 
     /**
-     * Actualiza el estado de docencia de una asignatura por su nombre.
+     * Modifica el estado de docencia para una asignatura específica o un conjunto de asignaturas según el nombre
+     * especificado.
      * <p>
-     * Permite marcar una asignatura como sin docencia o restaurarla a su estado original.
+     * Actualiza el valor del campo "sinDocencia" en la base de datos para las asignaturas encontradas.
      *
-     * @param nombreAsignatura el nombre de la asignatura a actualizar.
-     * @param sinDocencia      true si se desea marcar como sin docencia; false para restaurar.
-     * @return una {@link ResponseEntity} con:
-     * - 204 (No Content) si la operación se realiza correctamente.
-     * - 404 (Not Found) si no se encuentra la asignatura.
-     * - 500 (Internal Server Error) si ocurre un error inesperado.
+     * @param curso            el identificador del curso académico al que pertenecen las asignaturas, requerido.
+     * @param etapa            la etapa educativa de las asignaturas, requerida.
+     * @param nombreAsignatura el nombre de la asignatura o asignaturas cuyo estado de docencia se va a modificar.
+     * @param sinDocencia      el estado a establecer en el campo "sinDocencia", que indica si las asignaturas no tienen
+     *                         docencia asociada.
+     * @return una instancia de {@link ResponseEntity} indicando el resultado de la operación:
+     * - 204 (No Content) si la operación se realiza con éxito.
+     * - 404 (Not Found) si no se encuentran asignaturas con el nombre proporcionado.
+     * - 500 (Internal Server Error) en caso de un error general durante el procesamiento.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/sinDocencia")
@@ -441,6 +447,23 @@ public class Paso2AsignaturasYBloquesController
         }
     }
 
+    /**
+     * Modifica el estado de desdoble para una asignatura específica o un conjunto de asignaturas
+     * según el nombre especificado.
+     * <p>
+     * Actualiza el valor del campo "desdoble" en la base de datos para las asignaturas que coinciden
+     * con los filtros proporcionados (curso, etapa y nombre de la asignatura).
+     *
+     * @param curso            el identificador del curso académico al que pertenecen las asignaturas, requerido.
+     * @param etapa            la etapa educativa de las asignaturas, requerida.
+     * @param nombreAsignatura el nombre de la asignatura o asignaturas cuyo estado de desdoble se va a modificar.
+     * @param desdoble         el estado a establecer en el campo "desdoble", que indica si las asignaturas tienen
+     *                         desdoble asociado.
+     * @return una instancia de {@link ResponseEntity} indicando el resultado de la operación:
+     * - 204 (No Content) si la operación se realiza con éxito.
+     * - 404 (Not Found) si no se encuentran asignaturas con el nombre proporcionado.
+     * - 500 (Internal Server Error) en caso de un error general durante el procesamiento.
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/desdoble")
     public ResponseEntity<?> asignaturasDesdobles(@RequestHeader(value = "curso") Integer curso,
@@ -508,7 +531,7 @@ public class Paso2AsignaturasYBloquesController
 
             if (listAsignatuasHoras.isEmpty())
             {
-                String mensajeError = "No se ha encontrado asignaturas con horas para '" + curso + etapa;
+                String mensajeError = "No se ha encontrado asignaturas con horas para '" + curso + " " + etapa;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
@@ -557,7 +580,7 @@ public class Paso2AsignaturasYBloquesController
 
             if (listAsignatura == null)
             {
-                String mensajeError = "No se ha encontrado la asignatura '" + nombreAsignatura + "' para '" + curso + etapa + "' paara asignar las horas";
+                String mensajeError = "No se ha encontrado la asignatura '" + nombreAsignatura + "' para '" + curso + " " + etapa + "' para asignar las horas";
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
@@ -588,6 +611,16 @@ public class Paso2AsignaturasYBloquesController
         }
     }
 
+    /**
+     * Crea y devuelve una instancia de la clase {@code Asignatura} basada en los parámetros proporcionados.
+     * <p>
+     * Utiliza los datos de curso, etapa y grupo para construir una nueva asignatura con la información asociada.
+     *
+     * @param curso el número de curso académico asociado a la asignatura.
+     * @param etapa la etapa educativa (por ejemplo, primaria, secundaria) correspondiente a la asignatura.
+     * @param grupo el identificador del grupo al que pertenece la asignatura.
+     * @return una nueva instancia de {@code Asignatura} construida con los parámetros proporcionados.
+     */
     private static Asignatura getAsignatura(int curso, String etapa, String grupo, boolean desdoble, boolean sinDocencia, boolean esoBachillerato, int horas, Long bloque, String nombre,
                                             Departamento departamentoReceptor, Departamento departamentoPropietario)
     {
@@ -604,6 +637,19 @@ public class Paso2AsignaturasYBloquesController
         return new Asignatura(idAsignatura, horas, sinDocencia, esoBachillerato, desdoble, departamentoReceptor, departamentoPropietario, bloqueObjeto);
     }
 
+    /**
+     * Genera una instancia de {@link IdMatricula}, que representa el identificador único
+     * para la matrícula de un alumno en una asignatura específica dentro de un curso,
+     * etapa y grupo determinados.
+     *
+     * @param curso            el identificador del curso académico para la matrícula.
+     * @param etapa            la etapa o nivel educativo del curso.
+     * @param grupo            el grupo o división dentro del curso y etapa.
+     * @param alumnoId         el identificador único del alumno.
+     * @param nombreAsignatura el nombre de la asignatura en la que el alumno está matriculado.
+     * @return una instancia de {@link IdMatricula} que encapsula la información
+     * referente a la matrícula.
+     */
     private static IdMatricula getIdMatricula(int curso, String etapa, String grupo, int alumnoId, String nombreAsignatura)
     {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, grupo);

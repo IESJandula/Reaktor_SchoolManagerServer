@@ -36,10 +36,18 @@ public class Paso4ResumenAsignaturas
     @Autowired
     private IAsignaturaRepository iAsignaturaRepository;
 
+    /**
+     * Método que obtiene todos los grupos asociados a un curso y etapa específicos.
+     *
+     * @param curso el identificador del curso proporcionado en el encabezado de la solicitud
+     * @param etapa la etapa específica proporcionada en el encabezado de la solicitud
+     * @return ResponseEntity que contiene una lista de objetos CursoEtapaGrupoDto si la operación es exitosa
+     *         o un cuerpo de error si ocurre una excepción
+     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/grupos")
     public ResponseEntity<?> obtenerTodosGrupos(@RequestHeader(value = "curso", required = true) Integer curso,
-                                           @RequestHeader(value = "etapa", required = true) String etapa)
+                                                @RequestHeader(value = "etapa", required = true) String etapa)
     {
         try
         {
@@ -53,10 +61,10 @@ public class Paso4ResumenAsignaturas
         {
             // Manejo de excepciones generales
             String mensajeError = "ERROR - No se pudo encontrar el grupo";
-            log.error(mensajeError, exception) ;
+            log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
@@ -70,11 +78,10 @@ public class Paso4ResumenAsignaturas
      * @param curso el identificador numérico del curso, proporcionado en la cabecera de la solicitud.
      * @param etapa la etapa educativa (por ejemplo, ESO, Bachillerato), proporcionada en la cabecera de la solicitud.
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) y la lista de asignaturas si se encuentran resultados.
-     *         - 404 (NOT_FOUND) si no hay asignaturas que coincidan con los filtros.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
+     * - 200 (OK) y la lista de asignaturas si se encuentran resultados.
+     * - 404 (NOT_FOUND) si no hay asignaturas que coincidan con los filtros.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
      */
-
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturasUnicas")
     public ResponseEntity<?> cargarAsignaturasUnicas(@RequestHeader("curso") int curso,
@@ -86,7 +93,7 @@ public class Paso4ResumenAsignaturas
 
             if (asignaturas.isEmpty())
             {
-                String mensajeError = "No existen asignaturas para " + curso + etapa;
+                String mensajeError = "No existen asignaturas para " + curso + " " + etapa;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
@@ -117,14 +124,14 @@ public class Paso4ResumenAsignaturas
      * Este endpoint busca la cantidad de alumnos asociados a una asignatura concreta
      * en un curso, etapa y grupo determinados.
      *
-     * @param curso el identificador numérico del curso, proporcionado en la cabecera de la solicitud.
-     * @param etapa la etapa educativa (por ejemplo, ESO, Bachillerato), proporcionada en la cabecera de la solicitud.
-     * @param grupo la letra del grupo (por ejemplo, A, B, C), proporcionada en la cabecera de la solicitud.
+     * @param curso      el identificador numérico del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa      la etapa educativa (por ejemplo, ESO, Bachillerato), proporcionada en la cabecera de la solicitud.
+     * @param grupo      la letra del grupo (por ejemplo, A, B, C), proporcionada en la cabecera de la solicitud.
      * @param asignatura el nombre de la asignatura, proporcionado en la cabecera de la solicitud.
      * @return una {@link ResponseEntity} con:
-     *         - 200 (OK) y el número de alumnos si la consulta es exitosa.
-     *         - 404 (NOT_FOUND) si no se encuentra el grupo o la asignatura especificada.
-     *         - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
+     * - 200 (OK) y el número de alumnos si la consulta es exitosa.
+     * - 404 (NOT_FOUND) si no se encuentra el grupo o la asignatura especificada.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
      */
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -141,7 +148,7 @@ public class Paso4ResumenAsignaturas
             // Si no esta ese grupo lanzar excepcion
             if (!listaGrupos.contains(grupo))
             {
-                String mensajeError = "No se ha encontrado ningún grupo para el " + curso + etapa + " con letra " + grupo;
+                String mensajeError = "No se ha encontrado ningún grupo para " + curso + " " + etapa + " con letra " + grupo;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.GRUPO_NO_ENCONTRADO, mensajeError);
             }

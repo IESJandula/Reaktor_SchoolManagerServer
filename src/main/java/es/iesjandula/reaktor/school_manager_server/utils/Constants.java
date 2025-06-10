@@ -251,6 +251,12 @@ public class Constants
 	 */
 	public static final int ASIGNATURA_ASIGNADA_A_DEPARTAMENTO = 69;
 
+	/**
+	 * Error - El alumno está asignado a un grupo y no se puede desmatricular
+	 */
+	public static final int ALUMNO_ASIGNADO_A_GRUPO = 70;
+
+
 	/************* ERRORES - Generales/De Conexión ***************/
 
 	/**

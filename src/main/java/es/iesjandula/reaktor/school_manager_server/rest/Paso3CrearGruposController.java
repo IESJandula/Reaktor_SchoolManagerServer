@@ -40,9 +40,6 @@ import lombok.extern.slf4j.Slf4j;
 public class Paso3CrearGruposController
 {
     @Autowired
-    private ICursoEtapaRepository iCursoEtapaRepository;
-
-    @Autowired
     private CursoEtapaService cursoEtapaService;
 
     @Autowired
@@ -73,7 +70,7 @@ public class Paso3CrearGruposController
      * @param curso el identificador del curso, enviado en la cabecera de la solicitud (HTTP header).
      * @param etapa la etapa educativa, enviada en la cabecera de la solicitud (HTTP header).
      * @return una {@link ResponseEntity} que contiene:
-     * - 200 (OK) si el grupo se crea correctamente.
+     * - 200 (CREATED) si el grupo se crea correctamente.
      * - 400 (BAD_REQUEST) si la validación del curso o etapa falla.
      * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la creación del grupo.
      */
@@ -138,6 +135,43 @@ public class Paso3CrearGruposController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Recupera los grupos disponibles para un curso y etapa determinados.
+     * <p>
+     * También se maneja cualquier error general, devolviendo una respuesta adecuada con información del fallo.
+     *
+     * @param curso El identificador del curso para el cual se desean obtener los grupos.
+     * @param etapa La etapa educativa asociada al curso para la cual se desean obtener los grupos.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y una lista de objetos {@code CursoEtapaGrupoDto} si la operación es exitosa.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/grupos")
+    public ResponseEntity<?> obtenerGrupos(@RequestHeader(value = "curso", required = true) Integer curso,
+                                           @RequestHeader(value = "etapa", required = true) String etapa)
+    {
+        try
+        {
+            // Obtener la lista de grupos según curso y etapa
+            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.buscaCursoEtapaGruposCreados(curso, etapa);
+
+            // Devolver la lista de cursos, etapas y grupos encontrados
+            return ResponseEntity.ok().body(cursosEtapasGrupos);
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - No se pudo encontrar el grupo";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -478,6 +512,18 @@ public class Paso3CrearGruposController
         }
     }
 
+    /**
+     * Construye y devuelve una instancia de {@link Asignatura} a partir de los datos proporcionados
+     * en un {@link MatriculaDto} y, opcionalmente, una asignatura existente.
+     *
+     * @param matriculaDtoAlumnoABorrar DTO que contiene información sobre curso, etapa, grupo y
+     *                                  nombre de la asignatura.
+     * @param asignaturaEncontrada      {@link Optional} que puede contener una asignatura ya
+     *                                  existente, utilizada como referencia para completar datos
+     *                                  adicionales.
+     * @return una nueva instancia de {@link Asignatura} con los datos combinados del DTO y, si
+     * está presente, de la asignatura encontrada.
+     */
     public static Asignatura getAsignatura(MatriculaDto matriculaDtoAlumnoABorrar, Optional<Asignatura> asignaturaEncontrada)
     {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
@@ -634,7 +680,6 @@ public class Paso3CrearGruposController
      * @param etapa            - La etapa educativa asociada al curso para el cual se desea obtener la asignatura
      * @param grupo            - El grupo asociado al curso y etapa para el cual se desea obtener la asignatura
      * @param nombreAsignatura - El nombre de la asignatura para el cual se desea obtener la asignatura
-     * @param horas            - Las horas de la asignatura
      * @param esoBachillerato  - Indica si es ESO o Bachillerato
      * @return Asignatura - La asignatura encontrada en la base de datos
      */

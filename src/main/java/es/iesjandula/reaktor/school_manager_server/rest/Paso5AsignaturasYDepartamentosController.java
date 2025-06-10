@@ -103,12 +103,12 @@ public class Paso5AsignaturasYDepartamentosController
      * <p>
      * Este método requiere permisos de dirección para ser ejecutado.
      *
-     * @param nombre el nombre del departamento al que se desea asignar la plantilla de profesores.
+     * @param nombre    el nombre del departamento al que se desea asignar la plantilla de profesores.
      * @param plantilla número máximo de plantilla de profesores a asignar al departamento.
      * @return un {@link ResponseEntity} con:
-     *         - Código HTTP 204 (No Content) si la asignación fue exitosa.
-     *         - Código HTTP 404 (Not Found) si el departamento no fue encontrado.
-     *         - Código HTTP 500 (Internal Server Error) en caso de error inesperado.
+     * - Código HTTP 204 (No Content) si la asignación fue exitosa.
+     * - Código HTTP 404 (Not Found) si el departamento no fue encontrado.
+     * - Código HTTP 500 (Internal Server Error) en caso de error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.PUT, value = "/departamentos")
@@ -205,7 +205,7 @@ public class Paso5AsignaturasYDepartamentosController
             {
                 String mensajeError = "No hay curso, etapa y grupo registradas en la base de datos";
                 log.warn(mensajeError);
-                throw new SchoolManagerServerException(1, mensajeError);
+                throw new SchoolManagerServerException(Constants.CURSO_ETAPA_GRUPO_NO_ENCONTRADO, mensajeError);
             }
 
             List<CursoEtapaGrupoDto> cursoEtapaGrupoDto = cursoEtapaGrupos.stream().map(cursoEtapaGrupo ->
@@ -348,6 +348,7 @@ public class Paso5AsignaturasYDepartamentosController
      * @return una {@link ResponseEntity} con:
      * - 204 (NO_CONTENT) si la desvinculación se realizó correctamente.
      * - 404 (NOT_FOUND) si no se encontró la asignatura.
+     * - 409 (CONFLICT) la asignatura está asignada a un profesor
      * - 500 (INTERNAL_SERVER_ERROR) si ocurrió un error inesperado.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
@@ -365,7 +366,7 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (asignaturaOpt.isEmpty())
             {
-                String mensajeError = "No se encontró ninguna asignatura con los datos: " + curso + etapa + grupo + ", " + nombre;
+                String mensajeError = "No se encontró ninguna asignatura con los datos: " + curso + " " + etapa + " " + grupo + ", " + nombre;
                 log.warn(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
@@ -393,7 +394,14 @@ public class Paso5AsignaturasYDepartamentosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            if (schoolManagerServerException.getCode() == Constants.ASIGNATURA_NO_ENCONTRADA)
+            {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            else
+            {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
         }
         catch (Exception exception)
         {
@@ -412,12 +420,12 @@ public class Paso5AsignaturasYDepartamentosController
      * <p>
      * Se actualiza el departamento propietario de la asignatura y, opcionalmente, un departamento receptor.
      *
-     * @param curso                  el identificador del curso, proporcionado en la cabecera de la solicitud.
-     * @param etapa                  la etapa educativa, proporcionada en la cabecera de la solicitud.
-     * @param grupo                  el identificador del grupo al que pertenece la asignatura, proporcionado en la cabecera de la solicitud.
-     * @param nombre                 el nombre de la asignatura que se va a asignar, proporcionado en la cabecera de la solicitud.
+     * @param curso                   el identificador del curso, proporcionado en la cabecera de la solicitud.
+     * @param etapa                   la etapa educativa, proporcionada en la cabecera de la solicitud.
+     * @param grupo                   el identificador del grupo al que pertenece la asignatura, proporcionado en la cabecera de la solicitud.
+     * @param nombre                  el nombre de la asignatura que se va a asignar, proporcionado en la cabecera de la solicitud.
      * @param departamentoPropietario el nombre del departamento que será propietario de la asignatura.
-     * @param departamentoReceptor  el nombre del departamento receptor.
+     * @param departamentoReceptor    el nombre del departamento receptor.
      * @return una {@link ResponseEntity} con:
      * - 204 (NO_CONTENT) si la asignación se realizó correctamente.
      * - 404 (NOT_FOUND) si no se encontró la asignatura o alguno de los departamentos.
@@ -440,7 +448,7 @@ public class Paso5AsignaturasYDepartamentosController
 
             if (asignaturaOpt.isEmpty())
             {
-                String mensajeError = "No se encontró la asignatura con los datos " + curso + etapa + grupo + ", " + nombre;
+                String mensajeError = "No se encontró la asignatura con los datos " + curso + " " + etapa + " " + grupo + ", " + nombre;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
