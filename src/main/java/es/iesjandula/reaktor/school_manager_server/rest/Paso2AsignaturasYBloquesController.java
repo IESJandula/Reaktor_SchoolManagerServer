@@ -1,11 +1,9 @@
 package es.iesjandula.reaktor.school_manager_server.rest;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto;
 import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Departamento;
@@ -22,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -275,6 +272,7 @@ public class Paso2AsignaturasYBloquesController
                 {
 //                  Borro las matrículas de la asignatura con el grupo viejo.
                     this.iMatriculaRepository.deleteAll(matriculasABorrar);
+                    this.iMatriculaRepository.flush();
 
                     for (Matricula matricula : matriculasABorrar)
                     {
@@ -306,6 +304,7 @@ public class Paso2AsignaturasYBloquesController
 
                     }
                     this.iAsignaturaRepository.delete(asignatura);
+                    this.iAsignaturaRepository.flush();
                 }
                 else
                 {
