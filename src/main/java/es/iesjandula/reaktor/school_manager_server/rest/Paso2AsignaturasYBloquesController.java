@@ -68,7 +68,6 @@ public class Paso2AsignaturasYBloquesController
      * - 404 (Not Found) si no existen asignaturas para ese curso y etapa.
      * - 500 (Internal Server Error) si ocurre un error inesperado.
      */
-//    TODO: cambiar a ResquestParam
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/asignaturas")
     public ResponseEntity<?> cargarAsignaturas(@RequestHeader("curso") int curso,
