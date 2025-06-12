@@ -230,9 +230,11 @@ public class Paso7EleccionDeHorarios
 //              Este stream filtra las asignaturas de la lista original que sean del departamento del profesor a asignar
                 assert asignaturas != null;
                 List<Asignatura> posiblesEnMiDept = asignaturas.stream()
-                        .filter(a -> a.getDepartamentoReceptor()
-                                .getNombre()
-                                .equals(departamentoProfesor)).toList();
+                        .filter(a -> {
+                            Departamento dep = a.getDepartamentoReceptor();
+                            return dep != null && departamentoProfesor.equals(dep.getNombre());
+                        })
+                        .toList();
 
 //              Este de aquí se queda con el primer grupo de la lista anterior que no este ya en la segunda, la de las impartidas
 //              Si no quedan grupos libres le vuelve a dejar el A, lo que solo es visible si la asignatura tiene desdoble haciendo además que la asignacion sea inocua
