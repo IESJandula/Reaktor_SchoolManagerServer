@@ -167,7 +167,32 @@ public class Paso5AsignaturasYDepartamentosController
         {
             List<AsignaturaConDepartamentoDto> asignaturaConDepartamentoDtos = this.iAsignaturaRepository.encontrarAsignaturasConDepartamento();
 
-            return ResponseEntity.ok(asignaturaConDepartamentoDtos);
+            List<AsignaturaConDepartamentoYResultadoDto> asignaturaConDepartamentoYResultadoDtos = asignaturaConDepartamentoDtos.stream().map(asignaturaConDepartamentoDto ->
+                    new AsignaturaConDepartamentoYResultadoDto(
+                            asignaturaConDepartamentoDto.getNombre(),
+                            asignaturaConDepartamentoDto.getPlantilla(),
+                            asignaturaConDepartamentoDto.getHorasNecesarias(),
+                            asignaturaConDepartamentoDto.getHorasTotales(),
+                            asignaturaConDepartamentoDto.getDesfase()
+                    )).toList();
+
+            for (AsignaturaConDepartamentoYResultadoDto asignaturaConDepartamentoYResultadoDto : asignaturaConDepartamentoYResultadoDtos)
+            {
+                if (asignaturaConDepartamentoYResultadoDto.getDesfase() > 0)
+                {
+                    asignaturaConDepartamentoYResultadoDto.setResultado("Sobran horas");
+                }
+                else if (asignaturaConDepartamentoYResultadoDto.getDesfase() < 0)
+                {
+                    asignaturaConDepartamentoYResultadoDto.setResultado("Faltan horas");
+                }
+                else
+                {
+                    asignaturaConDepartamentoYResultadoDto.setResultado("Cerrado");
+                }
+            }
+
+            return ResponseEntity.ok(asignaturaConDepartamentoYResultadoDtos);
         }
         catch (Exception exception)
         {

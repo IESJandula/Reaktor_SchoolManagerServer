@@ -6,8 +6,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class ObservacionesDto {
-
+public class ObservacionesDto
+{
     private Boolean tieneObservaciones;
 
     private Boolean conciliacion;

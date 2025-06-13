@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ImpartidaGrupoDeptDto {
-
+public class ImpartidaGrupoDeptDto
+{
     private String grupo;
 
     private String departamento;

@@ -342,8 +342,6 @@ public class Paso2AsignaturasYBloquesController
                 {
                     this.iBloqueRepository.delete(bloque);
                     this.iBloqueRepository.flush();
-                    this.iCursoEtapaGrupoRepository.borrarPorCursoEtapaGrupo(curso, etapa);
-                    this.iCursoEtapaGrupoRepository.flush();
                 }
                 else
                 {
