@@ -63,20 +63,9 @@ Los datos de los que depende la aplicación y los que genera se almacenan en nue
 
 **3.- DISEÑO**
 
-Al entrar al cliente se da la bienvenida con la pantalla de login:** \
-**
+Al entrar al cliente se da la bienvenida con la pantalla de login:
+![Enter image alt description](Images/login.png)
 
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
-\
 Una vez logueados correctamente, la interfaz del cliente muestra varias opciones en el menú de la izquierda. En **“Gestión de matrículas”** encontraremos todas las vistas accesibles de nuestro proyecto, a excepción de la última que se encuentra en la pestaña **“Personal”**:** \
 **
 
@@ -213,13 +202,4 @@ Como trabajo a futuro con este módulo habría algunas mejoras que se podrían i
 
 - Exportar a pdf el resumen de las asignaturas de un curso y etapa, y las dos tablas de los departamentos del paso 5.
 
-**8.- BIBLIOGRAFÍA**
-
-[https://github.com/IESJandula/Reaktor_Documentacion](https://github.com/IESJandula/Reaktor_Documentacion) Documentación Reaktor
-
-[https://www.baeldung.com/spring-tutorial](https://www.baeldung.com/spring-tutorial) Información de Spring
-
-[https://ionicframework.com/docs/vue/your-first-app](https://ionicframework.com/docs/vue/your-first-app) Información de Ionic con Vue
-
-[https://developer.mozilla.org/es/docs/Web/JavaScript](https://developer.mozilla.org/es/docs/Web/JavaScript) Información de JS
 
