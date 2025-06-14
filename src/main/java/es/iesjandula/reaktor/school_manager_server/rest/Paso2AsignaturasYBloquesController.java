@@ -631,7 +631,7 @@ public class Paso2AsignaturasYBloquesController
             bloqueObjeto = new Bloque();
             bloqueObjeto.setId(bloque);
         }
-        return new Asignatura(idAsignatura, horas, sinDocencia, esoBachillerato, desdoble, departamentoReceptor, departamentoPropietario, bloqueObjeto);
+        return new Asignatura(idAsignatura, horas, esoBachillerato, sinDocencia, desdoble, departamentoReceptor, departamentoPropietario, bloqueObjeto);
     }
 
     /**
