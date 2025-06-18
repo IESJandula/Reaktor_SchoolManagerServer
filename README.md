@@ -1,19 +1,16 @@
-**PROYECTO**
+**PROYECTO FIN DE CFGS y TRABAJO FIN DE MÁSTER (DESARROLLO DE SOFTWARE - UGR)- School Manager**
 
-**FIN DE CICLO**
+**SOBRE EL PROYECTO FIN DE CFGS**
+- **Alumnos: Virginia Moreno Ortega y Alejandro Jiménez Bueno (Curso académico 2024/2025)**
+- **Tutor: Francisco Manuel Benítez Chico**
 
-**SCHOOL MANAGER**
-
-**Nombre: Virginia Moreno Ortega y Alejandro Jiménez Bueno**
-
-**Curso Académico:  2024 / 25**
-
-**Profesor tutor del Proyecto :  Francisco Manuel Benítez Chico**
-
+**SOBRE EL TRABAJO FIN DE MÁSTER**
+- **Alumno: Francisco Manuel Benítez Chico**
+- **Tutor: María Bermúdez-Edo**
 
 **1.- INTRODUCCIÓN**
 
-Nuestro proyecto es un añadido al entorno Reaktor que tiene como objetivo gestionar las matrículas del alumnado, el agrupamiento de los mismos y la asociación de los profesores a las asignaturas que lo requieren así como las posibles reducciones laborales.
+Este proyecto fin de CFGS forma parte del entorno Reaktor que tiene como objetivo gestionar las matrículas del alumnado, el agrupamiento de los mismos y la asociación de los profesores a las asignaturas que lo requieren así como las posibles reducciones laborales. Por otro lado, como TFM del Máster, se partirá de las fuentes de datos obtenidas en las vistas anteriores para alimentar la entrada de un generador de horarios de instituto.
 
 El proyecto SchoolManager, que toma varias dependencias del resto de proyectos que sirven como base para Reaktor, utiliza un servidor web Spring Boot con Java 17 para el backend, almacenando los datos necesarios para su funcionamiento en una base de datos MySQL. Posteriormente tenemos dos pestañas dentro del menú de la web ‘SomosJandula’ hechos con Vue con una serie de vistas  que obtienen sus datos necesarios a través de endpoints al back. Cabe destacar, que para acceder a las funcionalidades de la aplicación, se necesita una cuenta de Google que se loguee mediante **Firebase**, y que cuente con los permisos necesarios para utilizar determinadas funciones.
 
