@@ -205,4 +205,30 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
                                                      @Param("curso") Integer curso,
                                                      @Param("etapa") String etapa,
                                                      @Param("departamento") String departamento);
+
+    /**
+     * Método que busca las asignaturas sin cursos/etapas/grupos asignados
+     * @return - Lista de asignaturas sin cursos/etapas/grupos asignados
+     */
+    @Query("SELECT a FROM Asignatura a " +
+           "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.SIN_GRUPO_ASIGNADO + "'")
+    Optional<List<Asignatura>> asignaturaSinCursoEtapaGrupo();
+
+    /**
+     * Método que busca las asignaturas sin departamentos asociados
+     * @return - Lista de asignaturas sin departamentos asociados
+     */
+    @Query("SELECT a FROM Asignatura a " +
+           "WHERE a.departamentoPropietario IS NULL OR a.departamentoReceptor IS NULL")
+    Optional<List<Asignatura>> asignaturaSinDepartamentos();
+
+    /**
+     * Método que busca las asignaturas sin horas de clase
+     * @return - Lista de asignaturas sin horas de clase
+     */
+    @Query("SELECT a FROM Asignatura a " +
+           "WHERE a.sinDocencia = false AND a.horas = 0")
+    Optional<List<Asignatura>> asignaturaSinHorasDeClase();
+
+
 }

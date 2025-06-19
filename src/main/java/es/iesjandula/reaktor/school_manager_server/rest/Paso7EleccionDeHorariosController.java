@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping(value = "/schoolManager/eleccionDeHorarios")
-public class Paso7EleccionDeHorarios
+public class Paso7EleccionDeHorariosController
 {
     @Autowired
     private IProfesorRepository iProfesorRepository;

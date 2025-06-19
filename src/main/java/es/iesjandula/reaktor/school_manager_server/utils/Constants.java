@@ -330,10 +330,10 @@ public class Constants
 	public static final int ERROR_CODE_GENERADOR_EN_CURSO = 303;
 
 	/**
-	 * Mensaje de error - No hay cursos/etapas/grupos por cada curso/etapa
+	 * Error - Validaciones de datos incorrectos
 	 */
-	public static final int ERROR_CODE_SIN_CURSOS_ETAPAS_ENCONTRADOS = 304;
-
+	public static final int ERROR_VALIDACIONES_DATOS_INCORRECTOS = 304;
+	
 	/**
 	 * Constantes/Configuración
 	 */

@@ -1,5 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,4 +29,13 @@ public interface IDepartamentoRepository extends JpaRepository<Departamento, Str
     @Query("SELECT d FROM Departamento d WHERE d.nombre = :nombre")
     Optional<Departamento> findByNombre(@Param("nombre") String nombre);
 
+    /**
+     * Método que busca los departamentos con número de profesores en plantilla incorrecto
+     * @return - Lista de departamentos con número de profesores en plantilla incorrecto
+     */
+    @Query("SELECT d FROM Departamento d " +
+           "WHERE d.plantilla != (" +
+           "   SELECT COUNT(p) FROM Profesor p " +
+           "   WHERE p.departamento = d)")
+    Optional<List<Departamento>> departamentoConNumeroProfesoresEnPlantillaIncorrecto();
 }

@@ -27,29 +27,32 @@ import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionesBase;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
+import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRestriccionesBase;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
-
+import es.iesjandula.reaktor.school_manager_server.services.ValidadorDatosService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/schoolManager/generadorHorarios")
-public class PasoXGenerador
+@RequestMapping("/schoolManager/generador")
+public class Paso9GeneradorController
 {
-    @Autowired
-    private IGeneradorRepository generadorRepository ;
 
     @Autowired
-    private ICursoEtapaRepository cursoEtapaRepository ;
+    private ValidadorDatosService validadorDatosService ;
+
+    @Autowired
+    private IGeneradorRepository generadorRepository ;
 
     @Autowired
     private ICursoEtapaGrupoRepository cursoEtapaGrupoRepository ;   
@@ -61,8 +64,8 @@ public class PasoXGenerador
     private IGeneradorRestriccionesBase generadorRestriccionesBase ;
 
     @Autowired
-    private AsignaturaService asignaturaService ;
-
+    private AsignaturaService asignaturaService ; 
+    
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/lanzar")
     public ResponseEntity<?> arrancarGenerador()
@@ -87,8 +90,8 @@ public class PasoXGenerador
 
             // Creamos los manejadores y threads
             ManejadorThreads manejadorThreads = this.crearManejadorThreads(mapCorrelacionadorCursosMatutinos,
-                                                                           mapCorrelacionadorCursosVespertinos,
-                                                                           creadorSesiones) ;
+                                                                            mapCorrelacionadorCursosVespertinos,
+                                                                            creadorSesiones) ;
             // Creamos una nueva generación
             Generador generador = new Generador();
             generador.setFechaInicio(new Date());
@@ -158,6 +161,25 @@ public class PasoXGenerador
      */
     private void validacionesPrevias() throws SchoolManagerServerException
     {
+        // Validaciones previas
+        List<String> mensajesError = this.validadorDatosService.validacionDatos() ;
+        
+        // Si hay mensajes de error, devolvemos un error
+        if (!mensajesError.isEmpty())
+        {
+            throw new SchoolManagerServerException(Constants.ERROR_VALIDACIONES_DATOS_INCORRECTOS, mensajesError.toString()) ;
+        }
+
+        // Validaciones previas del generador
+        this.validacionesPreviasGenerador() ;
+    }
+
+    /**
+     * Método que realiza una serie de validaciones previas
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    private void validacionesPreviasGenerador() throws SchoolManagerServerException
+    {
         // Validamos si ya hay un generador en curso
         Optional<Generador> generadorEnCurso = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_EN_CURSO) ;
 
@@ -168,48 +190,6 @@ public class PasoXGenerador
             log.error(mensajeError) ;
             throw new SchoolManagerServerException(Constants.ERROR_CODE_GENERADOR_EN_CURSO, mensajeError) ;
         }
-
-        // Validamos si los hay cursos/etapas/grupos por cada curso/etapa (Consulta 1)
-        Optional<List<CursoEtapa>> cursosEtapas = this.cursoEtapaRepository.buscarCursosEtapasSinCursosEtapasGrupo1() ;
-
-        if (cursosEtapas.isPresent())
-        {
-            String mensajeError = "Los siguientes cursos/etapas no tienen cursos/etapas/grupos asignados (Consulta 1): " ;
-
-            // Recorremos la lista de cursos/etapas para avisarlas al usuario
-            for (CursoEtapa cursoEtapa : cursosEtapas.get())
-            {   
-                mensajeError += cursoEtapa.getCursoEtapaString() + ", " ;
-            }
-
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            log.error(mensajeError) ;
-            throw new SchoolManagerServerException(Constants.ERROR_CODE_SIN_CURSOS_ETAPAS_ENCONTRADOS, mensajeError) ;
-        }
-
-        // Validamos si los hay cursos/etapas/grupos por cada curso/etapa (Consulta 2)
-        cursosEtapas = this.cursoEtapaRepository.buscarCursosEtapasSinCursosEtapasGrupo2() ;
-
-        if (cursosEtapas.isPresent())
-        {
-            String mensajeError = "Los siguientes cursos/etapas no tienen cursos/etapas/grupos asignados (Consulta 2): " ;
-
-            // Recorremos la lista de cursos/etapas para avisarlas al usuario
-            for (CursoEtapa cursoEtapa : cursosEtapas.get())
-            {   
-                mensajeError += cursoEtapa.getCursoEtapaString() + ", " ;
-            }
-
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            log.error(mensajeError) ;
-            throw new SchoolManagerServerException(Constants.ERROR_CODE_SIN_CURSOS_ETAPAS_ENCONTRADOS, mensajeError) ;
-        }
-
-        // Validar si el número de plantilla coincide con el número de profesores 
     }
 
     /**

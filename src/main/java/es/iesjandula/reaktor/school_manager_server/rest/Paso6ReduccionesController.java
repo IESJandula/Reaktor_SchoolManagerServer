@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @RestController
 @RequestMapping(value = "/schoolManager/crearReducciones")
 @Slf4j
-public class Paso6Reducciones
+public class Paso6ReduccionesController
 {
 
     @Autowired

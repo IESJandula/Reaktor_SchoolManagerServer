@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping(value = "/schoolManager/resumenAsignaturas")
-public class Paso4ResumenAsignaturas
+public class Paso4ResumenAsignaturasController
 {
     @Autowired
     private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;

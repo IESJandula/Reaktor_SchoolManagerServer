@@ -9,10 +9,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdImpartir;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link Impartir}.
@@ -71,5 +74,19 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
     List<ImpartidaGrupoDeptDto> encontrarGruposYDeptAsignaturaImpartidaPorNombreAndCursoEtapa(@Param("nombreAsignatura") String nombreAsignatura,
                                                                                          @Param("curso") Integer curso,
                                                                                          @Param("etapa") String etapa);
+
+    /**
+     * Método que devuelve los cursos/etapas/grupos que no tienen 30 horas a la semana asignadas de clase
+     * @return Lista de cursos/etapas/grupos que no tienen 30 horas a la semana asignadas de clase
+     */
+    @Query("SELECT c " +
+            "FROM CursoEtapaGrupo c " +
+            "WHERE (SELECT COALESCE(SUM(i.cupoHoras), 0) " +
+            "       FROM Impartir i " +
+            "       WHERE i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = c.idCursoEtapaGrupo.curso AND " +
+            "             i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = c.idCursoEtapaGrupo.etapa AND " +
+            "             (i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = c.idCursoEtapaGrupo.grupo OR " +
+            "              i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "')) <> 30")
+    Optional<List<CursoEtapaGrupo>> cursoConHorasAsignadasIncorrectas();
 
 }
