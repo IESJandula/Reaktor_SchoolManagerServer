@@ -29,20 +29,13 @@ public interface ICursoEtapaRepository extends JpaRepository<CursoEtapa, IdCurso
            "WHERE NOT EXISTS (" +
            "   SELECT 1 FROM CursoEtapaGrupo ceg1 " +
            "   WHERE ceg1.idCursoEtapaGrupo.curso = ce.idCursoEtapa.curso AND " +
-           "         ceg1.idCursoEtapaGrupo.etapa = ce.idCursoEtapa.etapa)")
-	Optional<List<CursoEtapa>> buscarCursosEtapasSinCursosEtapasGrupo1() ;
-	
-	/**
-	 * Método que busca todos los cursos/etapas/grupos
-	 * @return - Lista de cursos/etapas/grupos
-	 */
-    @Query("SELECT ce FROM CursoEtapa ce " +
-           "WHERE EXISTS (" +
+           "         ceg1.idCursoEtapaGrupo.etapa = ce.idCursoEtapa.etapa) OR " +
+           "   EXISTS (" +
            "   SELECT 1 FROM CursoEtapaGrupo ceg2 " +
            "   WHERE ceg2.idCursoEtapaGrupo.curso = ce.idCursoEtapa.curso AND " +
            "         ceg2.idCursoEtapaGrupo.etapa = ce.idCursoEtapa.etapa AND " +
            "         ceg2.idCursoEtapaGrupo.grupo = '" + Constants.SIN_GRUPO_ASIGNADO + "'" +
            "   GROUP BY ceg2.idCursoEtapaGrupo.curso, ceg2.idCursoEtapaGrupo.etapa " +
            "   HAVING COUNT(ceg2) = 1)")
-	Optional<List<CursoEtapa>> buscarCursosEtapasSinCursosEtapasGrupo2() ;
+	Optional<List<CursoEtapa>> buscarCursosEtapasSinCursosEtapasGrupo() ;
 }

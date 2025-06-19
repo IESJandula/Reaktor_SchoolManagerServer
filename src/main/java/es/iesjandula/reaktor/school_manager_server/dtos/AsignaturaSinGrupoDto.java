@@ -1,6 +1,5 @@
 package es.iesjandula.reaktor.school_manager_server.dtos;
 
-import es.iesjandula.reaktor.school_manager_server.models.Departamento;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

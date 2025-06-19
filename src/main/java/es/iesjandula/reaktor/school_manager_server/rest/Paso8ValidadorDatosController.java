@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
+import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.services.ValidadorDatosService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,10 +32,10 @@ public class Paso8ValidadorDatosController
     {
         try
         {
-            // Realizamos una serie de validaciones previas 
-            List<String> mensajesError = this.validadorDatosService.validacionDatos() ;
+            // Realizamos una serie de validaciones de datos
+            ValidadorDatosDto validadorDatosDto = this.validadorDatosService.validacionDatos() ;
 
-            return ResponseEntity.ok().body(mensajesError);
+            return ResponseEntity.ok().body(validadorDatosDto);
         }
         catch (Exception exception) 
         {

@@ -17,6 +17,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
+import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.generator.core.CreadorSesiones;
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorResultados;
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorResultadosParams;
@@ -27,14 +28,10 @@ import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionesBase;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
-import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRestriccionesBase;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
@@ -161,13 +158,13 @@ public class Paso9GeneradorController
      */
     private void validacionesPrevias() throws SchoolManagerServerException
     {
-        // Validaciones previas
-        List<String> mensajesError = this.validadorDatosService.validacionDatos() ;
+        // Validaciones de datosprevias
+        ValidadorDatosDto validadorDatosDto = this.validadorDatosService.validacionDatos() ;
         
         // Si hay mensajes de error, devolvemos un error
-        if (!mensajesError.isEmpty())
+        if (!validadorDatosDto.getErroresDatos().isEmpty())
         {
-            throw new SchoolManagerServerException(Constants.ERROR_VALIDACIONES_DATOS_INCORRECTOS, mensajesError.toString()) ;
+            throw new SchoolManagerServerException(Constants.ERROR_VALIDACIONES_DATOS_INCORRECTOS, validadorDatosDto.getErroresDatos().toString()) ;
         }
 
         // Validaciones previas del generador

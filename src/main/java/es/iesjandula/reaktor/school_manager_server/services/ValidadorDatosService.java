@@ -14,8 +14,8 @@ import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReposit
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
-import es.iesjandula.reaktor.school_manager_server.utils.Constants;
-import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
+import es.iesjandula.reaktor.school_manager_server.dtos.ErroresDatosDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
@@ -45,126 +45,97 @@ public class ValidadorDatosService
     /**
      * Método que realiza una serie de validaciones previas
      */
-    public List<String> validacionDatos()
+    public ValidadorDatosDto validacionDatos()
     {
-        List<String> mensajesError = new ArrayList<String>() ;
+        ValidadorDatosDto validadorDatosDto = new ValidadorDatosDto() ;
 
         // Validaciones previas en cursos y etapas
-        this.validacionDatosCursosEtapas(mensajesError) ;
+        this.validacionDatosCursosEtapas(validadorDatosDto) ;
 
         // Validaciones previas en departamentos
-        this.validacionDatosDepartamentos(mensajesError) ;
+        this.validacionDatosDepartamentos(validadorDatosDto) ;
 
         // Validaciones previas en asignaturas
-        this.validacionDatosAsignaturas(mensajesError) ;
+        this.validacionDatosAsignaturas(validadorDatosDto) ;
 
         // Validaciones previas en profesores
-        this.validacionDatosProfesores(mensajesError) ;
+        this.validacionDatosProfesores(validadorDatosDto) ;
 
         // Validaciones previas en impartir
-        this.validacionDatosImpartir(mensajesError) ;
+        this.validacionDatosImpartir(validadorDatosDto) ;
 
-        return mensajesError ;
+        return validadorDatosDto ;
     }
 
     /**
      * Método que realiza una serie de validaciones previas
-     * @param mensajesError - Lista de mensajes de error
+     * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosCursosEtapas(List<String> mensajesError)
+    private void validacionDatosCursosEtapas(ValidadorDatosDto validadorDatosDto)
     {
         // Validamos si los hay cursos/etapas/grupos por cada curso/etapa (Consulta 1)
-        Optional<List<CursoEtapa>> cursosEtapas = this.cursoEtapaRepository.buscarCursosEtapasSinCursosEtapasGrupo1() ;
+        Optional<List<CursoEtapa>> cursosEtapas = this.cursoEtapaRepository.buscarCursosEtapasSinCursosEtapasGrupo() ;
 
         if (cursosEtapas.isPresent())
         {
-            String mensajeError = "Los siguientes cursos/etapas no tienen cursos/etapas/grupos asignados: " ;
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Cursos y etapas sin grupos asignados") ;
 
-            // Recorremos la lista de cursos/etapas para avisarlas al usuario
+            // Recorremos la lista de cursos/etapas
             for (CursoEtapa cursoEtapa : cursosEtapas.get())
             {   
-                mensajeError += cursoEtapa.getCursoEtapaString() + ", " ;
+                erroresDatosDto.getValoresImplicados().add(cursoEtapa.getCursoEtapaString()) ;
             }
 
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            // Añadimos el mensaje de error a la lista de mensajes de error
-            mensajesError.add(mensajeError) ;
-        }
-
-        // Validamos si los hay cursos/etapas/grupos por cada curso/etapa (Consulta 2)
-        cursosEtapas = this.cursoEtapaRepository.buscarCursosEtapasSinCursosEtapasGrupo2() ;
-
-        if (cursosEtapas.isPresent())
-        {
-            String mensajeError = "Los siguientes cursos/etapas no tienen cursos/etapas/grupos asignados (Consulta 2): " ;
-
-            // Recorremos la lista de cursos/etapas para avisarlas al usuario
-            for (CursoEtapa cursoEtapa : cursosEtapas.get())
-            {   
-                mensajeError += cursoEtapa.getCursoEtapaString() + ", " ;
-            }
-
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            // Añadimos el mensaje de error a la lista de mensajes de error
-            mensajesError.add(mensajeError) ;
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
     }
     
     /**
      * Método que realiza una serie de validaciones previas
-     * @param mensajesError - Lista de mensajes de error
+     * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosDepartamentos(List<String> mensajesError)
+    private void validacionDatosDepartamentos(ValidadorDatosDto validadorDatosDto)
     {
         // Validamos si hay departamentos con número de profesores en plantilla incorrecto
         Optional<List<Departamento>> departamentos = this.departamentoRepository.departamentoConNumeroProfesoresEnPlantillaIncorrecto() ;
 
         if (departamentos.isPresent())
         {
-            String mensajeError = "Los siguientes departamentos tienen un número de profesores en plantilla incorrecto: " ;
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Departamentos con plantilla de profesores incorrecta") ;
 
             // Recorremos la lista de departamentos para avisarlas al usuario
             for (Departamento departamento : departamentos.get())
             {
-                mensajeError += departamento.getNombre() + ", " ;
+                erroresDatosDto.getValoresImplicados().add(departamento.getNombre()) ;
             }
 
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            // Añadimos el mensaje de error a la lista de mensajes de error
-            mensajesError.add(mensajeError) ;
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
     }
 
     /**
      * Método que realiza una serie de validaciones previas
-     * @param mensajesError - Lista de mensajes de error
+     * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosAsignaturas(List<String> mensajesError)
+    private void validacionDatosAsignaturas(ValidadorDatosDto validadorDatosDto)
     {
         // Validamos si hay asignaturas sin cursos/etapas/grupos asignados (Consulta 1)
         Optional<List<Asignatura>> asignaturas = this.asignaturaRepository.asignaturaSinCursoEtapaGrupo() ;
 
         if (asignaturas.isPresent())
         {
-            String mensajeError = "Las siguientes asignaturas no tienen cursos/etapas/grupos asignados (Consulta 1): " ;
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Asignaturas sin grupos asignados") ;
 
             // Recorremos la lista de asignaturas para avisarlas al usuario
             for (Asignatura asignatura : asignaturas.get())
             {   
-                mensajeError += asignatura.getIdAsignatura().getNombre() + ", " ;
+                erroresDatosDto.getValoresImplicados().add(asignatura.getIdAsignatura().getNombre()) ;
             }
 
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            // Añadimos el mensaje de error a la lista de mensajes de error
-            mensajesError.add(mensajeError) ;
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
 
         // Validamos si las asignaturas tienen departamentos asociados
@@ -172,19 +143,16 @@ public class ValidadorDatosService
 
         if (asignaturasSinDepartamentos.isPresent())
         {
-            String mensajeError = "Las siguientes asignaturas no tienen departamentos asociados: " ;
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Asignaturas sin departamentos asociados") ;
 
             // Recorremos la lista de asignaturas para avisarlas al usuario
             for (Asignatura asignatura : asignaturasSinDepartamentos.get())
             {   
-                mensajeError += asignatura.getIdAsignatura().getNombre() + ", " ;
+                erroresDatosDto.getValoresImplicados().add(asignatura.getIdAsignatura().getNombre()) ;
             }
 
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            // Añadimos el mensaje de error a la lista de mensajes de error
-            mensajesError.add(mensajeError) ;
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
         
         // Validamos si las asignaturas tienen horas de clase
@@ -192,73 +160,64 @@ public class ValidadorDatosService
 
         if (asignaturasSinHorasDeClase.isPresent())
         {
-            String mensajeError = "Las siguientes asignaturas no tienen horas de clase: " ;
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Asignaturas sin horas de clase") ;
 
             // Recorremos la lista de asignaturas para avisarlas al usuario
             for (Asignatura asignatura : asignaturasSinHorasDeClase.get())
             {
-                mensajeError += asignatura.getIdAsignatura().getNombre() + ", " ;
+                erroresDatosDto.getValoresImplicados().add(asignatura.getIdAsignatura().getNombre()) ;
             }
 
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            // Añadimos el mensaje de error a la lista de mensajes de error
-            mensajesError.add(mensajeError) ;
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
     }
 
     /**
      * Método que realiza una serie de validaciones previas
-     * @param mensajesError - Lista de mensajes de error
+     * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosProfesores(List<String> mensajesError)
+    private void validacionDatosProfesores(ValidadorDatosDto validadorDatosDto)
     {
         // Validamos si hay profesores con la suma de horas de docencia y reducciones incorrectas
         Optional<List<Profesor>> profesores = this.profesorRepository.profesorConSumaHorasDocenciaReduccionesIncorrectas() ;
 
         if (profesores.isPresent())
         {
-            String mensajeError = "Los siguientes profesores no tienen la suma de horas de docencia y reducciones con el mínimo legal: " ;
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Profesores con suma de horas de docencia y reducciones incorrecta") ;
 
             // Recorremos la lista de profesores para avisarlas al usuario
             for (Profesor profesor : profesores.get())
             {
-                mensajeError += profesor.getEmail() + ", " ;
+                erroresDatosDto.getValoresImplicados().add(profesor.getEmail()) ;
             }
 
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            // Añadimos el mensaje de error a la lista de mensajes de error
-            mensajesError.add(mensajeError) ;
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
     }
 
     /**
      * Método que realiza una serie de validaciones previas
-     * @param mensajesError - Lista de mensajes de error
+     * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosImpartir(List<String> mensajesError)
+    private void validacionDatosImpartir(ValidadorDatosDto validadorDatosDto)
     {
         // Validamos que todos los cursos tienen 30 horas a la semana asignadas de clase
         Optional<List<CursoEtapaGrupo>> cursosEtapasGrupos = this.impartirRepository.cursoConHorasAsignadasIncorrectas() ;
 
         if (cursosEtapasGrupos.isPresent())
         {
-            String mensajeError = "Los siguientes cursos no tienen 30 horas a la semana asignadas de clase: " ;
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Grupos sin 30 horas a la semana") ;
 
             // Recorremos la lista de cursos para avisarlas al usuario
             for (CursoEtapaGrupo cursoEtapaGrupo : cursosEtapasGrupos.get())
             {
-                mensajeError += cursoEtapaGrupo.getCursoEtapaGrupoString() + ", " ;
+                erroresDatosDto.getValoresImplicados().add(cursoEtapaGrupo.getCursoEtapaGrupoString()) ;
             }
 
-            // Eliminamos la última coma
-            mensajeError = mensajeError.substring(0, mensajeError.length() - 2) ;
-
-            // Añadimos el mensaje de error a la lista de mensajes de error
-            mensajesError.add(mensajeError) ;
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
     }
 }
