@@ -83,7 +83,7 @@ public class ValidadorDatosService
             // Recorremos la lista de cursos/etapas
             for (CursoEtapa cursoEtapa : cursosEtapas.get())
             {   
-                erroresDatosDto.getValoresImplicados().add(cursoEtapa.getCursoEtapaString()) ;
+                erroresDatosDto.agregarValorImplicado(cursoEtapa.getCursoEtapaString()) ;
             }
 
             // Añadimos a la instancia del DTO el mensaje de error
@@ -107,7 +107,7 @@ public class ValidadorDatosService
             // Recorremos la lista de departamentos para avisarlas al usuario
             for (Departamento departamento : departamentos.get())
             {
-                erroresDatosDto.getValoresImplicados().add(departamento.getNombre()) ;
+                erroresDatosDto.agregarValorImplicado(departamento.getNombre()) ;
             }
 
             // Añadimos a la instancia del DTO el mensaje de error
@@ -131,7 +131,7 @@ public class ValidadorDatosService
             // Recorremos la lista de asignaturas para avisarlas al usuario
             for (Asignatura asignatura : asignaturas.get())
             {   
-                erroresDatosDto.getValoresImplicados().add(asignatura.getIdAsignatura().getNombre()) ;
+                erroresDatosDto.agregarValorImplicado(asignatura.getIdAsignatura().getNombre()) ;
             }
 
             // Añadimos a la instancia del DTO el mensaje de error
@@ -148,7 +148,7 @@ public class ValidadorDatosService
             // Recorremos la lista de asignaturas para avisarlas al usuario
             for (Asignatura asignatura : asignaturasSinDepartamentos.get())
             {   
-                erroresDatosDto.getValoresImplicados().add(asignatura.getIdAsignatura().getNombre()) ;
+                erroresDatosDto.agregarValorImplicado(asignatura.getIdAsignatura().getNombre()) ;
             }
 
             // Añadimos a la instancia del DTO el mensaje de error
@@ -165,7 +165,7 @@ public class ValidadorDatosService
             // Recorremos la lista de asignaturas para avisarlas al usuario
             for (Asignatura asignatura : asignaturasSinHorasDeClase.get())
             {
-                erroresDatosDto.getValoresImplicados().add(asignatura.getIdAsignatura().getNombre()) ;
+                erroresDatosDto.agregarValorImplicado(asignatura.getIdAsignatura().getNombre()) ;
             }
 
             // Añadimos a la instancia del DTO el mensaje de error
@@ -179,21 +179,32 @@ public class ValidadorDatosService
      */
     private void validacionDatosProfesores(ValidadorDatosDto validadorDatosDto)
     {
-        // Validamos si hay profesores con la suma de horas de docencia y reducciones incorrectas
-        Optional<List<Profesor>> profesores = this.profesorRepository.profesorConSumaHorasDocenciaReduccionesIncorrectas() ;
-
-        if (profesores.isPresent())
+        // Validamos si existen profesores en la BBDD
+        if (this.profesorRepository.count() == 0)
         {
-            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Profesores con suma de horas de docencia y reducciones incorrecta") ;
-
-            // Recorremos la lista de profesores para avisarlas al usuario
-            for (Profesor profesor : profesores.get())
-            {
-                erroresDatosDto.getValoresImplicados().add(profesor.getEmail()) ;
-            }
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("No se ha cargado aún la lista de profesores en BBDD") ;
 
             // Añadimos a la instancia del DTO el mensaje de error
             validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
+        }
+        else
+        {
+            // Validamos si hay profesores con la suma de horas de docencia y reducciones incorrectas
+            Optional<List<Profesor>> profesores = this.profesorRepository.profesorConSumaHorasDocenciaReduccionesIncorrectas() ;
+    
+            if (profesores.isPresent())
+            {
+                ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Profesores con suma de horas de docencia y reducciones incorrecta") ;
+    
+                // Recorremos la lista de profesores para avisarlas al usuario
+                for (Profesor profesor : profesores.get())
+                {
+                    erroresDatosDto.agregarValorImplicado(profesor.getNombre() + " " + profesor.getApellidos()) ;
+                }
+    
+                // Añadimos a la instancia del DTO el mensaje de error
+                validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
+            }
         }
     }
 
@@ -213,7 +224,7 @@ public class ValidadorDatosService
             // Recorremos la lista de cursos para avisarlas al usuario
             for (CursoEtapaGrupo cursoEtapaGrupo : cursosEtapasGrupos.get())
             {
-                erroresDatosDto.getValoresImplicados().add(cursoEtapaGrupo.getCursoEtapaGrupoString()) ;
+                erroresDatosDto.agregarValorImplicado(cursoEtapaGrupo.getCursoEtapaGrupoString()) ;
             }
 
             // Añadimos a la instancia del DTO el mensaje de error

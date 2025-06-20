@@ -34,7 +34,8 @@ public interface IDepartamentoRepository extends JpaRepository<Departamento, Str
      * @return - Lista de departamentos con número de profesores en plantilla incorrecto
      */
     @Query("SELECT d FROM Departamento d " +
-           "WHERE d.plantilla != (" +
+           "WHERE d.plantilla = 0 OR " + 
+           "      d.plantilla != (" +
            "   SELECT COUNT(p) FROM Profesor p " +
            "   WHERE p.departamento = d)")
     Optional<List<Departamento>> departamentoConNumeroProfesoresEnPlantillaIncorrecto();

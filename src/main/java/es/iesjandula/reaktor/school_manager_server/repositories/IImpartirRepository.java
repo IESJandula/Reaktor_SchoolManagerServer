@@ -81,12 +81,15 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
      */
     @Query("SELECT c " +
             "FROM CursoEtapaGrupo c " +
-            "WHERE (SELECT COALESCE(SUM(i.cupoHoras), 0) " +
+            "WHERE c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "' AND " +
+            "      c.idCursoEtapaGrupo.grupo <> '" + Constants.GRUPO_OPTATIVAS + "' AND " +
+            "      (SELECT COALESCE(SUM(i.cupoHoras), 0) " +
             "       FROM Impartir i " +
             "       WHERE i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = c.idCursoEtapaGrupo.curso AND " +
             "             i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = c.idCursoEtapaGrupo.etapa AND " +
             "             (i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = c.idCursoEtapaGrupo.grupo OR " +
-            "              i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "')) <> 30")
+            "              i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "') AND " +
+            "              i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "') <> 30")
     Optional<List<CursoEtapaGrupo>> cursoConHorasAsignadasIncorrectas();
 
 }

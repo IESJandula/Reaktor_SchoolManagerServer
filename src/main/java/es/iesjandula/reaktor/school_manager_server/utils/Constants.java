@@ -364,6 +364,16 @@ public class Constants
 	public static final String CONCILIACION_SALIR_ANTES_QUINTA_HORA = "SALIR_ANTES_QUINTA_HORA";
 
 	/******************************************************/
+	/*********** Constantes - Validador de datos **********/
+	/******************************************************/
+
+	/** Tipo de error de datos - Warning */
+	public static final String ERROR_DATOS_TIPO_WARNING = "warning" ;
+
+	/** Tipo de error de datos - Error */
+	public static final String ERROR_DATOS_TIPO_ERROR   = "error" ;
+
+	/******************************************************/
 	/******************************************************/
 	/********* Constantes - Generador de horario **********/
 	/******************************************************/
@@ -588,5 +598,7 @@ public class Constants
 	public static final String PARAM_YAML_SELECCION_HORARIOS_POR_CLAUSTRO = "reaktor.constantes.seleccionHorariosPorClaustro";
 
 	public static final String MODO_INICIALIZAR_SISTEMA = "true";
+
+
 
 }
