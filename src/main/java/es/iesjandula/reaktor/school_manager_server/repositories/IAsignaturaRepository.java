@@ -211,7 +211,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
      * @return - Lista de asignaturas sin cursos/etapas/grupos asignados
      */
     @Query("SELECT a FROM Asignatura a " +
-           "WHERE a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.SIN_GRUPO_ASIGNADO + "'")
+           "WHERE a.sinDocencia = false AND a.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.SIN_GRUPO_ASIGNADO + "'")
     Optional<List<Asignatura>> asignaturaSinCursoEtapaGrupo();
 
     /**
@@ -219,7 +219,7 @@ public interface IAsignaturaRepository extends JpaRepository<Asignatura, IdAsign
      * @return - Lista de asignaturas sin departamentos asociados
      */
     @Query("SELECT a FROM Asignatura a " +
-           "WHERE a.departamentoPropietario IS NULL OR a.departamentoReceptor IS NULL")
+           "WHERE a.sinDocencia = false AND (a.departamentoPropietario IS NULL OR a.departamentoReceptor IS NULL)")
     Optional<List<Asignatura>> asignaturaSinDepartamentos();
 
     /**

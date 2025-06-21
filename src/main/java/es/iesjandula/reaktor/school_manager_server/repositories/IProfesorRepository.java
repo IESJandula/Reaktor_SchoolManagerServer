@@ -36,7 +36,8 @@ public interface IProfesorRepository extends JpaRepository<Profesor, String>
      */
     @Query("SELECT p " +
            "FROM Profesor p " +
-           "WHERE p.email IN (" +
+           "WHERE p.email NOT IN (SELECT i.profesor.email FROM Impartir i) OR " +
+           "p.email IN (" +
            "    SELECT DISTINCT i.profesor.email " +
            "    FROM Impartir i " +
            "    WHERE ((" +

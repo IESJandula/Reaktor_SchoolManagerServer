@@ -76,7 +76,7 @@ public class ValidadorDatosService
         // Validamos si los hay cursos/etapas/grupos por cada curso/etapa (Consulta 1)
         Optional<List<CursoEtapa>> cursosEtapas = this.cursoEtapaRepository.buscarCursosEtapasSinCursosEtapasGrupo() ;
 
-        if (cursosEtapas.isPresent())
+        if (!cursosEtapas.isEmpty() && cursosEtapas.get().size() > 0)
         {
             ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Cursos y etapas sin grupos asignados") ;
 
@@ -100,7 +100,7 @@ public class ValidadorDatosService
         // Validamos si hay departamentos con número de profesores en plantilla incorrecto
         Optional<List<Departamento>> departamentos = this.departamentoRepository.departamentoConNumeroProfesoresEnPlantillaIncorrecto() ;
 
-        if (departamentos.isPresent())
+        if (!departamentos.isEmpty() && departamentos.get().size() > 0)
         {
             ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Departamentos con plantilla de profesores incorrecta") ;
 
@@ -124,7 +124,7 @@ public class ValidadorDatosService
         // Validamos si hay asignaturas sin cursos/etapas/grupos asignados (Consulta 1)
         Optional<List<Asignatura>> asignaturas = this.asignaturaRepository.asignaturaSinCursoEtapaGrupo() ;
 
-        if (asignaturas.isPresent())
+        if (!asignaturas.isEmpty() && asignaturas.get().size() > 0)
         {
             ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Asignaturas sin grupos asignados") ;
 
@@ -141,7 +141,7 @@ public class ValidadorDatosService
         // Validamos si las asignaturas tienen departamentos asociados
         Optional<List<Asignatura>> asignaturasSinDepartamentos = this.asignaturaRepository.asignaturaSinDepartamentos() ;
 
-        if (asignaturasSinDepartamentos.isPresent())
+        if (!asignaturasSinDepartamentos.isEmpty() && asignaturasSinDepartamentos.get().size() > 0)
         {
             ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Asignaturas sin departamentos asociados") ;
 
@@ -158,7 +158,7 @@ public class ValidadorDatosService
         // Validamos si las asignaturas tienen horas de clase
         Optional<List<Asignatura>> asignaturasSinHorasDeClase = this.asignaturaRepository.asignaturaSinHorasDeClase() ;
 
-        if (asignaturasSinHorasDeClase.isPresent())
+        if (!asignaturasSinHorasDeClase.isEmpty() && asignaturasSinHorasDeClase.get().size() > 0)
         {
             ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Asignaturas sin horas de clase") ;
 
@@ -187,24 +187,31 @@ public class ValidadorDatosService
             // Añadimos a la instancia del DTO el mensaje de error
             validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
-        else
+
+        // Validamos si la tabla impartir está vacía
+        if (this.impartirRepository.count() == 0)
         {
-            // Validamos si hay profesores con la suma de horas de docencia y reducciones incorrectas
-            Optional<List<Profesor>> profesores = this.profesorRepository.profesorConSumaHorasDocenciaReduccionesIncorrectas() ;
-    
-            if (profesores.isPresent())
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("No se han asignado aún asignaturas a profesores") ;
+
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
+        }
+
+        // Validamos si hay profesores con la suma de horas de docencia y reducciones incorrectas
+        Optional<List<Profesor>> profesores = this.profesorRepository.profesorConSumaHorasDocenciaReduccionesIncorrectas() ;
+
+        if (!profesores.isEmpty() && profesores.get().size() > 0)
+        {
+            ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Profesores con suma de horas de docencia y reducciones incorrecta") ;
+
+            // Recorremos la lista de profesores para avisarlas al usuario
+            for (Profesor profesor : profesores.get())
             {
-                ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Profesores con suma de horas de docencia y reducciones incorrecta") ;
-    
-                // Recorremos la lista de profesores para avisarlas al usuario
-                for (Profesor profesor : profesores.get())
-                {
-                    erroresDatosDto.agregarValorImplicado(profesor.getNombre() + " " + profesor.getApellidos()) ;
-                }
-    
-                // Añadimos a la instancia del DTO el mensaje de error
-                validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
+                erroresDatosDto.agregarValorImplicado(profesor.getNombre() + " " + profesor.getApellidos()) ;
             }
+
+            // Añadimos a la instancia del DTO el mensaje de error
+            validadorDatosDto.getErroresDatos().add(erroresDatosDto) ;
         }
     }
 
@@ -217,7 +224,7 @@ public class ValidadorDatosService
         // Validamos que todos los cursos tienen 30 horas a la semana asignadas de clase
         Optional<List<CursoEtapaGrupo>> cursosEtapasGrupos = this.impartirRepository.cursoConHorasAsignadasIncorrectas() ;
 
-        if (cursosEtapasGrupos.isPresent())
+        if (!cursosEtapasGrupos.isEmpty() && cursosEtapasGrupos.get().size() > 0)
         {
             ErroresDatosDto erroresDatosDto = new ErroresDatosDto("Grupos sin 30 horas a la semana") ;
 

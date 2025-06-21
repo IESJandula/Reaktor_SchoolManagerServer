@@ -55,7 +55,7 @@ public class CursoEtapaGrupo
      */
     public String getCursoEtapaGrupoString()
     {
-        return this.idCursoEtapaGrupo.getCurso() + this.idCursoEtapaGrupo.getEtapa() + this.idCursoEtapaGrupo.getGrupo() ;
+        return this.idCursoEtapaGrupo.getCurso() + " " + this.idCursoEtapaGrupo.getEtapa() + " " + this.idCursoEtapaGrupo.getGrupo() ;
     }
 
     @Override
