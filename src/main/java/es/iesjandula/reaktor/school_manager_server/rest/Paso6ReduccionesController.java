@@ -254,7 +254,7 @@ public class Paso6ReduccionesController
     {
         try
         {
-            List<Profesor> list = this.buscarProfesor(usuario);
+            List<Profesor> list = this.buscarProfesoresEnFirebase(usuario.getJwt());
 
             if (list.isEmpty())
             {
@@ -393,7 +393,7 @@ public class Paso6ReduccionesController
      * @return el profesor encontrado enfirebase
      * @throws SchoolManagerServerException con un error
      */
-    private List<Profesor> buscarProfesorEnFirebase(String jwtAdmin) throws SchoolManagerServerException
+    private List<Profesor> buscarProfesoresEnFirebase(String jwtAdmin) throws SchoolManagerServerException
     {
         List<Profesor> profesores = new ArrayList<>();
 
@@ -486,18 +486,6 @@ public class Paso6ReduccionesController
         }
 
         return profesores;
-    }
-
-    /**
-     * @param usuario usuario
-     * @param email   email
-     * @return el profesor encontrado
-     * @throws SchoolManagerServerException con un error
-     */
-    private List<Profesor> buscarProfesor(DtoUsuarioExtended usuario) throws SchoolManagerServerException
-    {
-        // Buscamos el profesor en Firebase
-        return this.buscarProfesorEnFirebase(usuario.getJwt());
     }
 
     /**

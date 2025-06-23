@@ -19,7 +19,7 @@ public class ObservacionesAdicionales
     private Boolean conciliacion;
 
     @Column
-    private Boolean trabajarPrimeraHora;
+    private Boolean sinClasePrimeraHora;
 
     @Column(length = 1000)
     private String otrasObservaciones;

@@ -6,6 +6,7 @@ import es.iesjandula.reaktor.school_manager_server.dtos.*;
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.*;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
+import es.iesjandula.reaktor.school_manager_server.services.ProfesorService;
 import es.iesjandula.reaktor.school_manager_server.services.ValidacionesGlobales;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
@@ -56,6 +57,9 @@ public class Paso7EleccionDeHorariosController
     @Autowired
     private ValidacionesGlobales validacionesGlobales;
 
+    @Autowired
+    private ProfesorService profesorService;
+
     /**
      * Recupera una lista de profesores junto con sus horarios desde la base de datos.
      * <p>
@@ -75,21 +79,7 @@ public class Paso7EleccionDeHorariosController
     {
         try
         {
-            List<Profesor> profesores = this.iProfesorRepository.findAll();
-
-            if (profesores.isEmpty())
-            {
-                String mensajeError = "No se encontraron profesores registrados en la base de datos.";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.SIN_PROFESORES_ENCONTRADOS, mensajeError);
-            }
-
-            List<ProfesorDto> listaProfesorDto = profesores.stream().map(profesor ->
-                    new ProfesorDto(
-                            profesor.getNombre(),
-                            profesor.getApellidos(),
-                            profesor.getEmail()
-                    )).collect(Collectors.toList());
+            List<ProfesorDto> listaProfesorDto = this.profesorService.obtenerProfesores();
 
             return ResponseEntity.ok().body(listaProfesorDto);
         }
@@ -421,7 +411,7 @@ public class Paso7EleccionDeHorariosController
     @RequestMapping(method = RequestMethod.PUT, value = "/observaciones")
     public ResponseEntity<?> actualizarObservaciones(@AuthenticationPrincipal DtoUsuarioExtended usuario,
                                                      @RequestHeader(value = "conciliacion") Boolean conciliacion,
-                                                     @RequestHeader(value = "trabajarPrimeraHora") Boolean trabajarPrimeraHora,
+                                                     @RequestHeader(value = "sinClasePrimeraHora") Boolean sinClasePrimeraHora,
                                                      @RequestHeader(value = "otrasObservaciones", required = false) String otrasObservaciones,
                                                      @RequestHeader(value = "dia") String diasDesc,
                                                      @RequestHeader(value = "tramo") Integer tramo,
@@ -445,7 +435,7 @@ public class Paso7EleccionDeHorariosController
 
             IdObservacionesAdicionales idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
 
-            ObservacionesAdicionales observacionesAdicionales = new ObservacionesAdicionales(idObservacionesAdicionales, conciliacion, trabajarPrimeraHora, otrasObservaciones);
+            ObservacionesAdicionales observacionesAdicionales = new ObservacionesAdicionales(idObservacionesAdicionales, conciliacion, sinClasePrimeraHora, otrasObservaciones);
 
             this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales);
 
@@ -536,7 +526,7 @@ public class Paso7EleccionDeHorariosController
             {
                 observacionesDto.setTieneObservaciones(true);
                 observacionesDto.setConciliacion(observacionesEncontradas.get().getConciliacion());
-                observacionesDto.setTrabajarPrimeraHora(observacionesEncontradas.get().getTrabajarPrimeraHora());
+                observacionesDto.setSinClasePrimeraHora(observacionesEncontradas.get().getSinClasePrimeraHora());
                 observacionesDto.setOtrasObservaciones(observacionesEncontradas.get().getOtrasObservaciones());
             }
 
