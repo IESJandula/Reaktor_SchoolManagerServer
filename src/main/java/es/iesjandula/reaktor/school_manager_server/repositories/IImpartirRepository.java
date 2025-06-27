@@ -9,8 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
+import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdImpartir;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 
@@ -28,6 +30,8 @@ import java.util.Optional;
 public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
 {
 
+
+        
     @Query("SELECT COUNT(i) " +
             "FROM Impartir i " +
             "WHERE i.asignatura.idAsignatura.nombre = :nombre AND i.cupoHoras = :horas AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura" +
@@ -91,5 +95,16 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
             "              i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "') AND " +
             "              i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "') <> 30")
     Optional<List<CursoEtapaGrupo>> cursoConHorasAsignadasIncorrectas();
+
+    /**
+     * Método que busca una relación entre una asignatura y un profesor 
+     * @param asignatura - Asignatura a buscar
+     * @param profesor - Profesor a buscar
+     * @return - Relación entre una asignatura y un profesor
+     */
+    @Query("SELECT i " +
+           "FROM Impartir i " +
+           "WHERE i.asignatura = :asignatura AND i.profesor = :profesor")
+    Optional<Impartir> findByAsignaturaAndProfesor(Asignatura asignatura, Profesor profesor);
 
 }

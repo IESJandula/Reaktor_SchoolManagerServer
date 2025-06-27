@@ -1,6 +1,8 @@
 package es.iesjandula.reaktor.school_manager_server.models.ids;
 
 import java.io.Serializable;
+
+import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,6 +24,10 @@ public class IdGeneradorSesionesBase implements Serializable
 {
     /** Serialización de la clase para persistencia */
     private static final long serialVersionUID = 1L ;
+
+    /** Id de la sesión base */
+    @Column(length = 10)
+    private int numeroSesion ;
 
     /** Parte de la clave primaria compuesta que referencia a la entidad Impartir */
     private IdImpartir idImpartir ;

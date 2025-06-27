@@ -23,7 +23,7 @@ public class IdPreferenciasHorariasProfesor implements Serializable
     @JoinColumns({
             @JoinColumn(name = "dia", referencedColumnName = "dia"),
             @JoinColumn(name = "tramo", referencedColumnName = "tramo"),
-            @JoinColumn(name = "tipo_horario", referencedColumnName = "tipoHorario")
+            @JoinColumn(name = "horario_matutino", referencedColumnName = "horarioMatutino")
     })
     private DiasTramosTipoHorario diasTramosTipoHorario;
 }

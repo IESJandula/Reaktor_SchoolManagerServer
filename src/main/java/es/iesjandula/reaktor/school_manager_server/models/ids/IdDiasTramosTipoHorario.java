@@ -22,7 +22,7 @@ public class IdDiasTramosTipoHorario implements Serializable
     @Column(length = 1)
     private int tramo ;
 
-    /** Tipo de horario */
-    @Column(length = 10)
-    private String tipoHorario ;
+    /** Indica si el horario es matutino */
+    @Column(length = 1)
+    private boolean horarioMatutino ;
 }

@@ -1,7 +1,10 @@
 package es.iesjandula.reaktor.school_manager_server.rest;
 
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
+import es.iesjandula.reaktor.school_manager_server.dtos.SesionesBaseDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.generator.core.CreadorSesiones;
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorResultados;
@@ -28,12 +32,20 @@ import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionesBase;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
+import es.iesjandula.reaktor.school_manager_server.models.Profesor;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdDiasTramosTipoHorario;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionesBase;
+import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRestriccionesBase;
+import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionesBase;
+import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionesAsignadas;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.services.ValidadorDatosService;
@@ -52,16 +64,175 @@ public class Paso9GeneradorController
     private IGeneradorRepository generadorRepository ;
 
     @Autowired
-    private ICursoEtapaGrupoRepository cursoEtapaGrupoRepository ;   
+    private ICursoEtapaGrupoRepository cursoEtapaGrupoRepository ; 
+
+    @Autowired
+    private IProfesorRepository profesorRepository ;
+
+    @Autowired
+    private IAsignaturaRepository asignaturaRepository ;
 
     @Autowired
     private IImpartirRepository impartirRepository ;
 
     @Autowired
-    private IGeneradorRestriccionesBase generadorRestriccionesBase ;
+    private IGeneradorSesionesBase generadorSesionesBase ;
 
     @Autowired
     private AsignaturaService asignaturaService ; 
+
+    @Autowired
+    private IGeneradorSesionesAsignadas generadorSesionesAsignadas ;
+    
+        
+    
+        @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+        @RequestMapping(method = RequestMethod.POST, value = "/sesionesBase")
+        public ResponseEntity<?> actualizarSesionesBase(@RequestHeader(value = "email") String email,
+                                                        @RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
+                                                        @RequestHeader(value = "curso") int curso,
+                                                        @RequestHeader(value = "etapa") String etapa,
+                                                        @RequestHeader(value = "grupo") String grupo,
+                                                        @RequestHeader(value = "numeroSesion") int numeroSesion,
+                                                        @RequestHeader(value = "dia") int dia,
+                                                        @RequestHeader(value = "tramo") int tramo)
+        {
+            try
+            {
+                // Buscamos la relación con la tabla impartir
+                Impartir impartir = this.buscarImpartir(email, nombreAsignatura, curso, etapa, grupo) ;
+                
+                // Obtenemos el tipo de horario de la asignatura
+                boolean horarioMatutino = impartir.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getHorarioMatutino() ;
+
+                // Creamos una instancia de IdDiasTramosTipoHorario
+                IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dia, tramo, horarioMatutino) ;
+
+                // Buscamos primero si existe una sesión base con el mismo número de sesión
+                Optional<GeneradorSesionesBase> generadorSesionesBaseOptional = this.generadorSesionesBase.buscarSesionBasePorNumeroSesionIdImpartir(numeroSesion, impartir.getIdImpartir()) ;
+
+                // Si existe, la borramos
+                if (generadorSesionesBaseOptional.isPresent())
+                {
+                    // La borramos
+                    this.generadorSesionesBase.delete(generadorSesionesBaseOptional.get()) ;
+                    this.generadorSesionesBase.flush() ;
+                }
+
+                // Si el día es distinto de -1 y el tramo es distinto de -1, creamos una instancia de IdDiasTramosTipoHorario
+                if (dia != -1 || tramo != -1)
+                {
+                    // Creamos una instancia de IdGeneradorSesionesBase
+                    IdGeneradorSesionesBase idGeneradorSesionesBase = new IdGeneradorSesionesBase(numeroSesion, impartir.getIdImpartir(), idDiasTramosTipoHorario) ;
+
+                    // Creamos una instancia de GeneradorSesionesBase
+                    GeneradorSesionesBase generadorSesionesBaseInstancia = new GeneradorSesionesBase(idGeneradorSesionesBase) ;
+
+                    // Guardamos la instancia en la base de datos
+                    this.generadorSesionesBase.saveAndFlush(generadorSesionesBaseInstancia) ; 
+                }
+
+                return ResponseEntity.ok().build();
+            }
+            catch (SchoolManagerServerException schoolManagerServerException)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+            catch (Exception exception)
+            {
+                String mensajeError = "ERROR - No se pudo actualizar la sesión base";
+
+                log.error(mensajeError, exception) ;
+
+                // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+                SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+            }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/sesionesBase")
+    public ResponseEntity<?> obtenerSesionesBase(@RequestHeader(value = "email") String email,
+                                                 @RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
+                                                 @RequestHeader(value = "curso") int curso,
+                                                 @RequestHeader(value = "etapa") String etapa,
+                                                 @RequestHeader(value = "grupo") String grupo)
+    {
+        try
+        {
+            // Buscamos la relación con la tabla impartir
+            Impartir impartir = this.buscarImpartir(email, nombreAsignatura, curso, etapa, grupo) ;
+
+            // Buscamos las sesiones base de la asignatura
+            Optional<List<SesionesBaseDto>> sesionesBaseOptional = this.generadorSesionesBase.buscarSesionesBasePorIdImpartir(impartir.getIdImpartir()) ;
+
+            return ResponseEntity.ok(sesionesBaseOptional.get()) ;
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron obtener las sesiones base";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Método que busca una relación entre una asignatura y un profesor
+     * @param email - Email del profesor
+     * @param nombreAsignatura - Nombre de la asignatura
+     * @param curso - Curso
+     * @param etapa - Etapa
+     * @param grupo - Grupo 
+     * @return - Relación entre una asignatura y un profesor
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    private Impartir buscarImpartir(String email, String nombreAsignatura, int curso, String etapa, String grupo) throws SchoolManagerServerException
+    {
+        // Buscamos el profesor
+        Profesor profesor = this.profesorRepository.findByEmail(email) ;
+                        
+        if (profesor == null)
+        {
+            String mensajeError = "El profesor con email " + email + " no existe" ;
+
+            log.error(mensajeError) ;
+            throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError) ;
+        }
+
+        // Buscamos la asignatura
+        Optional<Asignatura> asignatura = this.asignaturaRepository.findAsignaturasByCursoEtapaGrupoAndNombre(curso, etapa, grupo, nombreAsignatura) ;
+
+        if (!asignatura.isPresent())
+        {
+            String mensajeError = "La asignatura con nombre " + nombreAsignatura + " no existe" ;
+
+            log.error(mensajeError) ;
+            throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, "La asignatura con nombre " + nombreAsignatura + " no existe") ;
+        }
+
+        // Buscamos la relación con la tabla impartir
+        Optional<Impartir> impartir = this.impartirRepository.findByAsignaturaAndProfesor(asignatura.get(), profesor) ;
+
+        if (!impartir.isPresent())
+        {
+            String mensajeError = "La relación entre la asignatura " + nombreAsignatura + " y el profesor " + profesor.getNombre() + " " + profesor.getApellidos() + " no existe" ;
+
+            log.error(mensajeError) ;
+            throw new SchoolManagerServerException(Constants.IMPARTIR_NO_ENCONTRADA, mensajeError) ;
+        }
+
+        return impartir.get() ;
+    }
     
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/lanzar")
@@ -87,8 +258,8 @@ public class Paso9GeneradorController
 
             // Creamos los manejadores y threads
             ManejadorThreads manejadorThreads = this.crearManejadorThreads(mapCorrelacionadorCursosMatutinos,
-                                                                            mapCorrelacionadorCursosVespertinos,
-                                                                            creadorSesiones) ;
+                                                                           mapCorrelacionadorCursosVespertinos,
+                                                                           creadorSesiones) ;
             // Creamos una nueva generación
             Generador generador = new Generador();
             generador.setFechaInicio(new Date());
@@ -239,7 +410,7 @@ public class Paso9GeneradorController
         for (Impartir impartir : impartirList)
         {
             // Obtenemos la lista de restricciones base de la asignatura de BBDD
-            Optional<List<GeneradorSesionesBase>> restriccionesBaseOptional = this.generadorRestriccionesBase.buscarRestriccionesBasePorIdImpartir(impartir.getIdImpartir()) ;
+            Optional<List<SesionesBaseDto>> restriccionesBaseOptional = this.generadorSesionesBase.buscarSesionesBasePorIdImpartir(impartir.getIdImpartir()) ;
             
             List<RestriccionHoraria> restriccionesHorarias = null ;
 
@@ -250,30 +421,29 @@ public class Paso9GeneradorController
                 restriccionesHorarias = new ArrayList<RestriccionHoraria>() ;
 
                 // Obtenemos la lista de restricciones base
-                List<GeneradorSesionesBase> restriccionesBaseList = restriccionesBaseOptional.get() ;
+                List<SesionesBaseDto> restriccionesBaseList = restriccionesBaseOptional.get() ;
 
                 // Obtenemos el curso, etapa y grupo de la asignatura, y si es matutino o vespertino
                 CursoEtapaGrupo cursoEtapaGrupo = impartir.getAsignatura().getIdAsignatura().getCursoEtapaGrupo() ;
                 boolean tipoHorarioMatutino     = cursoEtapaGrupo.getHorarioMatutino() ;
 
                 // Iteramos para cada restricción base
-                for (GeneradorSesionesBase restriccionBase : restriccionesBaseList)
+                for (SesionesBaseDto restriccionBase : restriccionesBaseList)
                 {
                     // Obtenemos el curso, etapa y grupo en formato String
                     String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
 
                     // Obtenemos el día y el tramo de la restricción base
-                    // Obtenemos el día y el tramo de la restricción base
-                    int dia   = restriccionBase.getIdGeneradorSesionesBase().getDiasTramosTipoHorario().getDia() ;
-                    int tramo = restriccionBase.getIdGeneradorSesionesBase().getDiasTramosTipoHorario().getTramo() ;
+                    int dia   = restriccionBase.getDia() ;
+                    int tramo = restriccionBase.getTramo() ;
 
                     // Vemos si el tipo de horario es matutino o vespertino
                     if (tipoHorarioMatutino)
                     {
                         // Añadimos la restricción horaria a la lista
-                    restriccionesHorarias.add(new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
-                                                                    .asignarUnDiaTramoConcreto(dia, tramo)
-                                                                    .build()) ;
+                        restriccionesHorarias.add(new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
+                                                                        .asignarUnDiaTramoConcreto(dia, tramo)
+                                                                        .build()) ;
                     }
                     else
                     {

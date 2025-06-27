@@ -283,14 +283,14 @@ public class InicializacionSistema
 				String[] valores = linea.split(Constants.CSV_DELIMITER) ;
 
 				// Obtenemos los valores de los dias y tramos en formato número y descriptivo, y el tipo de horario
-				int dia 		   = Integer.parseInt(valores[0]) ;
-				String diasDesc    = valores[1] ;
-				int tramo 		   = Integer.parseInt(valores[2]) ;
-				String tramosDesc  = valores[3] ;
-				String tipoHorario = valores[4] ;
+				int dia 		   		= Integer.parseInt(valores[0]) ;
+				String diasDesc    		= valores[1] ;
+				int tramo 		   		= Integer.parseInt(valores[2]) ;
+				String tramosDesc  		= valores[3] ;
+				boolean horarioMatutino = Boolean.parseBoolean(valores[4]) ;
 
 				// Creamos un objeto compuesto IdDiasTramosTipoHorario
-				IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dia, tramo, tipoHorario) ;
+				IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dia, tramo, horarioMatutino) ;
 
 				// Creamos un objeto DiasTramosTipoHorario
 				DiasTramosTipoHorario diasTramosTipoHorario = new DiasTramosTipoHorario() ;

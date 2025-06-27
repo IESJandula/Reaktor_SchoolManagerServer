@@ -256,6 +256,11 @@ public class Constants
 	 */
 	public static final int ALUMNO_ASIGNADO_A_GRUPO = 70;
 
+	/**
+	 * Error - La relación entre la asignatura y el profesor no existe
+	 */
+	public static final int IMPARTIR_NO_ENCONTRADA = 71;
+
 
 	/************* ERRORES - Generales/De Conexión ***************/
 
@@ -490,6 +495,20 @@ public class Constants
 	 * Tramo horario - Sexta hora
 	 */
 	public static final int TRAMO_HORARIO_SEXTA_HORA = 5;
+
+	/******************************************************/
+	/******************** Tipo de horario *****************/
+	/******************************************************/
+
+	/**
+	 * Tipo de horario - Matutino
+	 */	
+	public static final String TIPO_HORARIO_MATUTINO = "mañana";
+
+	/**
+	 * Tipo de horario - Vespertino
+	 */
+	public static final String TIPO_HORARIO_VESPERTINO = "tarde";
 
 	/******************************************************/
 	/******************** Threads *************************/
