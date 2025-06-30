@@ -19,4 +19,14 @@ public interface IGeneradorRepository extends JpaRepository<Generador, Integer>
            "FROM Generador g " + 
            "WHERE g.estado = :estado")
     Optional<Generador> buscarGeneradorPorEstado(@Param("estado") String estado) ;
+
+    /**
+     * Método que obtiene el generador en curso
+     * @return - Generador
+     */
+    @Query("SELECT g " + 
+           "FROM Generador g " + 
+           "WHERE g.fechaInicio IS NOT NULL AND g.fechaFin IS NULL " + 
+           "ORDER BY g.fechaInicio DESC")
+    public Generador buscarGeneradorActivo();
 }

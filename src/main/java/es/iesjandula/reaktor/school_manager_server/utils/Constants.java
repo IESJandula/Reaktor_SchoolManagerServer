@@ -261,6 +261,11 @@ public class Constants
 	 */
 	public static final int IMPARTIR_NO_ENCONTRADA = 71;
 
+	/**
+	 * Error - El día y el tramo no existe
+	 */
+	public static final int DIA_TRAMO_NO_ENCONTRADO = 72;
+
 
 	/************* ERRORES - Generales/De Conexión ***************/
 
@@ -338,6 +343,11 @@ public class Constants
 	 * Error - Validaciones de datos incorrectos
 	 */
 	public static final int ERROR_VALIDACIONES_DATOS_INCORRECTOS = 304;
+
+	/**
+	 * Error - No hay un generador en curso
+	 */
+	public static final int ERROR_CODE_NO_GENERADOR_EN_CURSO = 305;
 	
 	/**
 	 * Constantes/Configuración
@@ -392,12 +402,12 @@ public class Constants
 	/**
 	 * Umbral minimo con respecto a las soluciones
 	 */
-	public static final int UMBRAL_MINIMO_SOLUCION = 320;
+	public static final int UMBRAL_MINIMO_SOLUCION = 120;
 
 	/**
 	 * Umbral minimo con respecto a los horarios con error
 	 */
-	public static final int UMBRAL_MINIMO_ERROR = 320;
+	public static final int UMBRAL_MINIMO_ERROR = 110;
 
 	/******************************************************/
 	/*** Referencias - Restricciones - Lista de listas ****/
@@ -585,6 +595,11 @@ public class Constants
 	 * Estado del generador - En curso
 	 */
 	public static final String ESTADO_EN_CURSO = "EN_CURSO";
+
+	/**
+	 * Estado del generador - Error
+	 */
+	public static final String ESTADO_ERROR = "ERROR";
 
 	/**
 	 * Estado del generador - Finalizado

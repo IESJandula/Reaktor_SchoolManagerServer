@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SesionesBaseDto
+public class SesionBaseDto
     {
     /** Número de sesión */
     private int numeroSesion;

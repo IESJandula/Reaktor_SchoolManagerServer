@@ -38,9 +38,17 @@ public class Horario implements Comparable<Horario>
     {
     	this.horarioParams = horarioParams ;
     	
-    	// Creamos una copia del estado actual del horario
-        this.matrizAsignacionesMatutinas   = CopiaEstructuras.copiarMatriz(horarioParams.getMatrizAsignacionesMatutinas()) ;
-        this.matrizAsignacionesVespertinas = CopiaEstructuras.copiarMatriz(horarioParams.getMatrizAsignacionesVespertinas()) ;
+    	// Creamos una copia del estado actual del horario matutino
+        if (horarioParams.getMatrizAsignacionesMatutinas() != null)
+        {
+            this.matrizAsignacionesMatutinas = CopiaEstructuras.copiarMatriz(horarioParams.getMatrizAsignacionesMatutinas()) ;
+        }
+
+        // Creamos una copia del estado actual del horario vespertino
+        if (horarioParams.getMatrizAsignacionesVespertinas() != null)   
+        {
+            this.matrizAsignacionesVespertinas = CopiaEstructuras.copiarMatriz(horarioParams.getMatrizAsignacionesVespertinas()) ;
+        }
     }
     
     /**
@@ -67,8 +75,19 @@ public class Horario implements Comparable<Horario>
      */
     private int calcularPuntuacionNumeroSesionesInsertadas()
     {
-        return calcularPuntuacionNumeroSesionesInsertadasEnMatriz(this.matrizAsignacionesMatutinas)   +
-               calcularPuntuacionNumeroSesionesInsertadasEnMatriz(this.matrizAsignacionesVespertinas) ;
+        int puntuacion = 0 ;
+
+        if (this.matrizAsignacionesMatutinas != null)
+        {
+            puntuacion = puntuacion + calcularPuntuacionNumeroSesionesInsertadasEnMatriz(this.matrizAsignacionesMatutinas) ;
+        }
+
+        if (this.matrizAsignacionesVespertinas != null)
+        {
+            puntuacion = puntuacion + calcularPuntuacionNumeroSesionesInsertadasEnMatriz(this.matrizAsignacionesVespertinas) ;
+        }
+
+        return puntuacion ;
     }
 
     /**
@@ -102,7 +121,19 @@ public class Horario implements Comparable<Horario>
      */
     private int calcularPuntuacionConsecutividad()
     {
-    	return this.calcularPuntuacionConsecutividadMatutina() + this.calcularPuntuacionConsecutividadVespertina() ;
+        int puntuacion = 0 ;
+
+        if (this.matrizAsignacionesMatutinas != null)
+        {
+            puntuacion = puntuacion + this.calcularPuntuacionConsecutividadMatutina() ;
+        }
+
+        if (this.matrizAsignacionesVespertinas != null)
+        {
+            puntuacion = puntuacion + this.calcularPuntuacionConsecutividadVespertina() ;
+        }
+
+        return puntuacion ;
     }
     
     /**
@@ -287,16 +318,37 @@ public class Horario implements Comparable<Horario>
 
         int anchoCeldas = 10 ; // Ancho de las celdas
 
-        for (int j = 0; j < this.matrizAsignacionesMatutinas[0].length; j++)
+        // Si solo hay horario matutino, se realiza solo sobre este
+        if (this.matrizAsignacionesMatutinas != null && this.matrizAsignacionesVespertinas == null)
         {
-            // Construimos la primera línea del tramo horario para todos los cursos matutinos
-            this.toStringEnMatriz(this.matrizAsignacionesMatutinas, stringBuilder, j, anchoCeldas) ;
+            for (int j = 0; j < this.matrizAsignacionesMatutinas[0].length; j++)
+            {
+                this.toStringEnMatriz(this.matrizAsignacionesMatutinas, stringBuilder, j, anchoCeldas) ;
 
-            // Construimos la primera línea del tramo horario para todos los cursos vespertinos
-            this.toStringEnMatriz(this.matrizAsignacionesVespertinas, stringBuilder, j, anchoCeldas) ;
+                stringBuilder.append("\n") ;
+            }
+        }
+        else if (this.matrizAsignacionesMatutinas == null && this.matrizAsignacionesVespertinas != null)
+        {
+            for (int j = 0; j < this.matrizAsignacionesVespertinas[0].length; j++)
+            {
+                this.toStringEnMatriz(this.matrizAsignacionesVespertinas, stringBuilder, j, anchoCeldas) ;
 
-            // Nos vamos al siguiente tramo horario
-            stringBuilder.append("\n") ;
+                stringBuilder.append("\n") ;
+            }
+        }
+        else if (this.matrizAsignacionesMatutinas != null && this.matrizAsignacionesVespertinas != null)
+        {
+            for (int j = 0; j < this.matrizAsignacionesMatutinas[0].length; j++)
+            {
+                // Construimos la primera línea del tramo horario para todos los cursos matutinos
+                this.toStringEnMatriz(this.matrizAsignacionesMatutinas, stringBuilder, j, anchoCeldas) ;
+    
+                // Construimos la primera línea del tramo horario para todos los cursos vespertinos
+                this.toStringEnMatriz(this.matrizAsignacionesVespertinas, stringBuilder, j, anchoCeldas) ;
+    
+                // Nos vamos al siguiente tramo horario
+                stringBuilder.append("\n") ;            }
         }
 
         return stringBuilder.toString() ;
@@ -330,7 +382,7 @@ public class Horario implements Comparable<Horario>
                 stringBuilder.append(String.format("%-" + anchoCeldas + "s", "null")) ;
             }
 
-            boolean esViernes = i % Constants.NUMERO_DIAS_SEMANA == 4 ;
+            boolean esViernes = i % Constants.NUMERO_DIAS_SEMANA == Constants.NUMERO_DIAS_SEMANA - 1 ;
 
             if (!esViernes)
             {

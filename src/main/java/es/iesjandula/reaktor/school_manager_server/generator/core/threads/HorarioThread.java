@@ -40,17 +40,25 @@ public class HorarioThread extends Thread
     					 Asignacion[][] matrizAsignacionesVespertinas,
     					 UltimaAsignacion ultimaAsignacion)
     {
-    	this.horarioThreadParams 		   = horarioThreadParams ;
+    	this.horarioThreadParams = horarioThreadParams ;
     	
     	// Creamos una copia de las sesiones
-    	this.sesionesPendientes	 		   = CopiaEstructuras.copiarListaDeSesiones(sesiones) ;
+    	this.sesionesPendientes	 = CopiaEstructuras.copiarListaDeSesiones(sesiones) ;
     	
-    	// Creamos una copia del estado actual del horario
-    	this.matrizAsignacionesMatutinas   = CopiaEstructuras.copiarMatriz(matrizAsignacionesMatutinas) ;
-    	this.matrizAsignacionesVespertinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesVespertinas) ;
+    	// Creamos una copia del estado actual del horario de las asignaciones matutinas
+    	if (matrizAsignacionesMatutinas != null)
+    	{
+    		this.matrizAsignacionesMatutinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesMatutinas) ;
+    	}
+
+    	// Creamos una copia del estado actual del horario de las asignaciones vespertinas
+		if (matrizAsignacionesVespertinas != null)
+    	{
+    		this.matrizAsignacionesVespertinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesVespertinas) ;
+    	}
 		
 		// Asociamos la ultima asignación
-    	this.ultimaAsignacion			   = ultimaAsignacion ;
+    	this.ultimaAsignacion = ultimaAsignacion ;
     }
     
     @Override

@@ -1,19 +1,17 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.Date;
+
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import jakarta.persistence.Column;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Entity
 @Table(name = "Generador")
 public class Generador 
@@ -53,4 +51,33 @@ public class Generador
      */
     @Column(name = "estado")
     private String estado ;
+
+    /**
+     * Mensaje de información.
+     * <p>Representa el mensaje de información de la generación.</p>
+     */
+    @Column(name = "mensajeInformacion")
+    private String mensajeInformacion ;
+
+    /**
+     * Constructor por defecto.
+     * <p>Inicializa la fecha de inicio y el estado del generador a en curso.</p>
+     */
+    public Generador()
+    {
+        this.fechaInicio = new Date() ;
+        this.estado      = Constants.ESTADO_EN_CURSO ;
+    }
+
+    /**
+     * Método para establecer el mensaje de error.
+     * @param estado - El estado de la generación.
+     * @param mensajeInformacion - El mensaje de información de la generación.
+     */
+    public void pararGenerador(String estado, String mensajeInformacion)
+    {
+        this.estado             = estado ;
+        this.mensajeInformacion = mensajeInformacion ;
+        this.fechaFin           = new Date() ;
+    }
 }

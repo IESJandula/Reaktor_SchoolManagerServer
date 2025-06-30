@@ -55,15 +55,28 @@ public class ManejadorThreads
      */
     public void iniciarProceso() throws SchoolManagerServerException
     {
-    	// Obtenemos el número de cursos que hay
+    	// Obtenemos el número de cursos matutinos que hay
     	int numeroCursosMatutinos   = this.manejadorThreadsParams.getNumeroCursosMatutinos() ;
-    	int numeroCursosVespertinos = this.manejadorThreadsParams.getNumeroCursosVespertinos() ;
     	
         // Creamos las matrices de sesiones vacía, donde cada columna representa un curso en un día
-    	Asignacion[][] asignacionesInicialesMatutinas   = new Asignacion[numeroCursosMatutinos * Constants.NUMERO_DIAS_SEMANA]
-    														 			[Constants.NUMERO_TRAMOS_HORARIOS] ;
-    	Asignacion[][] asignacionesInicialesVespertinas = new Asignacion[numeroCursosVespertinos * Constants.NUMERO_DIAS_SEMANA]
-    														 			[Constants.NUMERO_TRAMOS_HORARIOS] ;
+    	Asignacion[][] asignacionesInicialesMatutinas   = null ;
+		if (numeroCursosMatutinos > 0)
+		{
+			asignacionesInicialesMatutinas = new Asignacion[numeroCursosMatutinos * Constants.NUMERO_DIAS_SEMANA]
+														   [Constants.NUMERO_TRAMOS_HORARIOS] ;
+
+		}
+
+		// Obtenemos el número de cursos vespertinos que hay
+    	int numeroCursosVespertinos = this.manejadorThreadsParams.getNumeroCursosVespertinos() ;
+
+    	Asignacion[][] asignacionesInicialesVespertinas = null ;
+		if (numeroCursosVespertinos > 0)
+		{
+			asignacionesInicialesVespertinas = new Asignacion[numeroCursosVespertinos * Constants.NUMERO_DIAS_SEMANA]
+														     [Constants.NUMERO_TRAMOS_HORARIOS] ;
+
+		}
     	
     	// Lanzamos nuevos threads para procesar la siguiente clase
         this.lanzarNuevosThreads(this.sesionesPendientes, asignacionesInicialesMatutinas, asignacionesInicialesVespertinas, null) ;
@@ -127,7 +140,7 @@ public class ManejadorThreads
 				cont = cont + sublista.size() ;
 			}
 
-			log.info("Sesiones pendientes de asignar: {}", cont) ;
+			log.debug("Sesiones pendientes de asignar: {}", cont) ;
     	}
     	
     	return outcome ; 
@@ -182,7 +195,7 @@ public class ManejadorThreads
 		int numeroActualThreads = this.threadsPendientesFinalizacion.decrementAndGet() ;
 		
 		// Logueamos
-		log.info("Decrementado el número de Threads. Actualmente hay {} Threads lanzados", numeroActualThreads) ;
+		log.debug("Decrementado el número de Threads. Actualmente hay {} Threads lanzados", numeroActualThreads) ;
 		
 		// Si llegamos a 0, hacemos shutdown del Pool de Threads
 		if (numeroActualThreads <= 0)

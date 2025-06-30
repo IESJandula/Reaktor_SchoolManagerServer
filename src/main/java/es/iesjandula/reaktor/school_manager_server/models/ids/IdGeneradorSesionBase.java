@@ -2,14 +2,16 @@ package es.iesjandula.reaktor.school_manager_server.models.ids;
 
 import java.io.Serializable;
 
-import jakarta.persistence.Column;
-import lombok.AllArgsConstructor;
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
+import es.iesjandula.reaktor.school_manager_server.models.Profesor;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
 
 /**
- * Clase que representa la clave primaria compuesta para la entidad GeneradorSesionesBase (o la entidad que la use).
+ * Clase que representa la clave primaria compuesta para la entidad GeneradorSesionBase (o la entidad que la use).
  * -----------------------------------------------------------------------------------------------------------------
  * Esta clave primaria está compuesta por las claves primarias de las entidades
  * Impartir ({@link IdImpartir}) y DiasTramosTipoHorario ({@link IdDiasTramosTipoHorario}),
@@ -17,21 +19,25 @@ import lombok.EqualsAndHashCode;
  * -----------------------------------------------------------------------------------------------------------------
  */
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode
-public class IdGeneradorSesionesBase implements Serializable
+public class IdGeneradorSesionBase implements Serializable
 {
     /** Serialización de la clase para persistencia */
     private static final long serialVersionUID = 1L ;
 
     /** Id de la sesión base */
-    @Column(length = 10)
     private int numeroSesion ;
 
-    /** Parte de la clave primaria compuesta que referencia a la entidad Impartir */
-    private IdImpartir idImpartir ;
+	/** Asignatura que está siendo impartida por un profesor */
+	@ManyToOne
+	private Asignatura asignatura;
 
-    /** Parte de la clave primaria compuesta que referencia a la entidad DiasTramosTipoHorario */
-    private IdDiasTramosTipoHorario diasTramosTipoHorario ;
+	/** Profesor que imparte la asignatura */
+	@ManyToOne
+	private Profesor profesor;
+
+	/** Día de la semana y tramo horario */
+	@ManyToOne
+	private DiasTramosTipoHorario diasTramosTipoHorario ;
 } 

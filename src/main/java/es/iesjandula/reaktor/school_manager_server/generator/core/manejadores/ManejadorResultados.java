@@ -44,12 +44,6 @@ public class ManejadorResultados
     /** Almacena el índice del horario con error con mayor puntuación */
     private int horarioErrorMayorPuntuacionIndice ;
     
-    /** Carpeta de salida - Soluciones */
-    private File carpetaSalidaSoluciones ;
-    
-    /** Carpeta de salida - Errores */
-    private File carpetaSalidaErrores ;
-    
     /**
      * Constructor
      * 
@@ -66,32 +60,7 @@ public class ManejadorResultados
         this.horariosError						  = new CopyOnWriteArrayList<Horario>() ;
         this.horarioErrorMayorPuntuacion 	  	  = -1 ;
         this.horarioErrorMayorPuntuacionIndice 	  = -1 ;
-        
-        // Creamos las carpetas de resultados si no existen
-        this.crearCarpetasDeResultados() ;
     }
-
-    /**
-     * Creación de las carpetas de resultados
-     */
-    private void crearCarpetasDeResultados()
-    {
-    	// Si la carpeta de soluciones no existe ...
-    	this.carpetaSalidaSoluciones = new File(Constants.CARPETA_SALIDA_SOLUCIONES) ;
-        if (!this.carpetaSalidaSoluciones.exists())
-        {
-        	// ... La creamos
-        	this.carpetaSalidaSoluciones.mkdirs() ;
-        }
-        
-    	// Si la carpeta de errores no existe ...
-        this.carpetaSalidaErrores = new File(Constants.CARPETA_SALIDA_ERRORES) ;
-        if (!this.carpetaSalidaErrores.exists())
-        {
-        	// ... La creamos
-        	this.carpetaSalidaErrores.mkdirs() ;
-        }
-	}
     
 	/**
      * Método para agregar una solución a la lista
@@ -124,8 +93,8 @@ public class ManejadorResultados
         	this.horarioSolucionMayorPuntuacion 	  = puntuacionObtenida ; 
             this.horarioSolucionMayorPuntuacionIndice = indiceActual ;
             
-            // Guardamos el fichero en la carpeta
-            this.guardarHorariosEnFichero(horario, puntuacionObtenida, this.carpetaSalidaSoluciones, "Solución encontrada") ;
+            // Guardamos el horario en la base de datos
+            this.manejadorResultadosParams.getAlmacenadorHorarioService().guardarHorario(horario, puntuacionObtenida, "Solución encontrada") ;
         }
     }
     
@@ -158,82 +127,9 @@ public class ManejadorResultados
         	this.horarioErrorMayorPuntuacion 	   = puntuacionObtenida ; 
             this.horarioErrorMayorPuntuacionIndice = indiceActual ;
             
-            // Guardamos el fichero en la carpeta
-            this.guardarHorariosEnFichero(horario, puntuacionObtenida, this.carpetaSalidaErrores, mensajeError) ;
+            // Guardamos el horario en la base de datos
+            this.manejadorResultadosParams.getAlmacenadorHorarioService().guardarHorario(horario, puntuacionObtenida, mensajeError) ;
         }
-	}
-	
-	/**
-	 * @param horario horario
-	 * @param puntuacionObtenida puntuación obtenida
-	 * @param carpetaSalida carpeta de salida
-	 * @param mensajeError mensaje de error
-	 * @throws SchoolManagerServerException con un error
-	 */
-    private void guardarHorariosEnFichero(Horario horario, 
-    									  int puntuacionObtenida,
-    									  File carpetaSalida,
-    									  String mensajeError) throws SchoolManagerServerException
-    {
-        File archivo = this.crearFichero(horario, puntuacionObtenida, carpetaSalida) ;
-        
-        FileWriter fileWriter = null ;
-        
-        try
-        {
-        	// Abrimos el nuevo fichero
-        	fileWriter = new FileWriter(archivo) ;
-        	
-        	// Copiamos en su interior la salida del horario
-            fileWriter.write(horario.toString()) ;
-
-            // Añadimos el mensaje de error
-            fileWriter.write(mensajeError) ;
-        }
-        catch (IOException ioException)
-        {
-        	String errorString = "IOException mientras se creaba fichero de salida " + archivo.getAbsolutePath() ;
-        	
-        	log.error(errorString, ioException) ;
-        	throw new SchoolManagerServerException(Constants.ERR_CODE_IO_EXCEPTION, errorString, ioException) ;
-        }
-        finally
-        {
-        	if (fileWriter != null)
-        	{
-        		try
-        		{
-					fileWriter.close() ;
-				}
-        		catch (IOException ioException)
-        		{
-                	String errorString = "IOException mientras se cerraba fichero de salida " + archivo.getAbsolutePath() ;
-                	
-                	log.error(errorString, ioException) ;
-                	throw new SchoolManagerServerException(Constants.ERR_CODE_IO_EXCEPTION, errorString, ioException) ;
-				}
-        	}
-        }
-	}
-
-    /**
-     * @param horario horario
-     * @param puntuacionObtenida puntuación obtenida
-	 * @param carpetaSalida carpeta de salida
-     * @return una instancia de tipo File con el nuevo fichero a crear
-     */
-	private File crearFichero(Horario horario, int puntuacionObtenida, File carpetaSalida)
-	{
-		SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy_HH-mm-ss-SSS") ;
-        
-        Date now = new Date() ;
-        String fechaActual = dateFormat.format(now) ;
-        
-        // Le ponemos nombre al fichero
-        String nombreFichero = puntuacionObtenida + " - " + fechaActual + ".txt" ;
-        
-        // Creamos y devolvemos la instancia de fichero
-        return new File(carpetaSalida, nombreFichero) ;
 	}
 	
 	/**

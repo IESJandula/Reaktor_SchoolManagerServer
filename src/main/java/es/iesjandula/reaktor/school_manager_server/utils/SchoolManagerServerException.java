@@ -28,7 +28,7 @@ public class SchoolManagerServerException extends Exception
 	private int code;
 	
 	// Mensaje de la excepción.
-	private String msg;
+	private String message;
 	
 	// Excepción original que puede ser asociada a esta excepción personalizada.
 	private Exception exception;
@@ -39,12 +39,12 @@ public class SchoolManagerServerException extends Exception
 	 * Este constructor permite crear una excepción con un código de error y un mensaje específico.
 	 * -----------------------------------------------------------------------------------------------------------------
 	 * @param code - El código asociado a la excepción.
-	 * @param msg  - El mensaje que se asociará con la excepción.
+	 * @param message - El mensaje que se asociará con la excepción.
 	 */
-	public SchoolManagerServerException(int code, String msg) 
+	public SchoolManagerServerException(int code, String message) 
 	{
 		this.code = code;
-		this.msg = msg;
+		this.message = message;
 	}
 
 	/**
@@ -62,7 +62,7 @@ public class SchoolManagerServerException extends Exception
 		
 		// Agregamos el código y el mensaje al mapa.
 		messageMap.put("code", String.valueOf(this.code)) ;
-		messageMap.put("message", this.msg) ;
+		messageMap.put("message", this.message) ;
 		
 		// Si hay una excepción original, agregamos su stack trace al mapa.
 		if (this.exception != null)

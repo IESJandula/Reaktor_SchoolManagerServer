@@ -1,5 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.generator.core.manejadores;
 
+import es.iesjandula.reaktor.school_manager_server.services.AlmacenadorHorarioService;
+
 public class ManejadorResultadosParams
 {
     /** Umbral mínimo para considerar una solución válida */
@@ -7,6 +9,9 @@ public class ManejadorResultadosParams
 
     /** Umbral mínimo para considerar un error */
     private int umbralMinimoError ;
+
+    /** Almacenador de horarios */
+    private AlmacenadorHorarioService almacenadorHorarioService ;
     
     /**
      * Constructor privado para forzar el uso del Builder
@@ -15,8 +20,9 @@ public class ManejadorResultadosParams
      */
     private ManejadorResultadosParams(Builder builder)
     {
-        this.umbralMinimoSolucion = builder.umbralMinimoSolucion ;
-        this.umbralMinimoError    = builder.umbralMinimoError ;
+        this.umbralMinimoSolucion      = builder.umbralMinimoSolucion ;
+        this.umbralMinimoError         = builder.umbralMinimoError ;
+        this.almacenadorHorarioService = builder.almacenadorHorarioService ;
     }
 
     /**
@@ -36,6 +42,14 @@ public class ManejadorResultadosParams
     }
 
     /**
+     * @return almacenador de horarios
+     */
+    public AlmacenadorHorarioService getAlmacenadorHorarioService()
+    {
+        return this.almacenadorHorarioService ;
+    }
+
+    /**
      * Clase estática interna Builder
      */
     public static class Builder
@@ -45,6 +59,9 @@ public class ManejadorResultadosParams
 
         /** Umbral mínimo para considerar un error */
         private int umbralMinimoError ;
+
+        /** Almacenador de horarios */
+        private AlmacenadorHorarioService almacenadorHorarioService ;
 
         /**
          * @param umbral mínimo para considerar una solución válida
@@ -63,6 +80,16 @@ public class ManejadorResultadosParams
         public Builder setUmbralMinimoError(int umbralMinimoError)
         {
             this.umbralMinimoError = umbralMinimoError ;
+            return this ;
+        }
+
+        /**
+         * @param almacenadorHorarioService almacenador de horarios
+         * @return builder
+         */
+        public Builder setAlmacenadorHorarioService(AlmacenadorHorarioService almacenadorHorarioService)
+        {
+            this.almacenadorHorarioService = almacenadorHorarioService ;
             return this ;
         }
 
