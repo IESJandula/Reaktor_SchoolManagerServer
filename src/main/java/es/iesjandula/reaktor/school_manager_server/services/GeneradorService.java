@@ -12,21 +12,30 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.generator.core.CreadorSesiones;
+import es.iesjandula.reaktor.school_manager_server.generator.core.Horario;
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorResultados;
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorResultadosParams;
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorThreads;
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorThreadsParams;
 import es.iesjandula.reaktor.school_manager_server.generator.models.RestriccionHoraria;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
+import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionAsignada;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
+import es.iesjandula.reaktor.school_manager_server.models.Profesor;
+import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionAsignada;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionAsignadaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionBaseRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
+import jakarta.annotation.PostConstruct;
 
 @Service
 @Slf4j
@@ -45,10 +54,13 @@ public class GeneradorService
     private IGeneradorSesionBaseRepository generadorSesionBaseRepository ;
 
     @Autowired
-    private AlmacenadorHorarioService almacenadorHorarioService ;
+    private AsignaturaService asignaturaService ;
 
     @Autowired
-    private AsignaturaService asignaturaService ;
+    private DiasTramosTipoHorarioService diasTramosTipoHorarioService ;
+
+    @Autowired
+    private IGeneradorSesionAsignadaRepository generadorSesionAsignadaRepository ;
 
     /**
      * Método que obtiene el generador en curso
@@ -78,7 +90,7 @@ public class GeneradorService
      * @param estado - Estado del generador
      * @return Generador - Generador
      */
-    public Generador actualizarGeneradorEnBBDD(String mensajeInformacion, String estado)
+    private Generador actualizarGeneradorEnBBDD(String mensajeInformacion, String estado)
     {
         // Si hay un error, detenemos el generador
         Optional<Generador> generadorOptional = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_EN_CURSO) ;
@@ -244,7 +256,7 @@ public class GeneradorService
         ManejadorResultadosParams manejadorResultadosParams =  new ManejadorResultadosParams.Builder()
                                 .setUmbralMinimoSolucion(Constants.UMBRAL_MINIMO_SOLUCION)
                                 .setUmbralMinimoError(Constants.UMBRAL_MINIMO_ERROR)
-                                .setAlmacenadorHorarioService(this.almacenadorHorarioService)
+                                .setGeneradorService(this)
                                 .build();
 
         // Crear el manejador de resultados con los umbrales definidos en Constants
@@ -273,5 +285,86 @@ public class GeneradorService
         List<List<Sesion>> listaListaSesiones = creadorSesiones.getListaDeListaSesiones() ;
 
         return new ManejadorThreads(manejadorThreadsParams, listaListaSesiones) ;
+    }
+
+    /**
+     * Método que guarda una sesión asignada
+     * @param horario - Horario de la sesión asignada
+     * @param puntuacionObtenida - Puntuación obtenida
+     * @param mensajeInformacion - Mensaje de información
+     */
+    public void guardarHorario(Horario horario, int puntuacionObtenida, String mensajeInformacion) throws SchoolManagerServerException
+    {
+        // Actualizamos el estado del generador y obtenemos su instancia
+        Generador generador = this.actualizarGeneradorEnBBDD(mensajeInformacion, Constants.ESTADO_FINALIZADO) ;
+
+        // Si hay horario matutino, recorremos la matriz de asignaciones matutinas para insertar las sesiones asignadas
+        if (horario.getHorarioParams().getMatrizAsignacionesMatutinas() != null)
+        {
+            for (int i = 0; i < horario.getHorarioParams().getMatrizAsignacionesMatutinas().length; i++)
+            {
+                for (int j = 0; j < horario.getHorarioParams().getMatrizAsignacionesMatutinas()[i].length; j++)
+                {
+                    this.guardarHorarioInternal(horario, i, j, true, generador) ;
+                }
+            }   
+        }
+
+        // Si hay horario vespertino, recorremos la matriz de asignaciones vespertinas para insertar las sesiones asignadas
+        if (horario.getHorarioParams().getMatrizAsignacionesVespertinas() != null)
+        {
+            for (int i = 0; i < horario.getHorarioParams().getMatrizAsignacionesVespertinas().length; i++)
+            {
+                for (int j = 0; j < horario.getHorarioParams().getMatrizAsignacionesVespertinas()[i].length; j++)
+                {
+                    this.guardarHorarioInternal(horario, i, j, false, generador) ;
+                }
+            }
+        }
+    }
+
+    /**
+     * Método que guarda un horario
+     * @param horario - Horario
+     * @param i - Día
+     * @param j - Tramo
+     * @param horarioMatutino - True si es horario matutino, false si es horario vespertino
+     * @param generador - Generador
+     */
+    private void guardarHorarioInternal(Horario horario, int i, int j, boolean horarioMatutino, Generador generador) throws SchoolManagerServerException
+    {
+        // Obtenemos la asignación de la matriz de asignaciones matutinas
+        Asignacion asignacion = horario.getHorarioParams().getMatrizAsignacionesMatutinas()[i][j] ;
+
+        // Obtenemos el día y tramo de tipo horario
+        DiasTramosTipoHorario diasTramosTipoHorario = this.diasTramosTipoHorarioService.obtenerDiasTramosHorario(i, j, horarioMatutino) ;
+
+        // Iteramos por cada sesión de la asignación
+        for (Sesion sesion : asignacion.getListaSesiones())
+        {
+            // Obtenemos el profesor y la asignatura de la sesión
+            Profesor profesor = sesion.getProfesor() ;
+            Asignatura asignatura = sesion.getAsignatura() ;
+
+            // Creamos una instancia de IdGeneradorSesionAsignada
+            IdGeneradorSesionAsignada idGeneradorSesionAsignada = new IdGeneradorSesionAsignada() ;
+
+            // Asignamos los valores a la instancia
+            idGeneradorSesionAsignada.setIdGeneracion(generador.getId()) ;
+            idGeneradorSesionAsignada.setProfesor(profesor) ;
+            idGeneradorSesionAsignada.setAsignatura(asignatura) ;
+            idGeneradorSesionAsignada.setDiasTramosTipoHorario(diasTramosTipoHorario) ;
+
+            // Creamos una instancia de GeneradorSesionAsignada
+            GeneradorSesionAsignada generadorSesionAsignada = new GeneradorSesionAsignada() ;
+            generadorSesionAsignada.setIdGeneradorSesionAsignada(idGeneradorSesionAsignada) ;
+
+            // Asignamos los valores a la instancia
+            generadorSesionAsignada.setAsignatura(asignatura) ;
+            generadorSesionAsignada.setProfesor(profesor) ;
+
+            // Guardamos la instancia en la base de datos
+            this.generadorSesionAsignadaRepository.saveAndFlush(generadorSesionAsignada) ;
+        }
     }
 }

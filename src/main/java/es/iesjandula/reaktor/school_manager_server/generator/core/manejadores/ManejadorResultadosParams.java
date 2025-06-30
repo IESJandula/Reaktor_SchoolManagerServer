@@ -1,6 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.generator.core.manejadores;
 
-import es.iesjandula.reaktor.school_manager_server.services.AlmacenadorHorarioService;
+import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 
 public class ManejadorResultadosParams
 {
@@ -10,8 +10,8 @@ public class ManejadorResultadosParams
     /** Umbral mínimo para considerar un error */
     private int umbralMinimoError ;
 
-    /** Almacenador de horarios */
-    private AlmacenadorHorarioService almacenadorHorarioService ;
+    /** Generador de horarios */
+    private GeneradorService generadorService ;
     
     /**
      * Constructor privado para forzar el uso del Builder
@@ -20,9 +20,9 @@ public class ManejadorResultadosParams
      */
     private ManejadorResultadosParams(Builder builder)
     {
-        this.umbralMinimoSolucion      = builder.umbralMinimoSolucion ;
-        this.umbralMinimoError         = builder.umbralMinimoError ;
-        this.almacenadorHorarioService = builder.almacenadorHorarioService ;
+        this.umbralMinimoSolucion = builder.umbralMinimoSolucion ;
+        this.umbralMinimoError    = builder.umbralMinimoError ;
+        this.generadorService     = builder.generadorService ;
     }
 
     /**
@@ -42,11 +42,11 @@ public class ManejadorResultadosParams
     }
 
     /**
-     * @return almacenador de horarios
+     * @return generador de horarios
      */
-    public AlmacenadorHorarioService getAlmacenadorHorarioService()
+    public GeneradorService getGeneradorService()
     {
-        return this.almacenadorHorarioService ;
+        return this.generadorService ;
     }
 
     /**
@@ -60,8 +60,8 @@ public class ManejadorResultadosParams
         /** Umbral mínimo para considerar un error */
         private int umbralMinimoError ;
 
-        /** Almacenador de horarios */
-        private AlmacenadorHorarioService almacenadorHorarioService ;
+        /** Generador de horarios */
+        private GeneradorService generadorService ;
 
         /**
          * @param umbral mínimo para considerar una solución válida
@@ -84,12 +84,12 @@ public class ManejadorResultadosParams
         }
 
         /**
-         * @param almacenadorHorarioService almacenador de horarios
+         * @param generadorService generador de horarios
          * @return builder
          */
-        public Builder setAlmacenadorHorarioService(AlmacenadorHorarioService almacenadorHorarioService)
+        public Builder setGeneradorService(GeneradorService generadorService)
         {
-            this.almacenadorHorarioService = almacenadorHorarioService ;
+            this.generadorService = generadorService ;
             return this ;
         }
 

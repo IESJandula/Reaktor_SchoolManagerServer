@@ -4,13 +4,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
-import es.iesjandula.reaktor.school_manager_server.utils.Constants;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.data.jpa.repository.Query;
-
+    
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link CursoEtapa}.
  * -----------------------------------------------------------------------------------------------------------------

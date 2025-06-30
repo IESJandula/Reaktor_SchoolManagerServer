@@ -1,14 +1,8 @@
 package es.iesjandula.reaktor.school_manager_server.generator.core.manejadores;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import es.iesjandula.reaktor.school_manager_server.generator.core.Horario;
-import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -94,7 +88,7 @@ public class ManejadorResultados
             this.horarioSolucionMayorPuntuacionIndice = indiceActual ;
             
             // Guardamos el horario en la base de datos
-            this.manejadorResultadosParams.getAlmacenadorHorarioService().guardarHorario(horario, puntuacionObtenida, "Solución encontrada") ;
+            this.manejadorResultadosParams.getGeneradorService().guardarHorario(horario, puntuacionObtenida, "Solución encontrada") ;
         }
     }
     
@@ -128,7 +122,7 @@ public class ManejadorResultados
             this.horarioErrorMayorPuntuacionIndice = indiceActual ;
             
             // Guardamos el horario en la base de datos
-            this.manejadorResultadosParams.getAlmacenadorHorarioService().guardarHorario(horario, puntuacionObtenida, mensajeError) ;
+            this.manejadorResultadosParams.getGeneradorService().guardarHorario(horario, puntuacionObtenida, mensajeError) ;
         }
 	}
 	
