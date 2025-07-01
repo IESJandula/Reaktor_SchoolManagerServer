@@ -27,8 +27,8 @@ public class IdGeneradorSesionAsignada implements Serializable
     /** Serialización de la clase para persistencia */
     private static final long serialVersionUID = 2L ; // Incrementado por el cambio
     
-    /** Identificador de la generación del horario a la que pertenece esta asignación */
-    private Integer idGeneracion ;
+    /** Identificador de la instancia del generador a la que pertenece esta asignación */
+    private Integer idGeneradorInstancia ;
 
 	/** Asignatura que está siendo impartida por un profesor */
 	@ManyToOne

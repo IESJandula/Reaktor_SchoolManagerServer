@@ -13,7 +13,7 @@ import es.iesjandula.reaktor.school_manager_server.generator.core.threads.Horari
 import es.iesjandula.reaktor.school_manager_server.generator.core.threads.UltimaAsignacion;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
-import es.iesjandula.reaktor.school_manager_server.utils.Constants;
+
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,9 +22,6 @@ public class ManejadorThreads
 {
 	/** Parámetros útiles para lanzar el manejador de threads */
 	private ManejadorThreadsParams manejadorThreadsParams ;
-	
-	/** Sesiones pendientes de asignar */
-	private List<List<Sesion>> sesionesPendientes ;
 	
     /** Thread pendientes */
     private AtomicInteger threadsPendientesFinalizacion ;
@@ -36,50 +33,15 @@ public class ManejadorThreads
      * Constructor
      * 
      * @param manejadorThreadsParams parametros para el manejador de threads
-     * @param sesionesPendientes sesiones pendientes de asignar
      */
-    public ManejadorThreads(ManejadorThreadsParams manejadorThreadsParams, List<List<Sesion>> sesionesPendientes)
+    public ManejadorThreads(ManejadorThreadsParams manejadorThreadsParams)
     {
-    	this.manejadorThreadsParams 			  = manejadorThreadsParams ;
-    	this.sesionesPendientes					  = sesionesPendientes ;
+    	this.manejadorThreadsParams 	   = manejadorThreadsParams ;
     	
         // Creamos el ExecutorService con un pool de hilos del tamaño especificado en Constants
-        this.threadPool 				  		  = Executors.newFixedThreadPool(manejadorThreadsParams.getPoolSize()) ;
+        this.threadPool 				   = Executors.newFixedThreadPool(manejadorThreadsParams.getPoolSize()) ;
         
-        this.threadsPendientesFinalizacion   	  = new AtomicInteger(0) ;
-    }
-    
-    /**
-     * Método para iniciar el proceso de generación de horarios
-     * @throws SchoolManagerServerException con un error
-     */
-    public void iniciarProceso() throws SchoolManagerServerException
-    {
-    	// Obtenemos el número de cursos matutinos que hay
-    	int numeroCursosMatutinos   = this.manejadorThreadsParams.getNumeroCursosMatutinos() ;
-    	
-        // Creamos las matrices de sesiones vacía, donde cada columna representa un curso en un día
-    	Asignacion[][] asignacionesInicialesMatutinas   = null ;
-		if (numeroCursosMatutinos > 0)
-		{
-			asignacionesInicialesMatutinas = new Asignacion[numeroCursosMatutinos * Constants.NUMERO_DIAS_SEMANA]
-														   [Constants.NUMERO_TRAMOS_HORARIOS] ;
-
-		}
-
-		// Obtenemos el número de cursos vespertinos que hay
-    	int numeroCursosVespertinos = this.manejadorThreadsParams.getNumeroCursosVespertinos() ;
-
-    	Asignacion[][] asignacionesInicialesVespertinas = null ;
-		if (numeroCursosVespertinos > 0)
-		{
-			asignacionesInicialesVespertinas = new Asignacion[numeroCursosVespertinos * Constants.NUMERO_DIAS_SEMANA]
-														     [Constants.NUMERO_TRAMOS_HORARIOS] ;
-
-		}
-    	
-    	// Lanzamos nuevos threads para procesar la siguiente clase
-        this.lanzarNuevosThreads(this.sesionesPendientes, asignacionesInicialesMatutinas, asignacionesInicialesVespertinas, null) ;
+        this.threadsPendientesFinalizacion = new AtomicInteger(0) ;
     }
 	
 	/**
@@ -104,7 +66,15 @@ public class ManejadorThreads
     		Horario horario = this.crearInstanciaHorario(matrizAsignacionesMatutinas, matrizAsignacionesVespertinas) ;
     		
     		// Añadimos a las soluciones esta nueva encontrada
-    		this.manejadorThreadsParams.getManejadorResultados().agregarHorarioSolucion(horario) ;
+    		boolean solucionSuperaUmbral = 
+							this.manejadorThreadsParams.getManejadorResultados()
+    								   				   .agregarHorarioSolucion(this.manejadorThreadsParams.getGeneradorInstancia(), horario) ;
+
+    		// Si la solución no supera el umbral, comenzamos de nuevo el proceso
+    		if (!solucionSuperaUmbral)
+    		{
+				this.manejadorThreadsParams.getGeneradorService().configurarYarrancarGenerador() ;
+    		}
     	}
     	else if (this.manejadorThreadsParams.getManejadorResultados().solucionEncontrada() == null)
     	{
@@ -165,6 +135,8 @@ public class ManejadorThreads
 								   .setMapCorrelacionadorCursosMatutinos(this.manejadorThreadsParams.getMapCorrelacionadorCursosMatutinos())
 								   .setMapCorrelacionadorCursosVespertinos(this.manejadorThreadsParams.getMapCorrelacionadorCursosVespertinos())
 								   .setManejadorThreads(this)
+								   .setAsignaturaService(this.manejadorThreadsParams.getAsignaturaService())
+								   .setGeneradorService(this.manejadorThreadsParams.getGeneradorService())
 								   .build() ;
 		
 		// Lanzamos varios threads
@@ -197,26 +169,11 @@ public class ManejadorThreads
 		// Logueamos
 		log.debug("Decrementado el número de Threads. Actualmente hay {} Threads lanzados", numeroActualThreads) ;
 		
-		// Si llegamos a 0, hacemos shutdown del Pool de Threads
-		if (numeroActualThreads <= 0)
+		// Si llegamos a 0, verificamos si hemos encontrado alguna solución
+		if (numeroActualThreads < 0 && this.manejadorThreadsParams.getManejadorResultados().solucionEncontrada() != null)
 		{
-			// Vemos si hemos obtenido alguna solución
-			Horario horario = this.manejadorThreadsParams.getManejadorResultados().solucionEncontrada() ;
-			
-			// Si se ha encontrado, preguntamos si finalizar
-			if (horario != null)
-			{
-				// En caso de que el usuario acepte finalizar, finalizamos el pool
-				this.finalizarThreadPool() ;				
-			}
-			else
-			{
-				// Logueamos
-				log.info("No se ha encontrado ninguna solución. Se reiniciará el proceso") ;
-
-				// Como no hemos encontrado solución, iniciamos de nuevo el proceso
-				this.iniciarProceso() ;
-			}
+			// Si se ha encontrado una solución, finalizamos el pool de threads
+			this.finalizarThreadPool() ;				
 		}
 	}
 	
@@ -234,7 +191,8 @@ public class ManejadorThreads
 		Horario horario = this.crearInstanciaHorario(matrizAsignacionesMatutinas, matrizAsignacionesVespertinas) ;
 		
 		// Avisamos al manejador de resultados que guarde este horario de error
-		this.manejadorThreadsParams.getManejadorResultados().agregarHorarioError(horario, mensajeError) ;
+		this.manejadorThreadsParams.getManejadorResultados()
+								   .agregarHorarioError(this.manejadorThreadsParams.getGeneradorInstancia(), horario, mensajeError) ;
 	}
 	
     /**

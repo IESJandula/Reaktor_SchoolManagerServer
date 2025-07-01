@@ -18,7 +18,15 @@ public class GeneradorSesionAsignada
     @EmbeddedId
     private IdGeneradorSesionAsignada idGeneradorSesionAsignada;
 
-        /**
+    /**
+     * Identificador de la instancia del generador a la que pertenece esta asignación.
+     * Relación de muchos a uno con la entidad {@link GeneradorInstancia}.
+     */
+    @MapsId(value = "idGeneradorInstancia")
+    @ManyToOne
+    private GeneradorInstancia generadorInstancia;
+
+    /**
      * Asignatura que está siendo impartida por el profesor.
      * Relación de muchos a uno con la entidad {@link Asignatura}.
      */
@@ -33,4 +41,13 @@ public class GeneradorSesionAsignada
     @MapsId(value = "profesor")
     @ManyToOne
     private Profesor profesor;
+
+    /**
+     * Día de la semana y tramo horario.
+     * Relación de muchos a uno con la entidad {@link DiasTramosTipoHorario}.
+     */
+    @MapsId(value = "diasTramosTipoHorario")
+    @ManyToOne
+    private DiasTramosTipoHorario diasTramosTipoHorario;
+
 }

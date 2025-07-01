@@ -20,15 +20,19 @@ import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.Ma
 import es.iesjandula.reaktor.school_manager_server.generator.models.RestriccionHoraria;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.models.Constantes;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionAsignada;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionAsignada;
+import es.iesjandula.reaktor.school_manager_server.repositories.IConstantesRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionAsignadaRepository;
@@ -54,13 +58,38 @@ public class GeneradorService
     private IGeneradorSesionBaseRepository generadorSesionBaseRepository ;
 
     @Autowired
+    private IGeneradorSesionAsignadaRepository generadorSesionAsignadaRepository ;
+
+    @Autowired
+    private IGeneradorInstanciaRepository generadorInstanciaRepository ;
+
+    @Autowired
+    private IConstantesRepository constantesRepository ;
+
+    @Autowired
     private AsignaturaService asignaturaService ;
 
     @Autowired
     private DiasTramosTipoHorarioService diasTramosTipoHorarioService ;
 
-    @Autowired
-    private IGeneradorSesionAsignadaRepository generadorSesionAsignadaRepository ;
+
+    /**
+     * Método que realiza una serie de validaciones previas
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    public void validarNoHayGeneradorEnCurso() throws SchoolManagerServerException
+    {
+        // Validamos si ya hay un generador en curso
+        Optional<Generador> generadorEnCurso = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
+
+        if (generadorEnCurso.isPresent())
+        {
+            String mensajeError = "Hay un generador en curso que fue lanzado el " + generadorEnCurso.get().getFechaInicio() ;
+
+            log.error(mensajeError) ;
+            throw new SchoolManagerServerException(Constants.ERROR_CODE_GENERADOR_EN_CURSO, mensajeError) ;
+        }
+    }
 
     /**
      * Método que obtiene el generador en curso
@@ -70,7 +99,7 @@ public class GeneradorService
     public Generador obtenerGeneradorEnCurso() throws SchoolManagerServerException
     {
         // Buscamos el generador
-        Optional<Generador> generador = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_EN_CURSO) ;
+        Optional<Generador> generador = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
 
         // Si no existe, lanzamos una excepción
         if (!generador.isPresent())
@@ -85,34 +114,14 @@ public class GeneradorService
     }
 
     /**
-     * Método que actualiza el generador en la BBDD y genera el DTO
-     * @param mensajeInformacion - Mensaje de información
-     * @param estado - Estado del generador
-     * @return Generador - Generador
-     */
-    private Generador actualizarGeneradorEnBBDD(String mensajeInformacion, String estado)
-    {
-        // Si hay un error, detenemos el generador
-        Optional<Generador> generadorOptional = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_EN_CURSO) ;
-
-        Generador generador = generadorOptional.get() ;
-
-        // Actualizamos el estado del generador, parándolo
-        generador.pararGenerador(estado, mensajeInformacion) ; 
-
-        // Guardamos el generador en la base de datos
-        this.generadorRepository.saveAndFlush(generador) ;
-
-        // Devolvemos el generador
-        return generador ;
-    }
-
-    /**
      * Método que arranca el generador
      * @throws SchoolManagerServerException
      */
-    public void arrancarGenerador() throws SchoolManagerServerException
+    public void configurarYarrancarGenerador() throws SchoolManagerServerException
     {
+        // Obtenemos el generador en curso
+        Generador generador = this.obtenerGeneradorEnCurso() ;
+
         // Obtengo todos los cursos, etapas y grupos de BBDD
         List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGrupos() ;
                     
@@ -122,25 +131,52 @@ public class GeneradorService
         
         // Creamos los mapas de correlacionador de cursos
         this.crearMapasGruposMatutinosVespertinos(cursos, mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos) ;
+
+        // Obtenemos el número de cursos matutinos que hay
+        int numeroCursosMatutinos = mapCorrelacionadorCursosMatutinos.size() ;
         
         // Creamos las sesiones
         CreadorSesiones creadorSesiones = this.crearSesiones(mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos) ;
 
+        // Creamos una nueva instancia de GeneradorInstancia
+        GeneradorInstancia generadorInstancia = new GeneradorInstancia() ;
+        generadorInstancia.setGenerador(generador) ;
+
+        // Guardamos la instancia en la base de datos
+        this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
+
         // Creamos los manejadores y threads
         ManejadorThreads manejadorThreads = this.crearManejadorThreads(mapCorrelacionadorCursosMatutinos,
                                                                        mapCorrelacionadorCursosVespertinos,
-                                                                       creadorSesiones) ;
-        // Creamos una nueva generación
-        Generador generador = new Generador();
+                                                                       numeroCursosMatutinos,
+                                                                       creadorSesiones,
+                                                                       generadorInstancia) ;
 
-        // Guardamos el generador en la base de datos
-        this.generadorRepository.saveAndFlush(generador);
+        // Creamos las matrices de sesiones vacía, donde cada columna representa un curso en un día
+    	Asignacion[][] asignacionesInicialesMatutinas   = null ;
+		if (numeroCursosMatutinos > 0)
+		{
+			asignacionesInicialesMatutinas = new Asignacion[numeroCursosMatutinos * Constants.NUMERO_DIAS_SEMANA]
+														   [Constants.NUMERO_TRAMOS_HORARIOS] ;
 
-        // Iniciamos el proceso
-        manejadorThreads.iniciarProceso() ;
+		}
+
+		// Obtenemos el número de cursos vespertinos que hay
+    	int numeroCursosVespertinos = mapCorrelacionadorCursosVespertinos.size() ;
+
+    	Asignacion[][] asignacionesInicialesVespertinas = null ;
+		if (numeroCursosVespertinos > 0)
+		{
+			asignacionesInicialesVespertinas = new Asignacion[numeroCursosVespertinos * Constants.NUMERO_DIAS_SEMANA]
+														     [Constants.NUMERO_TRAMOS_HORARIOS] ;
+
+		}
+    	
+    	// Lanzamos nuevos threads para procesar la siguiente clase
+        manejadorThreads.lanzarNuevosThreads(creadorSesiones.getListaDeListaSesiones(), asignacionesInicialesMatutinas, asignacionesInicialesVespertinas, null) ;
     }
 
-       /**
+    /**
      * Método que crea los mapas de correlacionador de cursos matutinos y vespertinos
      * @param cursos - Lista de cursos
      * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
@@ -246,24 +282,31 @@ public class GeneradorService
      * Método que crea los manejadores y threads
      * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
      * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
+     * @param numeroCursosMatutinos - Número de cursos matutinos
      * @param creadorSesiones - Creador de sesiones
      * @return ManejadorThreads - Manejador de threads
      */
     private ManejadorThreads crearManejadorThreads(Map<String, Integer> mapCorrelacionadorCursosMatutinos,
                                                    Map<String, Integer> mapCorrelacionadorCursosVespertinos,
-                                                   CreadorSesiones creadorSesiones)
+                                                   int numeroCursosMatutinos,
+                                                   CreadorSesiones creadorSesiones,
+                                                   GeneradorInstancia generadorInstancia)
     {
-        ManejadorResultadosParams manejadorResultadosParams =  new ManejadorResultadosParams.Builder()
-                                .setUmbralMinimoSolucion(Constants.UMBRAL_MINIMO_SOLUCION)
-                                .setUmbralMinimoError(Constants.UMBRAL_MINIMO_ERROR)
-                                .setGeneradorService(this)
-                                .build();
+        // Obtenemos el mayor de los umbrales mínimos tanto para los errores como para las soluciones de BBDD
+        int umbralMinimoError    = this.obtenerUmbralMinimoError() ;
+        int umbralMinimoSolucion = this.obtenerUmbralMinimoSolucion() ;
+
+        ManejadorResultadosParams manejadorResultadosParams =  
+            new ManejadorResultadosParams.Builder()
+                                         .setUmbralMinimoSolucion(umbralMinimoSolucion)
+                                         .setUmbralMinimoError(umbralMinimoError)
+                                         .setGeneradorService(this)
+                                         .build();
 
         // Crear el manejador de resultados con los umbrales definidos en Constants
         ManejadorResultados manejadorResultados = new ManejadorResultados(manejadorResultadosParams) ;
 
-        // Obtenemos el número de cursos matutinos que tenemos en el instituto
-        int numeroCursosMatutinos		  	    = mapCorrelacionadorCursosMatutinos.size() ;
+        // Obtenemos el número de cursos vespertinos que tenemos en el instituto
         int numeroCursosVespertinos		  		= mapCorrelacionadorCursosVespertinos.size() ;
 
         ManejadorThreadsParams manejadorThreadsParams = 
@@ -279,25 +322,116 @@ public class GeneradorService
                                   .setNumeroThreadPorIteracion(Constants.THREAD_POR_ITERACION) // Número de threads por iteración
                                   .setManejadorResultados(manejadorResultados)
                                   .setAsignaturaService(this.asignaturaService)
+                                  .setGeneradorService(this)
+                                  .setGeneradorInstancia(generadorInstancia)
                                   .build() ;
 
-        // Obtenemos la lista de listas de sesiones
-        List<List<Sesion>> listaListaSesiones = creadorSesiones.getListaDeListaSesiones() ;
+        return new ManejadorThreads(manejadorThreadsParams) ;
+    }
 
-        return new ManejadorThreads(manejadorThreadsParams, listaListaSesiones) ;
+    private int obtenerUmbralMinimoError()
+    {
+        int umbralMinimoError = 0 ;
+
+        // Obtenemos el umbral mínimo de errores de BBDD
+        Optional<Integer> optionalMaximaPuntuacionError = this.generadorInstanciaRepository.buscarMaximaPuntuacionError() ;
+
+        if (optionalMaximaPuntuacionError.isPresent())
+        {
+            umbralMinimoError = optionalMaximaPuntuacionError.get() ;
+        }
+        else
+        {
+            // Si no hay umbral mínimo de errores, lo obtenemos de la tabla de constantes
+            Optional<Constantes> optionalUmbralMinimoError = this.constantesRepository.findByClave(Constants.TABLA_CONST_UMBRAL_MINIMO_ERROR) ;
+
+            if (optionalUmbralMinimoError.isPresent())
+            {
+                umbralMinimoError = Integer.parseInt(optionalUmbralMinimoError.get().getValor()) ;
+            }
+        }
+
+        return umbralMinimoError ;
+    }
+
+    private int obtenerUmbralMinimoSolucion()
+    {
+        int umbralMinimoSolucion = 0 ;
+
+        // Obtenemos el umbral mínimo de soluciones de BBDD
+        Optional<Integer> optionalMaximaPuntuacionSolucion = this.generadorInstanciaRepository.buscarMaximaPuntuacionSolucion() ;
+
+        // Si hay umbral mínimo de soluciones, lo asignamos
+        if (optionalMaximaPuntuacionSolucion.isPresent())
+        {
+            umbralMinimoSolucion = optionalMaximaPuntuacionSolucion.get() ;
+        }
+        else
+        {
+            // Si no hay umbral mínimo de soluciones, lo obtenemos de la tabla de constantes
+            Optional<Constantes> optionalUmbralMinimoSolucion = this.constantesRepository.findByClave(Constants.TABLA_CONST_UMBRAL_MINIMO_SOLUCION) ;
+
+            if (optionalUmbralMinimoSolucion.isPresent())
+            {
+                umbralMinimoSolucion = Integer.parseInt(optionalUmbralMinimoSolucion.get().getValor()) ;
+            }
+        }
+
+        return umbralMinimoSolucion ;
     }
 
     /**
      * Método que guarda una sesión asignada
+     * @param generadorInstancia - Generador instancia
      * @param horario - Horario de la sesión asignada
      * @param puntuacionObtenida - Puntuación obtenida
      * @param mensajeInformacion - Mensaje de información
      */
-    public void guardarHorario(Horario horario, int puntuacionObtenida, String mensajeInformacion) throws SchoolManagerServerException
+    public void guardarHorario(GeneradorInstancia generadorInstancia, Horario horario, int puntuacionObtenida, String mensajeInformacion) throws SchoolManagerServerException
     {
-        // Actualizamos el estado del generador y obtenemos su instancia
-        Generador generador = this.actualizarGeneradorEnBBDD(mensajeInformacion, Constants.ESTADO_FINALIZADO) ;
+        // Actualizamos el GeneradorInstancia y el Generador en BBDD
+        this.actualizarGeneradorYgeneradorInstancia(generadorInstancia, mensajeInformacion, puntuacionObtenida) ;
 
+        // Actualizamos la tabla de asignación de sesiones
+        this.actualizarGeneradorSesionAsignada(generadorInstancia, horario) ;
+    }
+
+    /**
+     * Método que actualiza el GeneradorInstancia y el Generador en BBDD
+     * @param generadorInstancia - Generador instancia
+     * @param mensajeInformacion - Mensaje de información
+     * @param puntuacionObtenida - Puntuación obtenida
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    private void actualizarGeneradorYgeneradorInstancia(GeneradorInstancia generadorInstancia, String mensajeInformacion, int puntuacionObtenida) throws SchoolManagerServerException
+    {
+        if (Constants.MENSAJE_SOLUCION_ENCONTRADA.equals(mensajeInformacion))
+        {
+            // Actualizamos el GeneradorInstancia con el estado, puntuación y mensaje de información
+            generadorInstancia.pararGeneradorInstancia(Constants.ESTADO_GENERADOR_FINALIZADO, puntuacionObtenida, mensajeInformacion) ;
+            this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
+
+            // Actualizamos el Generador con el estado a finalizado
+            Generador generador = generadorInstancia.getGenerador() ;
+            generador.pararGenerador(Constants.ESTADO_GENERADOR_FINALIZADO) ;
+            this.generadorRepository.saveAndFlush(generador) ;
+        }
+        else
+        {
+            // Actualizamos el GeneradorInstancia con el estado a error
+            generadorInstancia.pararGeneradorInstancia(Constants.ESTADO_GENERADOR_ERROR, puntuacionObtenida, mensajeInformacion) ;
+            this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
+        }
+    }
+
+    /**
+     * Método que actualiza la tabla de asignación de sesiones
+     * @param generadorInstancia - Generador instancia
+     * @param horario - Horario
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    private void actualizarGeneradorSesionAsignada(GeneradorInstancia generadorInstancia, Horario horario) throws SchoolManagerServerException  
+    {
         // Si hay horario matutino, recorremos la matriz de asignaciones matutinas para insertar las sesiones asignadas
         if (horario.getHorarioParams().getMatrizAsignacionesMatutinas() != null)
         {
@@ -305,7 +439,10 @@ public class GeneradorService
             {
                 for (int j = 0; j < horario.getHorarioParams().getMatrizAsignacionesMatutinas()[i].length; j++)
                 {
-                    this.guardarHorarioInternal(horario, i, j, true, generador) ;
+                    if (horario.getHorarioParams().getMatrizAsignacionesMatutinas()[i][j] != null)
+                    {
+                        this.actualizarGeneradorSesionAsignadaInternal(horario, i, j, true, generadorInstancia) ;
+                    }
                 }
             }   
         }
@@ -317,7 +454,10 @@ public class GeneradorService
             {
                 for (int j = 0; j < horario.getHorarioParams().getMatrizAsignacionesVespertinas()[i].length; j++)
                 {
-                    this.guardarHorarioInternal(horario, i, j, false, generador) ;
+                    if (horario.getHorarioParams().getMatrizAsignacionesVespertinas()[i][j] != null)
+                    {
+                        this.actualizarGeneradorSesionAsignadaInternal(horario, i, j, false, generadorInstancia) ;
+                    }
                 }
             }
         }
@@ -329,15 +469,18 @@ public class GeneradorService
      * @param i - Día
      * @param j - Tramo
      * @param horarioMatutino - True si es horario matutino, false si es horario vespertino
-     * @param generador - Generador
+     * @param generadorInstancia - Generador instancia
      */
-    private void guardarHorarioInternal(Horario horario, int i, int j, boolean horarioMatutino, Generador generador) throws SchoolManagerServerException
+    private void actualizarGeneradorSesionAsignadaInternal(Horario horario, int i, int j, boolean horarioMatutino, GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
     {
         // Obtenemos la asignación de la matriz de asignaciones matutinas
         Asignacion asignacion = horario.getHorarioParams().getMatrizAsignacionesMatutinas()[i][j] ;
 
+        // Aplicamos el módulo 5 al día
+        int dia = i % Constants.NUMERO_DIAS_SEMANA ;
+
         // Obtenemos el día y tramo de tipo horario
-        DiasTramosTipoHorario diasTramosTipoHorario = this.diasTramosTipoHorarioService.obtenerDiasTramosHorario(i, j, horarioMatutino) ;
+        DiasTramosTipoHorario diasTramosTipoHorario = this.diasTramosTipoHorarioService.obtenerDiasTramosHorario(dia, j, horarioMatutino) ;
 
         // Iteramos por cada sesión de la asignación
         for (Sesion sesion : asignacion.getListaSesiones())
@@ -350,7 +493,7 @@ public class GeneradorService
             IdGeneradorSesionAsignada idGeneradorSesionAsignada = new IdGeneradorSesionAsignada() ;
 
             // Asignamos los valores a la instancia
-            idGeneradorSesionAsignada.setIdGeneracion(generador.getId()) ;
+            idGeneradorSesionAsignada.setIdGeneradorInstancia(generadorInstancia.getId()) ;
             idGeneradorSesionAsignada.setProfesor(profesor) ;
             idGeneradorSesionAsignada.setAsignatura(asignatura) ;
             idGeneradorSesionAsignada.setDiasTramosTipoHorario(diasTramosTipoHorario) ;
@@ -360,8 +503,10 @@ public class GeneradorService
             generadorSesionAsignada.setIdGeneradorSesionAsignada(idGeneradorSesionAsignada) ;
 
             // Asignamos los valores a la instancia
+            generadorSesionAsignada.setGeneradorInstancia(generadorInstancia) ;
             generadorSesionAsignada.setAsignatura(asignatura) ;
             generadorSesionAsignada.setProfesor(profesor) ;
+            generadorSesionAsignada.setDiasTramosTipoHorario(diasTramosTipoHorario) ;
 
             // Guardamos la instancia en la base de datos
             this.generadorSesionAsignadaRepository.saveAndFlush(generadorSesionAsignada) ;

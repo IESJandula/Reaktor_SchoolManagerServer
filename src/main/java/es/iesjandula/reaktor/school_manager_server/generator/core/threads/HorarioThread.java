@@ -68,17 +68,40 @@ public class HorarioThread extends Thread
     	try
     	{
 			// Generamos el horario
-			nuevaUltimaAsignacion = this.generarHorario() ;  
+			nuevaUltimaAsignacion = this.generarHorario() ; 
+
+			// Decrementamos el número de threads pendientes
+			this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
+			
+			// Si en la nueva última asignación no se asignó nada, comenzamos el proceso de nuevo
+			if (nuevaUltimaAsignacion == null)
+			{
+				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador() ;
+			}
+			else
+			{
+				// ... lanzamos nuevos threads para procesar las siguientes sesiones
+				this.horarioThreadParams.getManejadorThreads().lanzarNuevosThreads(this.sesionesPendientes,
+																				   this.matrizAsignacionesMatutinas, 
+																				   this.matrizAsignacionesVespertinas,
+																				   nuevaUltimaAsignacion) ;
+			}
 		}
     	catch (SchoolManagerServerException schoolManagerServerException)
     	{
 			try
 			{
+				// Decrementamos el número de threads pendientes
+				this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
+
 				// Si llegamos aquí es porque la aplicación vio alguna incompatibilidad
 				// Por lo que se para este thread y se informa al manejador
 				this.horarioThreadParams.getManejadorThreads().gestionarErrorEnAsignacionHoraria(this.matrizAsignacionesMatutinas, 
 																								 this.matrizAsignacionesVespertinas,
 																								 schoolManagerServerException.getMessage()) ;
+
+				// Si sucede una excepción aquí, el sistema no tendrá más remedio que comenzar de nuevo
+				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador() ;
 			}
 			catch (SchoolManagerServerException schoolManagerServerException2)
 			{
@@ -90,33 +113,6 @@ public class HorarioThread extends Thread
 			String errorString = "EXCEPCIÓN NO ESPERADA CAPTURADA EN HorarioThread: " + exception.getMessage() ;
             log.error(errorString, exception) ;
         }
-		finally
-		{
-			try
-			{
-				// Indicamos que el Thread ya ha terminado
-				this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
-
-				// Si la nueva última asignación no se asignó nada, comenzamos el proceso de nuevo
-				if (nuevaUltimaAsignacion == null)
-				{
-					this.horarioThreadParams.getManejadorThreads().iniciarProceso();
-				}
-				else  // Si se asignó algo correctamente ...
-				{
-
-					// ... lanzamos nuevos threads para procesar las siguientes sesiones
-					this.horarioThreadParams.getManejadorThreads().lanzarNuevosThreads(this.sesionesPendientes,
-																						this.matrizAsignacionesMatutinas, 
-																						this.matrizAsignacionesVespertinas,
-																						nuevaUltimaAsignacion) ;
-				}
-			}
-			catch (SchoolManagerServerException exception)
-			{
-				// Si sucede una excepción aquí, el sistema no tendrá más remedio que pararse
-			}		
-		}
     }
 
 	/**

@@ -3,6 +3,8 @@ package es.iesjandula.reaktor.school_manager_server.generator.core.manejadores;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import es.iesjandula.reaktor.school_manager_server.generator.core.Horario;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -58,24 +60,35 @@ public class ManejadorResultados
     
 	/**
      * Método para agregar una solución a la lista
+     * @param generadorInstancia generador instancia
      * @param horario solución encontrada
+     * @return true si la solución supera el umbral, false en caso contrario
 	 * @throws SchoolManagerServerException con un error
      */
-    public void agregarHorarioSolucion(Horario horario) throws SchoolManagerServerException
+    public boolean agregarHorarioSolucion(GeneradorInstancia generadorInstancia, Horario horario) throws SchoolManagerServerException
     {
     	// Si llegamos aquí es porque se encontró un horario definitivo,  
 		// por lo que lo informamos al manejador de soluciones
 		
     	// Calculamos las puntuación de esta solución
         int puntuacionObtenida = horario.calcularPuntuacion() ;
+
+        // Vemos si la solución es la mejor hasta el momento
+        boolean solucionSuperaUmbral = puntuacionObtenida > this.manejadorResultadosParams.getUmbralMinimoSolucion() &&
+                                       this.horarioSolucionMayorPuntuacion < puntuacionObtenida ;
     	
         // Verificamos si la solución cumple unos mínimos
-        if (puntuacionObtenida > this.manejadorResultadosParams.getUmbralMinimoSolucion() &&
-        	this.horarioSolucionMayorPuntuacion < puntuacionObtenida)
+        if (!solucionSuperaUmbral)
+        {
+            // Logueamos
+            log.info("Horario solución no supera la puntuación umbral: " + puntuacionObtenida + " < {} ó " + puntuacionObtenida + " < {}", 
+            		 this.manejadorResultadosParams.getUmbralMinimoSolucion(), this.horarioSolucionMayorPuntuacion) ;
+        }
+        else
         {
         	// Logueamos
-        	log.info("Horario solución que supera la puntuación umbral mayor actual {} > {}", 
-        			 puntuacionObtenida, this.horarioSolucionMayorPuntuacion) ;
+            log.info("Horario solución supera la puntuación umbral: " + puntuacionObtenida + " > {} ó " + puntuacionObtenida + " > {}", 
+            		 this.manejadorResultadosParams.getUmbralMinimoSolucion(), this.horarioSolucionMayorPuntuacion) ;
         	
         	// Añadimos la solución a la lista
             this.horariosSoluciones.add(horario) ;
@@ -88,17 +101,20 @@ public class ManejadorResultados
             this.horarioSolucionMayorPuntuacionIndice = indiceActual ;
             
             // Guardamos el horario en la base de datos
-            this.manejadorResultadosParams.getGeneradorService().guardarHorario(horario, puntuacionObtenida, "Solución encontrada") ;
+            this.manejadorResultadosParams.getGeneradorService().guardarHorario(generadorInstancia, horario, puntuacionObtenida, Constants.MENSAJE_SOLUCION_ENCONTRADA) ;
         }
+
+        return solucionSuperaUmbral ;
     }
     
     /**
      * Método para agregar un horario de error a la lista
+     * @param generadorInstancia generador instancia
      * @param horario solución encontrada
      * @param mensajeError mensaje de error
      * @throws SchoolManagerServerException con un error
      */
-	public void agregarHorarioError(Horario horario, String mensajeError) throws SchoolManagerServerException
+	public void agregarHorarioError(GeneradorInstancia generadorInstancia, Horario horario, String mensajeError) throws SchoolManagerServerException
 	{
     	// Calculamos las puntuación de este horario de error
         int puntuacionObtenida = horario.calcularPuntuacion() ;
@@ -122,7 +138,7 @@ public class ManejadorResultados
             this.horarioErrorMayorPuntuacionIndice = indiceActual ;
             
             // Guardamos el horario en la base de datos
-            this.manejadorResultadosParams.getGeneradorService().guardarHorario(horario, puntuacionObtenida, mensajeError) ;
+            this.manejadorResultadosParams.getGeneradorService().guardarHorario(generadorInstancia, horario, puntuacionObtenida, mensajeError) ;
         }
 	}
 	

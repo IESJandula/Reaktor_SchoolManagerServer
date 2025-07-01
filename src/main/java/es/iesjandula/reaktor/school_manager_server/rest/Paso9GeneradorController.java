@@ -282,8 +282,12 @@ public class Paso9GeneradorController
             // Realizamos una serie de validaciones previas 
             this.validacionesPrevias() ;
 
-            // Llamamos al método que lanza el generador
-            this.generadorService.arrancarGenerador() ;
+            // Creamos un nuevo generador en la base de datos
+            Generador generador = new Generador() ;
+            this.generadorRepository.saveAndFlush(generador) ;
+
+            // Llamamos al método que configura y lanza el generador
+            this.generadorService.configurarYarrancarGenerador() ;
 
             // Devolvemos un OK
             return ResponseEntity.ok().build();
@@ -318,7 +322,7 @@ public class Paso9GeneradorController
             Generador generador = this.generadorService.obtenerGeneradorEnCurso() ;
 
             // Detenemos el generador, guardamos en la BBDD y creamos el DTO
-            generador.pararGenerador(Constants.ESTADO_DETENIDO, Constants.ESTADO_DETENIDO) ;
+            generador.pararGenerador(Constants.ESTADO_GENERADOR_DETENIDO) ;
             this.generadorRepository.saveAndFlush(generador);
 
             generadorDto = new GeneradorDto(generador) ;
@@ -361,25 +365,7 @@ public class Paso9GeneradorController
             throw new SchoolManagerServerException(Constants.ERROR_VALIDACIONES_DATOS_INCORRECTOS, validadorDatosDto.getErroresDatos().toString()) ;
         }
 
-        // Validaciones previas del generador
-        this.validacionesPreviasGeneradorEnCurso() ;
-    }
-
-    /**
-     * Método que realiza una serie de validaciones previas
-     * @throws SchoolManagerServerException - Excepción personalizada
-     */
-    private void validacionesPreviasGeneradorEnCurso() throws SchoolManagerServerException
-    {
-        // Validamos si ya hay un generador en curso
-        Optional<Generador> generadorEnCurso = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_EN_CURSO) ;
-
-        if (generadorEnCurso.isPresent())
-        {
-            String mensajeError = "Hay un generador en curso que fue lanzado el " + generadorEnCurso.get().getFechaInicio() ;
-
-            log.error(mensajeError) ;
-            throw new SchoolManagerServerException(Constants.ERROR_CODE_GENERADOR_EN_CURSO, mensajeError) ;
-        }
+        // Validamos que no haya un generador en curso
+        this.generadorService.validarNoHayGeneradorEnCurso() ;
     }
 }

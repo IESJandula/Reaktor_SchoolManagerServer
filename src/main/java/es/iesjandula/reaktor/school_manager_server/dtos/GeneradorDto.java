@@ -46,7 +46,7 @@ public class GeneradorDto
      */
     public GeneradorDto(String mensajeInformacion)
     {
-        this.estado             = Constants.ESTADO_DETENIDO ;
+        this.estado             = Constants.ESTADO_GENERADOR_FINALIZADO ;
         this.mensajeInformacion = mensajeInformacion ;
     }
 
@@ -60,7 +60,5 @@ public class GeneradorDto
         this.estado             = generador.getEstado() ;
         this.fechaInicio        = generador.getFechaInicio() ;
         this.fechaFin           = generador.getFechaFin() ;
-        this.puntuacion         = generador.getPuntuacion() ;
-        this.mensajeInformacion = generador.getMensajeInformacion() ;
     }
 }

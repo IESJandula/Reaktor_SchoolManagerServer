@@ -394,20 +394,6 @@ public class Constants
 	/******************************************************/
 	/******************************************************/
 
-	/******************************************************/
-	/********************* Umbrales ***********************/
-	/******************************************************/
-
-	/** 120 para 2 cursos, 192-198 para 3 cursos, minimo 320 para 5 cursos */
-	/**
-	 * Umbral minimo con respecto a las soluciones
-	 */
-	public static final int UMBRAL_MINIMO_SOLUCION = 120;
-
-	/**
-	 * Umbral minimo con respecto a los horarios con error
-	 */
-	public static final int UMBRAL_MINIMO_ERROR = 110;
 
 	/******************************************************/
 	/*** Referencias - Restricciones - Lista de listas ****/
@@ -534,24 +520,6 @@ public class Constants
 	 */
 	public static final int THREAD_POOL_SIZE = 10;
 
-	/******************************************************/
-	/**************** Carpetas de salida ******************/
-	/******************************************************/
-
-	/**
-	 * Carpeta de "salida"
-	 */
-	public static final String CARPETA_SALIDA = "salida";
-
-	/**
-	 * Carpeta de salida "soluciones"
-	 */
-	public static final String CARPETA_SALIDA_SOLUCIONES = CARPETA_SALIDA + File.separator + "soluciones";
-
-	/**
-	 * Carpeta de salida "errores"
-	 */
-	public static final String CARPETA_SALIDA_ERRORES = CARPETA_SALIDA + File.separator + "errores";
 
 	/******************************************************/
 	/*************** Factor de puntuación *****************/
@@ -594,28 +562,48 @@ public class Constants
 	/**
 	 * Estado del generador - En curso
 	 */
-	public static final String ESTADO_EN_CURSO = "EN_CURSO";
+	public static final String ESTADO_GENERADOR_EN_CURSO   = "EN_CURSO" ;
 
 	/**
 	 * Estado del generador - Error
 	 */
-	public static final String ESTADO_ERROR = "ERROR";
+	public static final String ESTADO_GENERADOR_ERROR      = "ERROR" ;
 
 	/**
 	 * Estado del generador - Finalizado
 	 */
-	public static final String ESTADO_FINALIZADO = "FINALIZADO";
+	public static final String ESTADO_GENERADOR_FINALIZADO = "FINALIZADO" ;
 
 	/**
 	 * Estado del generador - Detenido
 	 */
-	public static final String ESTADO_DETENIDO = "DETENIDO";
+	public static final String ESTADO_GENERADOR_DETENIDO   = "DETENIDO" ;
+
+
+	/******************************************************/
+	/******************** Mensajes ************************/
+	/******************************************************/
+	
+
+
+	/**
+	 * Mensaje de solución encontrada
+	 */
+	public static final String MENSAJE_SOLUCION_ENCONTRADA = "Solución encontrada" ;
+
 
 	/*********************************************************/
 	/******************** Tabla Constantes *******************/
 	/*********************************************************/
 
+	/** Tabla de constantes - Selección horarios por claustro */
 	public static final String TABLA_CONST_SELECCION_HORARIOS_POR_CLAUSTRO = "Selección horarios por claustro";
+
+	/** Tabla de constantes - Umbral mínimo de soluciones */
+	public static final String TABLA_CONST_UMBRAL_MINIMO_SOLUCION 		   = "Umbral mínimo de soluciones";
+
+	/** Tabla de constantes - Umbral mínimo de errores */
+	public static final String TABLA_CONST_UMBRAL_MINIMO_ERROR 			   = "Umbral mínimo de errores";
 
 	/*********************************************************/
 	/******************* Parámetros YAML *********************/
@@ -631,6 +619,19 @@ public class Constants
 	 */
 	public static final String PARAM_YAML_SELECCION_HORARIOS_POR_CLAUSTRO = "reaktor.constantes.seleccionHorariosPorClaustro";
 
+	/**
+	 * Constante - Parámetros YAML - Umbral mínimo de soluciones
+	 */
+	public static final String PARAM_YAML_UMBRAL_MINIMO_SOLUCION = "reaktor.constantes.umbralMinimoSolucion";
+
+	/**
+	 * Constante - Parámetros YAML - Umbral mínimo de errores
+	 */
+	public static final String PARAM_YAML_UMBRAL_MINIMO_ERROR = "reaktor.constantes.umbralMinimoError";
+
+	/**
+	 * Constante - Parámetros YAML - MODO_INICIALIZAR_SISTEMA
+	 */
 	public static final String MODO_INICIALIZAR_SISTEMA = "true";
 
 

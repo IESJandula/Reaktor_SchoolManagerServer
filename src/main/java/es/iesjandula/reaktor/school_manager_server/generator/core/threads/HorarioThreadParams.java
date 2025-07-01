@@ -4,6 +4,7 @@ import java.util.Map;
 
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorThreads;
 import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
+import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 
 public class HorarioThreadParams
 {
@@ -25,6 +26,9 @@ public class HorarioThreadParams
     /** Asignatura service */
     private AsignaturaService asignaturaService ;
 
+    /** Generador service */
+    private GeneradorService generadorService ;
+
     /**
      * Constructor privado para forzar el uso del Builder
      * 
@@ -38,6 +42,7 @@ public class HorarioThreadParams
         this.mapCorrelacionadorCursosVespertinos = builder.mapCorrelacionadorCursosVespertinos ;
         this.manejadorThreads                    = builder.manejadorThreads ;
         this.asignaturaService                   = builder.asignaturaService ;
+        this.generadorService                    = builder.generadorService ;
     }
     
     /**
@@ -89,6 +94,14 @@ public class HorarioThreadParams
     }
 
     /**
+     * @return generador service
+     */
+    public GeneradorService getGeneradorService()
+    {
+        return this.generadorService ;
+    }
+
+    /**
      * Clase estática interna Builder
      */
     public static class Builder
@@ -110,7 +123,10 @@ public class HorarioThreadParams
 
         /** Asignatura service */
         private AsignaturaService asignaturaService ;
-        
+
+        /** Generador service */
+        private GeneradorService generadorService ;
+
         /**
          * @param numeroCursos numero de cursos matutinos
          * @return builder
@@ -176,7 +192,18 @@ public class HorarioThreadParams
             
             return this ;
         }
-        
+
+        /**
+         * @param generadorService generador service
+         * @return builder
+         */
+        public Builder setGeneradorService(GeneradorService generadorService)
+        {
+            this.generadorService = generadorService ;
+            
+            return this ;
+        }
+
         /**
          * Método build que construye el objeto final
          * @return una instancia de HorarioThreadParams

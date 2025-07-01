@@ -33,4 +33,13 @@ public class GeneradorSesionBase
     @MapsId(value = "profesor")
     @ManyToOne
     private Profesor profesor;
+
+    /**
+     * Día de la semana y tramo horario.
+     * Relación de muchos a uno con la entidad {@link DiasTramosTipoHorario}.
+     */
+    @MapsId(value = "diasTramosTipoHorario")
+    @ManyToOne
+    private DiasTramosTipoHorario diasTramosTipoHorario;
+
 }

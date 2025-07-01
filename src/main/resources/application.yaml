@@ -41,3 +41,5 @@ reaktor:
   reiniciarConstantes: true
   constantes:
     seleccionHorariosPorClaustro: ""
+    umbralMinimoSolucion: 140
+    umbralMinimoError: 140

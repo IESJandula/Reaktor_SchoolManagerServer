@@ -1,12 +1,14 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.Date;
+import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import jakarta.persistence.Column;
@@ -23,13 +25,6 @@ public class Generador
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id ;
-
-    /**
-     * Puntuación del generador.
-     * <p>Representa la puntuación del generador.</p>
-     */
-    @Column(name = "puntuacion")
-    private int puntuacion ;
 
     /**
      * Fecha de inicio de la generación.
@@ -53,11 +48,11 @@ public class Generador
     private String estado ;
 
     /**
-     * Mensaje de información.
-     * <p>Representa el mensaje de información de la generación.</p>
+     * Lista de instancias del generador.
+     * <p>Representa la lista de instancias del generador.</p>
      */
-    @Column(name = "mensajeInformacion")
-    private String mensajeInformacion ;
+    @OneToMany(mappedBy = "generador")
+    private List<GeneradorInstancia> generadorInstancias ;
 
     /**
      * Constructor por defecto.
@@ -66,18 +61,16 @@ public class Generador
     public Generador()
     {
         this.fechaInicio = new Date() ;
-        this.estado      = Constants.ESTADO_EN_CURSO ;
+        this.estado      = Constants.ESTADO_GENERADOR_EN_CURSO ;
     }
 
     /**
      * Método para establecer el mensaje de error.
      * @param estado - El estado de la generación.
-     * @param mensajeInformacion - El mensaje de información de la generación.
      */
-    public void pararGenerador(String estado, String mensajeInformacion)
+    public void pararGenerador(String estado)
     {
-        this.estado             = estado ;
-        this.mensajeInformacion = mensajeInformacion ;
-        this.fechaFin           = new Date() ;
+        this.estado   = estado ;
+        this.fechaFin = new Date() ;
     }
 }
