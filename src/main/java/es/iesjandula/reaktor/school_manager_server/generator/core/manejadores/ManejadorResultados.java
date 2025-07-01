@@ -83,6 +83,9 @@ public class ManejadorResultados
             // Logueamos
             log.info("Horario solución no supera la puntuación umbral: " + puntuacionObtenida + " < {} ó " + puntuacionObtenida + " < {}", 
             		 this.manejadorResultadosParams.getUmbralMinimoSolucion(), this.horarioSolucionMayorPuntuacion) ;
+
+            // Borramos de la tabla de generador instancia
+            this.manejadorResultadosParams.getGeneradorService().eliminarGeneradorInstancia(generadorInstancia) ;
         }
         else
         {
@@ -118,14 +121,26 @@ public class ManejadorResultados
 	{
     	// Calculamos las puntuación de este horario de error
         int puntuacionObtenida = horario.calcularPuntuacion() ;
+
+        // Vemos si el horario de error supera el umbral
+        boolean errorSuperaUmbral = puntuacionObtenida > this.manejadorResultadosParams.getUmbralMinimoError() &&
+                                    this.horarioErrorMayorPuntuacion < puntuacionObtenida ;
 		
         // Verificamos si el horario de error cumple unos mínimos y si esta es por ahora la mejor solución de error
-        if (puntuacionObtenida > this.manejadorResultadosParams.getUmbralMinimoError() &&
-        	this.horarioErrorMayorPuntuacion < puntuacionObtenida)
+        if (!errorSuperaUmbral)
+        {
+            // Logueamos
+            log.info("Horario de error no supera la puntuación umbral: " + puntuacionObtenida + " < {} ó " + puntuacionObtenida + " < {}", 
+            		 this.manejadorResultadosParams.getUmbralMinimoError(), this.horarioErrorMayorPuntuacion) ;
+
+            // Borramos de la tabla de generador instancia
+            this.manejadorResultadosParams.getGeneradorService().eliminarGeneradorInstancia(generadorInstancia) ;
+        }
+        else
         {
         	// Logueamos
-        	log.info("Horario de error que supera la puntuación umbral {} > {}", 
-        			 puntuacionObtenida, this.manejadorResultadosParams.getUmbralMinimoError()) ;
+            log.info("Horario de error supera la puntuación umbral: " + puntuacionObtenida + " > {} ó " + puntuacionObtenida + " > {}", 
+            		 this.manejadorResultadosParams.getUmbralMinimoError(), this.horarioErrorMayorPuntuacion) ;
         	
         	// Añadimos el horario con errores a la lista
             this.horariosError.add(horario) ;

@@ -333,24 +333,23 @@ public class GeneradorService
     {
         int umbralMinimoError = 0 ;
 
+        // Tratamos de obtener el umbral mínimo de errores de la tabla de constantes
+        Optional<Constantes> optionalUmbralMinimoError = this.constantesRepository.findByClave(Constants.TABLA_CONST_UMBRAL_MINIMO_ERROR) ;
+
+        if (optionalUmbralMinimoError.isPresent() && optionalUmbralMinimoError.get().getValor() != null)
+        {
+            umbralMinimoError = Integer.parseInt(optionalUmbralMinimoError.get().getValor()) ;
+        }
+
         // Obtenemos el umbral mínimo de errores de BBDD
         Optional<Integer> optionalMaximaPuntuacionError = this.generadorInstanciaRepository.buscarMaximaPuntuacionError() ;
 
-        if (optionalMaximaPuntuacionError.isPresent())
+        // Si hay umbral mínimo de errores, lo asignamos
+        if (optionalMaximaPuntuacionError.isPresent() && optionalMaximaPuntuacionError.get() > umbralMinimoError)
         {
             umbralMinimoError = optionalMaximaPuntuacionError.get() ;
         }
-        else
-        {
-            // Si no hay umbral mínimo de errores, lo obtenemos de la tabla de constantes
-            Optional<Constantes> optionalUmbralMinimoError = this.constantesRepository.findByClave(Constants.TABLA_CONST_UMBRAL_MINIMO_ERROR) ;
-
-            if (optionalUmbralMinimoError.isPresent())
-            {
-                umbralMinimoError = Integer.parseInt(optionalUmbralMinimoError.get().getValor()) ;
-            }
-        }
-
+    
         return umbralMinimoError ;
     }
 
@@ -358,23 +357,21 @@ public class GeneradorService
     {
         int umbralMinimoSolucion = 0 ;
 
+        // Tratamos de obtener el umbral mínimo de soluciones de la tabla de constantes
+        Optional<Constantes> optionalUmbralMinimoSolucion = this.constantesRepository.findByClave(Constants.TABLA_CONST_UMBRAL_MINIMO_SOLUCION) ;
+
+        if (optionalUmbralMinimoSolucion.isPresent() && optionalUmbralMinimoSolucion.get().getValor() != null)
+        {
+            umbralMinimoSolucion = Integer.parseInt(optionalUmbralMinimoSolucion.get().getValor()) ;
+        }
+
         // Obtenemos el umbral mínimo de soluciones de BBDD
         Optional<Integer> optionalMaximaPuntuacionSolucion = this.generadorInstanciaRepository.buscarMaximaPuntuacionSolucion() ;
 
         // Si hay umbral mínimo de soluciones, lo asignamos
-        if (optionalMaximaPuntuacionSolucion.isPresent())
+        if (optionalMaximaPuntuacionSolucion.isPresent() && optionalMaximaPuntuacionSolucion.get() > umbralMinimoSolucion)
         {
             umbralMinimoSolucion = optionalMaximaPuntuacionSolucion.get() ;
-        }
-        else
-        {
-            // Si no hay umbral mínimo de soluciones, lo obtenemos de la tabla de constantes
-            Optional<Constantes> optionalUmbralMinimoSolucion = this.constantesRepository.findByClave(Constants.TABLA_CONST_UMBRAL_MINIMO_SOLUCION) ;
-
-            if (optionalUmbralMinimoSolucion.isPresent())
-            {
-                umbralMinimoSolucion = Integer.parseInt(optionalUmbralMinimoSolucion.get().getValor()) ;
-            }
         }
 
         return umbralMinimoSolucion ;
@@ -511,5 +508,16 @@ public class GeneradorService
             // Guardamos la instancia en la base de datos
             this.generadorSesionAsignadaRepository.saveAndFlush(generadorSesionAsignada) ;
         }
+    }
+
+    /**
+     * Método que elimina un generador instancia
+     * @param generadorInstancia - Generador instancia
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    public void eliminarGeneradorInstancia(GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
+    {
+        // Eliminamos el GeneradorInstancia
+        this.generadorInstanciaRepository.delete(generadorInstancia) ;
     }
 }
