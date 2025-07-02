@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DiasTramosTipoHorarioDto
+public class DiaTramoTipoHorarioDto
 {
-    private String dia;
+    private String diaDesc;
 
-    private Integer tramo;
+    private String tramoDesc;
 
-    private boolean horarioMatutino;
+    private Boolean horarioMatutino;
 }

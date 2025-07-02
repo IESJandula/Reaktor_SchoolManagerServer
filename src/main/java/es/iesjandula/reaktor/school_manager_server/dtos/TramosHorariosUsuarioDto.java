@@ -11,7 +11,7 @@ public class TramosHorariosUsuarioDto
 {
     private Boolean tieneObservaciones;
 
-    private List<DiasTramosTipoHorarioDto> tramosHorarios;
+    private List<DiaTramoTipoHorarioDto> tramosHorarios;
 
     public TramosHorariosUsuarioDto()
     {

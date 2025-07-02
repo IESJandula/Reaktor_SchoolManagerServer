@@ -19,17 +19,17 @@ import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionBase;
-import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionBase;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionBaseRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
-import es.iesjandula.reaktor.school_manager_server.services.DiasTramosTipoHorarioService;
+import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 import es.iesjandula.reaktor.school_manager_server.services.ValidadorDatosService;
 import lombok.extern.slf4j.Slf4j;
@@ -53,10 +53,11 @@ public class Paso9GeneradorController
     private IAsignaturaRepository asignaturaRepository ;
 
     @Autowired
+    private IDiaTramoTipoHorarioRepository diaTramoTipoHorarioRepository ;
+    
+    @Autowired
     private IGeneradorSesionBaseRepository generadorSesionBaseRepository ;
 
-    @Autowired
-    private DiasTramosTipoHorarioService diasTramosTipoHorarioService ;
 
     @Autowired
     private GeneradorService generadorService ;
@@ -107,8 +108,8 @@ public class Paso9GeneradorController
                                                     @RequestHeader(value = "etapa") String etapa,
                                                     @RequestHeader(value = "grupo") String grupo,
                                                     @RequestHeader(value = "numeroSesion") int numeroSesion,
-                                                    @RequestHeader(value = "dia") int dia,
-                                                    @RequestHeader(value = "tramo") int tramo)
+                                                    @RequestHeader(value = "diaDesc") String diaDesc,
+                                                    @RequestHeader(value = "tramoDesc") String tramoDesc)
     {
         try
         {
@@ -129,18 +130,11 @@ public class Paso9GeneradorController
                 this.generadorSesionBaseRepository.flush() ;
             }
 
-            // Si el día es distinto de -1 y el tramo es distinto de -1, creamos una instancia de IdDiasTramosTipoHorario
-            if (dia != -1 || tramo != -1)
-            {
-                // Validamos si el horario es matutino o vespertino
-                boolean horarioMatutino = asignatura.getIdAsignatura().getCursoEtapaGrupo().getHorarioMatutino() ;
+            // Obtenemos las restricciones de tipo de horario de la asignatura
+            DiaTramoTipoHorario diaTramoTipoHorario = this.diaTramoTipoHorarioRepository.buscarPorDiaDescTramoDesc(diaDesc, tramoDesc) ;
 
-                // Obtenemos las restricciones de tipo de horario de la asignatura
-                DiasTramosTipoHorario diasTramosTipoHorario = this.diasTramosTipoHorarioService.obtenerDiasTramosHorario(dia, tramo, horarioMatutino) ;
-
-                // Actualizamos la sesión base
-                this.actualizarSesionesBaseInternal(numeroSesion, asignatura, profesor, diasTramosTipoHorario) ;
-            }
+            // Actualizamos la sesión base
+            this.actualizarSesionesBaseInternal(numeroSesion, asignatura, profesor, diaTramoTipoHorario) ;
 
             return ResponseEntity.ok().build();
         }
@@ -165,9 +159,9 @@ public class Paso9GeneradorController
      * Método que actualiza una sesión base
      * @param numeroSesion - Número de sesión
      * @param impartir - Impartir
-     * @param diasTramosTipoHorario - Día y tramo de tipo horario
+     * @param diaTramoTipoHorario - Día y tramo de tipo horario
      */
-    private void actualizarSesionesBaseInternal(int numeroSesion, Asignatura asignatura, Profesor profesor, DiasTramosTipoHorario diasTramosTipoHorario)
+    private void actualizarSesionesBaseInternal(int numeroSesion, Asignatura asignatura, Profesor profesor, DiaTramoTipoHorario diaTramoTipoHorario)
     {
         // Creamos una instancia de IdGeneradorSesionBase
         IdGeneradorSesionBase idGeneradorSesionBase = new IdGeneradorSesionBase() ;
@@ -176,7 +170,7 @@ public class Paso9GeneradorController
         idGeneradorSesionBase.setNumeroSesion(numeroSesion) ;   
         idGeneradorSesionBase.setAsignatura(asignatura) ;
         idGeneradorSesionBase.setProfesor(profesor) ;
-        idGeneradorSesionBase.setDiasTramosTipoHorario(diasTramosTipoHorario) ;
+        idGeneradorSesionBase.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Creamos una instancia de GeneradorSesionBase
         GeneradorSesionBase generadorSesionBaseInstancia = new GeneradorSesionBase() ;

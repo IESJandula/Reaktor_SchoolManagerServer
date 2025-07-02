@@ -36,10 +36,10 @@ public class GeneradorSesionBase
 
     /**
      * Día de la semana y tramo horario.
-     * Relación de muchos a uno con la entidad {@link DiasTramosTipoHorario}.
+     * Relación de muchos a uno con la entidad {@link DiaTramoTipoHorario}.
      */
-    @MapsId(value = "diasTramosTipoHorario")
+    @MapsId(value = "diaTramoTipoHorario")
     @ManyToOne
-    private DiasTramosTipoHorario diasTramosTipoHorario;
+    private DiaTramoTipoHorario diaTramoTipoHorario;
 
 }

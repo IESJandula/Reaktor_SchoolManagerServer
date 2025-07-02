@@ -22,7 +22,7 @@ import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.Constantes;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
-import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
+import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionAsignada;
@@ -70,7 +70,7 @@ public class GeneradorService
     private AsignaturaService asignaturaService ;
 
     @Autowired
-    private DiasTramosTipoHorarioService diasTramosTipoHorarioService ;
+    private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
 
 
     /**
@@ -477,7 +477,7 @@ public class GeneradorService
         int dia = i % Constants.NUMERO_DIAS_SEMANA ;
 
         // Obtenemos el día y tramo de tipo horario
-        DiasTramosTipoHorario diasTramosTipoHorario = this.diasTramosTipoHorarioService.obtenerDiasTramosHorario(dia, j, horarioMatutino) ;
+        DiaTramoTipoHorario diaTramoTipoHorario = this.diaTramoTipoHorarioService.obtenerDiaTramoTipoHorario(dia, j, horarioMatutino) ;
 
         // Iteramos por cada sesión de la asignación
         for (Sesion sesion : asignacion.getListaSesiones())
@@ -493,7 +493,7 @@ public class GeneradorService
             idGeneradorSesionAsignada.setIdGeneradorInstancia(generadorInstancia.getId()) ;
             idGeneradorSesionAsignada.setProfesor(profesor) ;
             idGeneradorSesionAsignada.setAsignatura(asignatura) ;
-            idGeneradorSesionAsignada.setDiasTramosTipoHorario(diasTramosTipoHorario) ;
+            idGeneradorSesionAsignada.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
             // Creamos una instancia de GeneradorSesionAsignada
             GeneradorSesionAsignada generadorSesionAsignada = new GeneradorSesionAsignada() ;
@@ -503,7 +503,7 @@ public class GeneradorService
             generadorSesionAsignada.setGeneradorInstancia(generadorInstancia) ;
             generadorSesionAsignada.setAsignatura(asignatura) ;
             generadorSesionAsignada.setProfesor(profesor) ;
-            generadorSesionAsignada.setDiasTramosTipoHorario(diasTramosTipoHorario) ;
+            generadorSesionAsignada.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
             // Guardamos la instancia en la base de datos
             this.generadorSesionAsignadaRepository.saveAndFlush(generadorSesionAsignada) ;

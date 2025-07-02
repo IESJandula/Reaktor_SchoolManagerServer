@@ -22,7 +22,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -46,7 +51,7 @@ public class Paso7EleccionDeHorariosController
     private IProfesorReduccionRepository iProfesorReduccionRepository;
 
     @Autowired
-    private IDiasTramosRepository iDiasTramosRepository;
+    private IDiaTramoTipoHorarioRepository iDiaTramoTipoHorarioRepository;
 
     @Autowired
     private IPreferenciasHorariasRepository iPreferenciasHorariasRepository;
@@ -350,26 +355,27 @@ public class Paso7EleccionDeHorariosController
      * una respuesta de error adecuada.
      *
      * @return una {@link ResponseEntity} con:
-     * - 200 (OK) si se recuperan correctamente los datos como una lista de {@link DiasTramosTipoHorarioDto}.
+     * - 200 (OK) si se recuperan correctamente los datos como una lista de {@link DiaTramoTipoHorarioDto}.
      * - 404 (NOT_FOUND) si no se encuentra información en la base de datos.
      * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/observaciones")
-    public ResponseEntity<?> obtenerDiasTramosTipoHorario()
+    public ResponseEntity<?> obtenerListaDiaTramoTipoHorario()
     {
         try
         {
-            List<DiasTramosTipoHorarioDto> listDiasTramosTipoHorarioDto = this.iDiasTramosRepository.findByHorarioMatutino();
+            Set<DiaTramoTipoHorarioDto> listDiaTramoTipoHorarioDto = 
+                            this.iDiaTramoTipoHorarioRepository.filtroDiaTramoTipoHorarioDisponiblesSeleccionProfesorado();
 
-            if (listDiasTramosTipoHorarioDto.isEmpty())
+            if (listDiaTramoTipoHorarioDto.isEmpty())
             {
                 String mensajeError = "No se han encontrado dias, tramos y tipos horarios en base de datos";
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS, mensajeError);
             }
 
-            return ResponseEntity.ok().body(listDiasTramosTipoHorarioDto);
+            return ResponseEntity.ok().body(listDiaTramoTipoHorarioDto);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -413,8 +419,8 @@ public class Paso7EleccionDeHorariosController
                                                      @RequestHeader(value = "conciliacion") Boolean conciliacion,
                                                      @RequestHeader(value = "sinClasePrimeraHora") Boolean sinClasePrimeraHora,
                                                      @RequestHeader(value = "otrasObservaciones", required = false) String otrasObservaciones,
-                                                     @RequestHeader(value = "dia") String diasDesc,
-                                                     @RequestHeader(value = "tramo") Integer tramo,
+                                                     @RequestHeader(value = "diaDesc") String diasDesc,
+                                                     @RequestHeader(value = "tramoDesc") String tramoDesc,
                                                      @RequestHeader(value = "horarioMatutino") boolean horarioMatutino,
                                                      @RequestHeader(value = "email") String email)
     {
@@ -446,22 +452,15 @@ public class Paso7EleccionDeHorariosController
                 this.iPreferenciasHorariasRepository.deleteAll(listPreferenciasHorariasProfesorABuscar.get());
             }
 
-            tramo--;
-
-            Integer dias = this.iDiasTramosRepository.encontrarTodoPorTramoAndTipoHorarioAndDiasDesc(tramo, horarioMatutino, diasDesc);
-            if (dias == null)
+            DiaTramoTipoHorario diaTramoTipoHorario = this.iDiaTramoTipoHorarioRepository.buscarPorDiaDescTramoDesc(diasDesc, tramoDesc);
+            if (diaTramoTipoHorario == null)
             {
                 String mensajeError = "No se pudo encontrar el identificador del día/tramo/tipoHorario especificado.";
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS, mensajeError);
             }
 
-            IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dias, tramo, horarioMatutino);
-
-            DiasTramosTipoHorario diasTramosTipoHorarioAGuardar = new DiasTramosTipoHorario();
-            diasTramosTipoHorarioAGuardar.setIdDiasTramosTipoHorario(idDiasTramosTipoHorario);
-
-            IdPreferenciasHorariasProfesor idPreferenciasHorariasProfesor = new IdPreferenciasHorariasProfesor(profesor, diasTramosTipoHorarioAGuardar);
+            IdPreferenciasHorariasProfesor idPreferenciasHorariasProfesor = new IdPreferenciasHorariasProfesor(profesor, diaTramoTipoHorario);
 
             PreferenciasHorariasProfesor preferenciasHorariasProfesor = new PreferenciasHorariasProfesor();
             preferenciasHorariasProfesor.setIdPreferenciasHorariasProfesor(idPreferenciasHorariasProfesor);
@@ -574,18 +573,17 @@ public class Paso7EleccionDeHorariosController
 
             Optional<List<PreferenciasHorariasProfesor>> preferenciasHorariasEncontradas = iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(email);
             TramosHorariosUsuarioDto tramosHorariosUsuarioDto = new TramosHorariosUsuarioDto();
-            List<DiasTramosTipoHorarioDto> tramosDto = new ArrayList<>(List.of());
+            List<DiaTramoTipoHorarioDto> tramosDto = new ArrayList<>(List.of());
             if (preferenciasHorariasEncontradas.isPresent() && !preferenciasHorariasEncontradas.get().isEmpty())
             {
                 tramosHorariosUsuarioDto.setTieneObservaciones(true);
 
                 for (PreferenciasHorariasProfesor tramo : preferenciasHorariasEncontradas.get())
                 {
-                    DiasTramosTipoHorarioDto tramoElegido = new DiasTramosTipoHorarioDto();
-                    tramoElegido.setDia(String.valueOf(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getDia()));
-                    tramoElegido.setTramo(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().getTramo());
-                    tramoElegido.setHorarioMatutino(tramo.getIdPreferenciasHorariasProfesor().getDiasTramosTipoHorario().getIdDiasTramosTipoHorario().isHorarioMatutino());
-                    tramosDto.add(tramoElegido);
+                    DiaTramoTipoHorarioDto diaTramoTipoHorarioDto = new DiaTramoTipoHorarioDto();
+                    diaTramoTipoHorarioDto.setDiaDesc(tramo.getIdPreferenciasHorariasProfesor().getDiaTramoTipoHorario().getDiaDesc());
+                    diaTramoTipoHorarioDto.setTramoDesc(tramo.getIdPreferenciasHorariasProfesor().getDiaTramoTipoHorario().getTramoDesc());
+                    tramosDto.add(diaTramoTipoHorarioDto);
                 }
                 tramosHorariosUsuarioDto.setTramosHorarios(tramosDto);
             }

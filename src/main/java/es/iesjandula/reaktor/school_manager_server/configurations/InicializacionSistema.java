@@ -23,12 +23,11 @@ import es.iesjandula.reaktor.base.resources_handler.ResourcesHandlerJar;
 import es.iesjandula.reaktor.base.utils.BaseException;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.Departamento;
+import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdDiasTramosTipoHorario;
-import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IDiasTramosRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import jakarta.annotation.PostConstruct;
@@ -39,13 +38,13 @@ import lombok.extern.log4j.Log4j2;
 public class InicializacionSistema
 {
     @Autowired
-    private ICursoEtapaRepository iCursoEtapaRepository ;
+    private ICursoEtapaRepository cursoEtapaRepository ;
     
 	@Autowired
-	private IDepartamentoRepository iDepartamentoRepository ;
+	private IDepartamentoRepository departamentoRepository ;
 	
 	@Autowired
-	private IDiasTramosRepository iDiasTramosRepository ;
+	private IDiaTramoTipoHorarioRepository diaTramoTipoHorarioRepository ;
 
 	@Autowired
 	private IConstantesRepository iConstantesRepository;
@@ -85,6 +84,9 @@ public class InicializacionSistema
 	    	schoolManagerServerConfig.copyToDirectory(schoolManagerServerConfigExec) ;
 	    }
 		
+		// Parseamos los dias, tramos y tipo de horario
+		//this.cargarDiasTramosTipoHorarioDesdeCSVInternal() ;
+
 		if (Constants.MODO_DDL_CREATE.equalsIgnoreCase(this.modoDdl))
 		{
 			// Parseamos los cursos y etapas
@@ -198,7 +200,7 @@ public class InicializacionSistema
         // Guardamos los cursos y etapas en la base de datos
         if (!cursosEtapas.isEmpty())
         {
-            this.iCursoEtapaRepository.saveAllAndFlush(cursosEtapas) ;
+            this.cursoEtapaRepository.saveAllAndFlush(cursosEtapas) ;
         }
 	}
 	
@@ -257,7 +259,7 @@ public class InicializacionSistema
         // Guardamos los departamentos en la base de datos
         if (!departamentos.isEmpty())
         {
-            this.iDepartamentoRepository.saveAllAndFlush(departamentos) ;
+            this.departamentoRepository.saveAllAndFlush(departamentos) ;
         }
 	}
 	
@@ -268,7 +270,7 @@ public class InicializacionSistema
 	private void cargarDiasTramosTipoHorarioDesdeCSVInternal() throws SchoolManagerServerException
 	{
 		// Inicializamos la lista de dias, tramos y tipo de horario
-		List<DiasTramosTipoHorario> diasTramosTipoHorarioList = new ArrayList<DiasTramosTipoHorario>() ;
+		List<DiaTramoTipoHorario> diaTramoTipoHorarioList = new ArrayList<DiaTramoTipoHorario>() ;
 		
 		BufferedReader reader = null ;
 		
@@ -293,23 +295,25 @@ public class InicializacionSistema
 				String diasDesc    		= valores[1] ;
 				int tramo 		   		= Integer.parseInt(valores[2]) ;
 				String tramosDesc  		= valores[3] ;
-				boolean horarioMatutino = Boolean.parseBoolean(valores[4]) ;
 
-				// Creamos un objeto compuesto IdDiasTramosTipoHorario
-				IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dia, tramo, horarioMatutino) ;
+				Boolean horarioMatutino = null ;
+				if (valores.length > 4 && valores[4] != null)
+				{
+					horarioMatutino = Boolean.parseBoolean(valores[4]) ;
+				}
 
-				// Creamos un objeto DiasTramosTipoHorario
-				DiasTramosTipoHorario diasTramosTipoHorario = new DiasTramosTipoHorario() ;
+				// Creamos un objeto DiaTramoTipoHorario
+				DiaTramoTipoHorario diaTramoTipoHorario = new DiaTramoTipoHorario() ;
 
-				// Asociamos el identificador al objeto DiasTramosTipoHorario
-				diasTramosTipoHorario.setIdDiasTramosTipoHorario(idDiasTramosTipoHorario) ;
-
-				// Asociamos los valores descriptivos al objeto DiasTramosTipoHorario
-				diasTramosTipoHorario.setDiasDesc(diasDesc) ;
-				diasTramosTipoHorario.setTramosDesc(tramosDesc) ;
+				// Asociamos los valores al objeto DiaTramoTipoHorario
+				diaTramoTipoHorario.setDia(dia) ;
+				diaTramoTipoHorario.setTramo(tramo) ;
+				diaTramoTipoHorario.setDiaDesc(diasDesc) ;
+				diaTramoTipoHorario.setTramoDesc(tramosDesc) ;
+				diaTramoTipoHorario.setHorarioMatutino(horarioMatutino) ;
 
 				// Añadimos a la lista
-				diasTramosTipoHorarioList.add(diasTramosTipoHorario) ;
+				diaTramoTipoHorarioList.add(diaTramoTipoHorario) ;
 
 				// Leemos la siguiente línea
 				linea = reader.readLine() ;
@@ -329,9 +333,9 @@ public class InicializacionSistema
 		}
 
 		// Guardamos los dias, tramos y tipo de horario en la base de datos
-		if (!diasTramosTipoHorarioList.isEmpty())
+		if (!diaTramoTipoHorarioList.isEmpty())
 		{
-			this.iDiasTramosRepository.saveAllAndFlush(diasTramosTipoHorarioList) ;
+			this.diaTramoTipoHorarioRepository.saveAllAndFlush(diaTramoTipoHorarioList) ;
 		}
 	}
 	

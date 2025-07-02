@@ -1,6 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.models.ids;
 
-import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
+import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,5 +25,5 @@ public class IdPreferenciasHorariasProfesor implements Serializable
             @JoinColumn(name = "tramo", referencedColumnName = "tramo"),
             @JoinColumn(name = "horario_matutino", referencedColumnName = "horarioMatutino")
     })
-    private DiasTramosTipoHorario diasTramosTipoHorario;
+    private DiaTramoTipoHorario diaTramoTipoHorario;
 }

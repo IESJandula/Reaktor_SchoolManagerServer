@@ -5,19 +5,18 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import es.iesjandula.reaktor.school_manager_server.models.DiasTramosTipoHorario;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdDiasTramosTipoHorario;
-import es.iesjandula.reaktor.school_manager_server.repositories.IDiasTramosTipoHorarioRepository;
+import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
+import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class DiasTramosTipoHorarioService
+public class DiaTramoTipoHorarioService
 {
     @Autowired
-    private IDiasTramosTipoHorarioRepository diasTramosTipoHorarioRepository ;
+    private IDiaTramoTipoHorarioRepository diaTramoTipoHorarioRepository ;
 
     /**
      * Método que obtiene un día y tramo de tipo horario
@@ -27,13 +26,10 @@ public class DiasTramosTipoHorarioService
      * @return - Día y tramo de tipo horario
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    public DiasTramosTipoHorario obtenerDiasTramosHorario(int dia, int tramo, boolean horarioMatutino) throws SchoolManagerServerException
+    public DiaTramoTipoHorario obtenerDiaTramoTipoHorario(int dia, int tramo, Boolean horarioMatutino) throws SchoolManagerServerException
     {
-        // Creamos una instancia de IdDiasTramosTipoHorario
-        IdDiasTramosTipoHorario idDiasTramosTipoHorario = new IdDiasTramosTipoHorario(dia, tramo, horarioMatutino) ;
-
         // Buscamos DiasTramosHorarios por IdDiasTramosTipoHorario
-        Optional<DiasTramosTipoHorario> diasTramosTipoHorarioOptional = this.diasTramosTipoHorarioRepository.findById(idDiasTramosTipoHorario) ;
+        Optional<DiaTramoTipoHorario> diasTramosTipoHorarioOptional = this.diaTramoTipoHorarioRepository.findByDiaAndTramoAndHorarioMatutino(dia, tramo, horarioMatutino) ;
 
         // Si no existe, lanzamos una excepción
         if (!diasTramosTipoHorarioOptional.isPresent())

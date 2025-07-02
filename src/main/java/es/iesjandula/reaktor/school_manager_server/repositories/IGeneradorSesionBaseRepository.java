@@ -18,7 +18,7 @@ import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 @Repository
 public interface IGeneradorSesionBaseRepository extends JpaRepository<GeneradorSesionBase, IdGeneradorSesionBase>
 {
-    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto(gsb.idGeneradorSesionBase.numeroSesion, gsb.idGeneradorSesionBase.diasTramosTipoHorario.idDiasTramosTipoHorario.dia, gsb.idGeneradorSesionBase.diasTramosTipoHorario.idDiasTramosTipoHorario.tramo) " +
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto(gsb.idGeneradorSesionBase.numeroSesion, gsb.idGeneradorSesionBase.diaTramoTipoHorario.dia, gsb.idGeneradorSesionBase.diaTramoTipoHorario.tramo) " +
            "FROM GeneradorSesionBase gsb " +
            "WHERE gsb.idGeneradorSesionBase.asignatura = :asignatura " +
            "AND gsb.idGeneradorSesionBase.profesor = :profesor")
