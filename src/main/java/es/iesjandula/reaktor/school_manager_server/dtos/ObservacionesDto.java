@@ -1,22 +1,41 @@
 package es.iesjandula.reaktor.school_manager_server.dtos;
 
-import lombok.AllArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class ObservacionesDto
 {
-    private Boolean tieneObservaciones;
+    /**
+     * Indica si el profesor está conciliando horarios
+     */
+    private Boolean conciliacion ;
 
-    private Boolean conciliacion;
+    /**
+     * Indica si el profesor no quiere hacer clase la primera hora
+     */
+    private Boolean sinClasePrimeraHora ;
 
-    private Boolean sinClasePrimeraHora;
+    /**
+     * Indica otras observaciones del profesor
+     */
+    private String otrasObservaciones ;
 
-    private String otrasObservaciones;
+    /**
+     * Indica los tramos horarios que el profesor no quiere hacer
+     */
+    private List<DiaTramoTipoHorarioDto> tramosHorarios ;
 
+    /**
+     * Constructor por defecto
+     */
     public ObservacionesDto()
     {
-        this.tieneObservaciones = false;
+        this.conciliacion        = false ;
+        this.sinClasePrimeraHora = false ;
+        this.otrasObservaciones  = "" ;
+        this.tramosHorarios      = new ArrayList<>() ;
     }
 }

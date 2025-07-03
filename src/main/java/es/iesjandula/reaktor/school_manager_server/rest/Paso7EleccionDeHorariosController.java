@@ -90,7 +90,7 @@ public class Paso7EleccionDeHorariosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -101,7 +101,7 @@ public class Paso7EleccionDeHorariosController
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -137,7 +137,7 @@ public class Paso7EleccionDeHorariosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -148,7 +148,7 @@ public class Paso7EleccionDeHorariosController
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -331,7 +331,7 @@ public class Paso7EleccionDeHorariosController
             }
             List<ReduccionProfesoresDto> listReduccionesProfesores = this.iReduccionRepository.encontrarReduccionesParaProfesores();
 
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(listReduccionesProfesores);
+            return ResponseEntity.ok().body(listReduccionesProfesores);
         }
         catch (Exception exception)
         {
@@ -342,7 +342,7 @@ public class Paso7EleccionDeHorariosController
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -360,7 +360,7 @@ public class Paso7EleccionDeHorariosController
      * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la operación.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/observaciones")
+    @RequestMapping(method = RequestMethod.GET, value = "/tramosHorarios")
     public ResponseEntity<?> obtenerListaDiaTramoTipoHorario()
     {
         try
@@ -379,7 +379,7 @@ public class Paso7EleccionDeHorariosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -390,108 +390,266 @@ public class Paso7EleccionDeHorariosController
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
-    /**
-     * Actualiza las observaciones y preferencias horarias de un profesor en función de los parámetros proporcionados.
-     * <p>
-     * Este método se encarga de guardar tanto las observaciones como las preferencias de tramos horarios,
-     * realizando las validaciones necesarias y gestionando posibles excepciones.
-     *
-     * @param usuario             el usuario autenticado que realiza la solicitud, representado como {@link DtoUsuarioExtended}.
-     * @param conciliacion        indica si el profesor solicita una observación conciliadora.
-     * @param trabajarPrimeraHora indica si el profesor desea trabajar en la primera hora.
-     * @param otrasObservaciones  observaciones adicionales sobre la disponibilidad horaria del profesor (opcional).
-     * @param diasDesc            descripción del/de los día(s) aplicables para el horario.
-     * @param tramo               el tramo horario que se desea modificar.
-     * @param horarioMatutino     el tipo de horario o jornada laboral.
-     * @param email               el correo electrónico del profesor al que se aplican las observaciones.
-     * @return una {@link ResponseEntity} con:
-     * - 204 (NO_CONTENT) si la operación se realiza correctamente.
-     * - 400 (NOT_FOUND) si se lanza una excepción de tipo {@link SchoolManagerServerException} durante la validación.
-     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado o de acceso a la base de datos.
-     */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-    @RequestMapping(method = RequestMethod.PUT, value = "/observaciones")
-    public ResponseEntity<?> actualizarObservaciones(@AuthenticationPrincipal DtoUsuarioExtended usuario,
-                                                     @RequestHeader(value = "conciliacion") Boolean conciliacion,
-                                                     @RequestHeader(value = "sinClasePrimeraHora") Boolean sinClasePrimeraHora,
-                                                     @RequestHeader(value = "otrasObservaciones", required = false) String otrasObservaciones,
-                                                     @RequestHeader(value = "diaDesc") String diasDesc,
-                                                     @RequestHeader(value = "tramoDesc") String tramoDesc,
-                                                     @RequestHeader(value = "horarioMatutino") boolean horarioMatutino,
-                                                     @RequestHeader(value = "email") String email)
+    @RequestMapping(method = RequestMethod.PUT, value = "/observaciones/conciliacion")
+    public ResponseEntity<?> actualizarConciliacion(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                    @RequestHeader(value = "email") String email,
+                                                    @RequestHeader(value = "conciliacion") Boolean conciliacion)
     {
         try
         {
+            // Validamos que si no es dirección, se han realizado las validaciones previas
             if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
             {
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
 
-            Profesor profesor = this.iProfesorRepository.findByEmail(email);
-            if (profesor == null)
-            {
-                String mensajeError = "No se encontró ningún profesor con el email: " + email;
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
-            }
+            // Obtenemos las observaciones adicionales del profesor
+            ObservacionesAdicionales observacionesAdicionales = this.obtenerObservaciones(email) ;
 
-            IdObservacionesAdicionales idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
+            // Actualizamos la conciliacion del profesor
+            observacionesAdicionales.setConciliacion(conciliacion) ;
 
-            ObservacionesAdicionales observacionesAdicionales = new ObservacionesAdicionales(idObservacionesAdicionales, conciliacion, sinClasePrimeraHora, otrasObservaciones);
+            // Guardamos las observaciones adicionales en la base de datos
+            this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales) ;
 
-            this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales);
-
-            Optional<List<PreferenciasHorariasProfesor>> listPreferenciasHorariasProfesorABuscar = this.iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(email);
-
-            if (listPreferenciasHorariasProfesorABuscar.isPresent() && listPreferenciasHorariasProfesorABuscar.get().size() == 3)
-            {
-                this.iPreferenciasHorariasRepository.deleteAll(listPreferenciasHorariasProfesorABuscar.get());
-            }
-
-            DiaTramoTipoHorario diaTramoTipoHorario = this.iDiaTramoTipoHorarioRepository.buscarPorDiaDescTramoDesc(diasDesc, tramoDesc);
-            if (diaTramoTipoHorario == null)
-            {
-                String mensajeError = "No se pudo encontrar el identificador del día/tramo/tipoHorario especificado.";
-                log.error(mensajeError);
-                throw new SchoolManagerServerException(Constants.DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS, mensajeError);
-            }
-
-            IdPreferenciasHorariasProfesor idPreferenciasHorariasProfesor = new IdPreferenciasHorariasProfesor(profesor, diaTramoTipoHorario);
-
-            PreferenciasHorariasProfesor preferenciasHorariasProfesor = new PreferenciasHorariasProfesor();
-            preferenciasHorariasProfesor.setIdPreferenciasHorariasProfesor(idPreferenciasHorariasProfesor);
-
-            this.iPreferenciasHorariasRepository.saveAndFlush(preferenciasHorariasProfesor);
-
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-
+            return ResponseEntity.ok().build();
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            if (schoolManagerServerException.getCode() == Constants.PROFESOR_NO_ENCONTRADO)
-            {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
-            }
-            else
-            {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
-            }
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
             // Manejo de excepciones generales
-            String mensajeError = "ERROR - Se produjo un error inesperado al intentar actualizar las observaciones del profesor.";
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar actualizar la conciliacion del profesor.";
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @RequestMapping(method = RequestMethod.PUT, value = "/observaciones/sinClasePrimeraHora")
+    public ResponseEntity<?> actualizarSinClasePrimeraHora(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                           @RequestHeader(value = "email") String email,
+                                                           @RequestHeader(value = "sinClasePrimeraHora") Boolean sinClasePrimeraHora)
+    {
+        try
+        {
+            // Validamos que si no es dirección, se han realizado las validaciones previas
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
+
+            // Obtenemos las observaciones adicionales del profesor
+            ObservacionesAdicionales observacionesAdicionales = this.obtenerObservaciones(email) ;
+
+            // Actualizamos la sin clase primera hora del profesor
+            observacionesAdicionales.setSinClasePrimeraHora(sinClasePrimeraHora) ;
+
+            // Guardamos las observaciones adicionales en la base de datos
+            this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales) ;
+
+            return ResponseEntity.ok().build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar actualizar la sin clase primera hora del profesor.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }   
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @RequestMapping(method = RequestMethod.PUT, value = "/observaciones/preferenciaHoraria")
+    public ResponseEntity<?> actualizarPreferenciaHoraria(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                          @RequestHeader(value = "email") String email,
+                                                          @RequestHeader(value = "idSeleccion") Integer idSeleccion,
+                                                          @RequestHeader(value = "diaDesc") String diaDesc,
+                                                          @RequestHeader(value = "tramoDesc") String tramoDesc)
+    {
+        try
+        {
+            // Validamos que si no es dirección, se han realizado las validaciones previas
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
+
+            // Buscamos el profesor
+            Profesor profesor = this.profesorService.buscarProfesor(email);
+
+            // Obtenemos las preferencias horarias del profesor
+            PreferenciasHorariasProfesor preferenciasHorariasProfesor = this.obtenerPreferenciasHorarias(email, idSeleccion) ;
+
+            // Buscamos la instancia de diaTramoTipoHorario 
+            DiaTramoTipoHorario diaTramoTipoHorario = this.iDiaTramoTipoHorarioRepository.buscarPorDiaDescTramoDesc(diaDesc, tramoDesc) ;
+
+            // Construimos el id de las preferencias horarias
+            IdPreferenciasHorariasProfesor idPreferenciasHorariasProfesor = new IdPreferenciasHorariasProfesor() ;
+
+            // Añadimos la información del id de las preferencias horarias
+            idPreferenciasHorariasProfesor.setIdSeleccion(idSeleccion) ;
+            idPreferenciasHorariasProfesor.setProfesor(profesor) ;
+            idPreferenciasHorariasProfesor.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+
+            // Construimos las preferencias horarias
+            preferenciasHorariasProfesor = new PreferenciasHorariasProfesor() ;
+
+            // Añadimos la información de la preferencia horaria
+            preferenciasHorariasProfesor.setIdPreferenciasHorariasProfesor(idPreferenciasHorariasProfesor) ;
+
+            // Guardamos las preferencias horarias en la base de datos
+            this.iPreferenciasHorariasRepository.saveAndFlush(preferenciasHorariasProfesor) ;
+
+            return ResponseEntity.ok().build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar actualizar las preferencias horarias del profesor.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Obtiene las preferencias horarias del profesor.
+     *
+     * @param email el correo electrónico del profesor.
+     * @param idSeleccion el id de la selección.
+     * @return las preferencias horarias del profesor.
+     * @throws SchoolManagerServerException si ocurre un error inesperado al intentar obtener las preferencias horarias del profesor.
+     */
+    private PreferenciasHorariasProfesor obtenerPreferenciasHorarias(String email, Integer idSeleccion) throws SchoolManagerServerException
+    {
+        // Buscamos las preferencias horarias del profesor
+        Optional<PreferenciasHorariasProfesor> optionalPreferenciasHorariasProfesor = 
+                this.iPreferenciasHorariasRepository.buscarPorEmailIdSeleccion(email, idSeleccion) ;
+
+        PreferenciasHorariasProfesor preferenciasHorariasProfesor = null;
+
+        // Si hay preferencias, la borramos para posteriormente actualizarla
+        if (optionalPreferenciasHorariasProfesor.isPresent())
+        {
+            // Obtenemos las preferencias horarias del profesor
+            preferenciasHorariasProfesor = optionalPreferenciasHorariasProfesor.get();
+
+            // Borramos la preferencia actual
+            this.iPreferenciasHorariasRepository.delete(preferenciasHorariasProfesor) ;
+        }
+        else
+        {
+            // Construimos las preferencias horarias
+            preferenciasHorariasProfesor = new PreferenciasHorariasProfesor() ;
+        }
+
+        return preferenciasHorariasProfesor ;
+    }       
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
+    @RequestMapping(method = RequestMethod.PUT, value = "/observaciones/otrasObservaciones")
+    public ResponseEntity<?> actualizarOtrasObservaciones(@AuthenticationPrincipal DtoUsuarioExtended usuario,
+                                                          @RequestHeader(value = "email") String email,
+                                                          @RequestHeader(value = "otrasObservaciones") String otrasObservaciones)
+    {
+        try
+        {
+            // Validamos que si no es dirección, se han realizado las validaciones previas
+            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
+            {
+                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
+            }
+
+                // Obtenemos las observaciones adicionales del profesor
+            ObservacionesAdicionales observacionesAdicionales = this.obtenerObservaciones(email) ;
+
+            // Actualizamos las otras observaciones del profesor
+            observacionesAdicionales.setOtrasObservaciones(otrasObservaciones) ;
+
+            // Guardamos las observaciones adicionales en la base de datos
+            this.iObservacionesAdicionalesRepository.saveAndFlush(observacionesAdicionales) ;
+
+            return ResponseEntity.ok().build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            // Manejo de excepciones generales
+            String mensajeError = "ERROR - Se produjo un error inesperado al intentar actualizar las otras observaciones del profesor.";
+            log.error(mensajeError, exception);
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Almacena las observaciones adicionales en la base de datos.
+     *
+     * @param email el correo electrónico del profesor al que se aplican las observaciones.   
+     * @return las observaciones adicionales del profesor.
+     * @throws SchoolManagerServerException si ocurre un error inesperado al intentar almacenar las observaciones adicionales en la base de datos.
+     */
+    private ObservacionesAdicionales obtenerObservaciones(String email) throws SchoolManagerServerException
+    {
+        // Buscamos el profesor
+        Profesor profesor = this.profesorService.buscarProfesor(email);
+
+        // Buscamos las observaciones adicionales del profesor
+        Optional<ObservacionesAdicionales> optionalObservacionesAdicionales = iObservacionesAdicionalesRepository.buscarPorEmail(email) ;
+
+        ObservacionesAdicionales observacionesAdicionales = null;
+
+        // Si hay observaciones, las actualizamos
+        if (optionalObservacionesAdicionales.isPresent())
+        {
+            observacionesAdicionales = optionalObservacionesAdicionales.get();
+        }
+        else
+        {
+            // Construimos el id de las observaciones adicionales
+            IdObservacionesAdicionales idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
+
+            // Construimos las observaciones adicionales
+            observacionesAdicionales = new ObservacionesAdicionales() ;
+
+            // Añadimos la información del id de las observaciones adicionales
+            observacionesAdicionales.setIdObservacionesAdicionales(idObservacionesAdicionales);
+        }
+
+        return observacionesAdicionales ;
     }
 
     /**
@@ -501,39 +659,66 @@ public class Paso7EleccionDeHorariosController
      *
      * @param email el correo electrónico del profesor del que se desea obtener la información.
      * @return una {@link ResponseEntity} con:
-     * - 200 (OK) y una lista de observaciones adicionales.
+     * - 200 (OK) y un dto con las observaciones adicionales y las preferencias horarias.
      * - 404 (NOT_FOUND) si no se encuentra información asociada al profesor.
      * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/observaciones/usuario")
-    public ResponseEntity<?> obtenerObservacionesAdicionales(@AuthenticationPrincipal DtoUsuarioExtended usuario,
-                                                             @RequestHeader(value = "email") String email)
+    @RequestMapping(method = RequestMethod.GET, value = "/observaciones")
+    public ResponseEntity<?> obtenerObservaciones(@AuthenticationPrincipal DtoUsuarioExtended usuario, @RequestHeader(value = "email") String email)
     {
+        ObservacionesDto observacionesDto = new ObservacionesDto();
+
         try
         {
             if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
             {
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
-            Profesor profesorEncontrado = iProfesorRepository.findByEmail(email);
-            Optional<ObservacionesAdicionales> observacionesEncontradas = iObservacionesAdicionalesRepository.findByIdObservacionesAdicionales_Profesor(profesorEncontrado);
+            
+            // Buscamos las observaciones adicionales del profesor
+            Optional<ObservacionesAdicionales> observacionesEncontradas = iObservacionesAdicionalesRepository.buscarPorEmail(email) ;
 
-            ObservacionesDto observacionesDto = new ObservacionesDto();
-
+            // Si hay observaciones, las añadimos al dto
             if (observacionesEncontradas.isPresent())
             {
-                observacionesDto.setTieneObservaciones(true);
-                observacionesDto.setConciliacion(observacionesEncontradas.get().getConciliacion());
-                observacionesDto.setSinClasePrimeraHora(observacionesEncontradas.get().getSinClasePrimeraHora());
-                observacionesDto.setOtrasObservaciones(observacionesEncontradas.get().getOtrasObservaciones());
+                // Añadimos las observaciones al dto
+                observacionesDto.setConciliacion(observacionesEncontradas.get().getConciliacion()) ;
+                observacionesDto.setSinClasePrimeraHora(observacionesEncontradas.get().getSinClasePrimeraHora()) ;
+                observacionesDto.setOtrasObservaciones(observacionesEncontradas.get().getOtrasObservaciones()) ;
+            }
+
+            // Buscamos las preferencias horarias del profesor
+            Optional<List<PreferenciasHorariasProfesor>> preferenciasHorariasEncontradas = iPreferenciasHorariasRepository.buscarPorEmail(email);
+
+            // Si hay preferencias horarias, las añadimos al dto
+            if (preferenciasHorariasEncontradas.isPresent() && !preferenciasHorariasEncontradas.get().isEmpty())
+            {
+                List<DiaTramoTipoHorarioDto> tramosDto = new ArrayList<>() ;
+
+                // Recorremos las preferencias horarias y las añadimos al dto
+                for (PreferenciasHorariasProfesor tramo : preferenciasHorariasEncontradas.get())
+                {
+                    // Creamos un dto para cada preferencia horaria
+                    DiaTramoTipoHorarioDto diaTramoTipoHorarioDto = new DiaTramoTipoHorarioDto();
+
+                    // Añadimos el dia y el tramo a la preferencia horaria
+                    diaTramoTipoHorarioDto.setDiaDesc(tramo.getIdPreferenciasHorariasProfesor().getDiaTramoTipoHorario().getDiaDesc());
+                    diaTramoTipoHorarioDto.setTramoDesc(tramo.getIdPreferenciasHorariasProfesor().getDiaTramoTipoHorario().getTramoDesc());
+
+                    // Añadimos la preferencia horaria al dto
+                    tramosDto.add(diaTramoTipoHorarioDto);
+                }
+
+                // Añadimos las preferencias horarias al dto
+                observacionesDto.setTramosHorarios(tramosDto);
             }
 
             return ResponseEntity.ok().body(observacionesDto);
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -544,66 +729,7 @@ public class Paso7EleccionDeHorariosController
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }
-
-    /**
-     * Recupera la lista de dias con sus tramos horarios asociados a un profesor en función de su correo electrónico.
-     * <p>
-     * Devuelve un dto de salida con la información necesaria para mostrar las preferencias del profesor.
-     *
-     * @param email el correo electrónico del profesor del que se desea obtener la información.
-     * @return una {@link ResponseEntity} con:
-     * - 200 (OK) y una lista de franjas horarias.
-     * - 404 (NOT_FOUND) si no se encuentra información asociada al profesor.
-     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado durante la consulta.
-     */
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/preferencias/usuario")
-    public ResponseEntity<?> obtenerTramosHorariosUsuario(@AuthenticationPrincipal DtoUsuarioExtended usuario,
-                                                          @RequestHeader(value = "email") String email)
-    {
-        try
-        {
-            if (!usuario.getRoles().contains(BaseConstants.ROLE_DIRECCION))
-            {
-                this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
-            }
-
-            Optional<List<PreferenciasHorariasProfesor>> preferenciasHorariasEncontradas = iPreferenciasHorariasRepository.encontrarPrefenciasPorEmail(email);
-            TramosHorariosUsuarioDto tramosHorariosUsuarioDto = new TramosHorariosUsuarioDto();
-            List<DiaTramoTipoHorarioDto> tramosDto = new ArrayList<>(List.of());
-            if (preferenciasHorariasEncontradas.isPresent() && !preferenciasHorariasEncontradas.get().isEmpty())
-            {
-                tramosHorariosUsuarioDto.setTieneObservaciones(true);
-
-                for (PreferenciasHorariasProfesor tramo : preferenciasHorariasEncontradas.get())
-                {
-                    DiaTramoTipoHorarioDto diaTramoTipoHorarioDto = new DiaTramoTipoHorarioDto();
-                    diaTramoTipoHorarioDto.setDiaDesc(tramo.getIdPreferenciasHorariasProfesor().getDiaTramoTipoHorario().getDiaDesc());
-                    diaTramoTipoHorarioDto.setTramoDesc(tramo.getIdPreferenciasHorariasProfesor().getDiaTramoTipoHorario().getTramoDesc());
-                    tramosDto.add(diaTramoTipoHorarioDto);
-                }
-                tramosHorariosUsuarioDto.setTramosHorarios(tramosDto);
-            }
-
-            return ResponseEntity.ok().body(tramosHorariosUsuarioDto);
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-        catch (Exception exception)
-        {
-            // Manejo de excepciones generales
-            String mensajeError = "ERROR - Se produjo un error inesperado al recuperar las preferencias del profesor.";
-            log.error(mensajeError, exception);
-
-            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -666,7 +792,7 @@ public class Paso7EleccionDeHorariosController
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -826,7 +952,7 @@ public class Paso7EleccionDeHorariosController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
@@ -837,7 +963,7 @@ public class Paso7EleccionDeHorariosController
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 

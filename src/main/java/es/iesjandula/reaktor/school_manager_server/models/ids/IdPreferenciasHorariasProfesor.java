@@ -15,15 +15,14 @@ import java.io.Serializable;
 @Embeddable
 public class IdPreferenciasHorariasProfesor implements Serializable
 {
-    @ManyToOne
-    @JoinColumn(name = "profesor_email", referencedColumnName = "email")
-    private Profesor profesor;
+    /** Identificador de la selección */
+    private Integer idSeleccion;
 
-    @ManyToOne
-    @JoinColumns({
-            @JoinColumn(name = "dia", referencedColumnName = "dia"),
-            @JoinColumn(name = "tramo", referencedColumnName = "tramo"),
-            @JoinColumn(name = "horario_matutino", referencedColumnName = "horarioMatutino")
-    })
-    private DiaTramoTipoHorario diaTramoTipoHorario;
+	/** Profesor que imparte la asignatura */
+	@ManyToOne
+	private Profesor profesor;
+
+	/** Día de la semana y tramo horario */
+	@ManyToOne
+	private DiaTramoTipoHorario diaTramoTipoHorario ;
 }

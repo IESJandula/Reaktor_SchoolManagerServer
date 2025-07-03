@@ -41,4 +41,24 @@ public class ProfesorService
                                                                    profesor.getEmail())
                                       ).collect(Collectors.toList()) ;
     }
+
+    /**
+     * Busca un profesor en la base de datos por su email.
+     *
+     * @param email el email del profesor a buscar.
+     * @return el profesor encontrado.
+     * @throws SchoolManagerServerException si no se encuentra ningún profesor con el email proporcionado.
+     */
+    public Profesor buscarProfesor(String email) throws SchoolManagerServerException
+    {
+        Profesor profesor = this.iProfesorRepository.findByEmail(email);
+        if (profesor == null)
+        {
+            String mensajeError = "No se encontró ningún profesor con el email: " + email;
+            log.error(mensajeError);
+            throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
+        }
+
+        return profesor;
+    }
 }
