@@ -46,6 +46,14 @@ public class GeneradorInstancia
     @Column(name = "estado")
     private String estado ;
 
+
+    /**
+     * Solución elegida por el usuario.
+     * <p>Representa la solución elegida por el usuario.</p>
+     */
+    @Column(name = "solucionElegida")
+    private Boolean solucionElegida ;
+
     /**
      * Generador al que pertenece la instancia.
      * Relación de muchos a uno con la entidad {@link Generador}.
@@ -59,6 +67,7 @@ public class GeneradorInstancia
         this.puntuacion         = 0 ;
         this.mensajeInformacion = "" ;
         this.estado             = Constants.ESTADO_GENERADOR_EN_CURSO ;
+        this.solucionElegida    = false ;
     }
     
     /**

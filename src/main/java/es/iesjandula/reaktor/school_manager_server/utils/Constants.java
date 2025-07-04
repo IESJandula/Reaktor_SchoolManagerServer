@@ -266,6 +266,16 @@ public class Constants
 	 */
 	public static final int DIA_TRAMO_NO_ENCONTRADO = 72;
 
+	/**
+	 * Error - No se han encontrado días de la semana
+	 */
+	public static final int DIAS_SEMANA_NO_ENCONTRADOS = 73;
+
+	/**
+	 * Error - No se han encontrado tramos horarios
+	 */
+	public static final int TRAMOS_HORARIOS_NO_ENCONTRADOS = 74;
+
 
 	/************* ERRORES - Generales/De Conexión ***************/
 
@@ -348,6 +358,11 @@ public class Constants
 	 * Error - No hay un generador en curso
 	 */
 	public static final int ERROR_CODE_NO_GENERADOR_EN_CURSO = 305;
+
+	/**
+	 * Error - No se encontró la instancia del generador
+	 */
+	public static final int ERROR_CODE_GENERADOR_INSTANCIA_NO_ENCONTRADA = 306;
 	
 	/**
 	 * Constantes/Configuración
@@ -418,6 +433,16 @@ public class Constants
 	 * Referencia a la lista de listas CON restricciones horarias
 	 */
 	public static final int INDEX_CON_RESTRICCIONES_HORARIAS = 3;
+
+	/******************************************************/
+	/*************** Constantes - Generador ***************/
+	/******************************************************/
+
+	/**
+	 * Dia de la semana - Sin Seleccionar
+	 */
+	public static final String SIN_SELECCIONAR = "Sin Seleccionar" ;
+
 
 	/******************************************************/
 	/*************** Días de la semana *******************/

@@ -18,11 +18,13 @@ import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionBase;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionBaseRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
@@ -30,6 +32,7 @@ import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
+import es.iesjandula.reaktor.school_manager_server.services.DiaTramoTipoHorarioService;
 import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 import es.iesjandula.reaktor.school_manager_server.services.ValidadorDatosService;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +42,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/schoolManager/generador")
 public class Paso9GeneradorController
 {
+    @Autowired
+    private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
 
     @Autowired
     private ValidadorDatosService validadorDatosService ;
@@ -58,6 +63,8 @@ public class Paso9GeneradorController
     @Autowired
     private IGeneradorSesionBaseRepository generadorSesionBaseRepository ;
 
+    @Autowired
+    private IGeneradorInstanciaRepository generadorInstanciaRepository ;
 
     @Autowired
     private GeneradorService generadorService ;
@@ -99,6 +106,62 @@ public class Paso9GeneradorController
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(generadorDto);
         }
     }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/diasSemana")
+    public ResponseEntity<?> obtenerDiasSemana()
+    {
+        try
+        {
+            // Obtenemos los días de la semana
+            List<String> diasSemana = this.diaTramoTipoHorarioService.obtenerDiasSemana() ;
+
+            return ResponseEntity.ok(diasSemana) ;
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron obtener los días de la semana";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/tramosHorarios")
+    public ResponseEntity<?> obtenerTramosHorarios()
+    {
+        try
+        {
+            // Obtenemos los tramos horarios
+            List<String> tramosHorarios = this.diaTramoTipoHorarioService.obtenerTramosHorarios() ;
+
+            return ResponseEntity.ok(tramosHorarios) ;
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron obtener los tramos horarios";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
     
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.POST, value = "/sesionesBase")
@@ -133,8 +196,11 @@ public class Paso9GeneradorController
             // Obtenemos las restricciones de tipo de horario de la asignatura
             DiaTramoTipoHorario diaTramoTipoHorario = this.diaTramoTipoHorarioRepository.buscarPorDiaDescTramoDesc(diaDesc, tramoDesc) ;
 
-            // Actualizamos la sesión base
-            this.actualizarSesionesBaseInternal(numeroSesion, asignatura, profesor, diaTramoTipoHorario) ;
+            if (!Constants.SIN_SELECCIONAR.equals(diaDesc) && !Constants.SIN_SELECCIONAR.equals(tramoDesc))
+            {
+                // Actualizamos la sesión base
+                this.actualizarSesionesBaseInternal(numeroSesion, asignatura, profesor, diaTramoTipoHorario) ;
+            }
 
             return ResponseEntity.ok().build();
         }
@@ -179,6 +245,7 @@ public class Paso9GeneradorController
         generadorSesionBaseInstancia.setIdGeneradorSesionBase(idGeneradorSesionBase) ;
         generadorSesionBaseInstancia.setAsignatura(asignatura) ;
         generadorSesionBaseInstancia.setProfesor(profesor) ;
+        generadorSesionBaseInstancia.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Guardamos la instancia en la base de datos
         this.generadorSesionBaseRepository.saveAndFlush(generadorSesionBaseInstancia) ; 
@@ -201,7 +268,8 @@ public class Paso9GeneradorController
             Asignatura asignatura = this.buscarAsignatura(nombreAsignatura, curso, etapa, grupo) ;
 
             // Buscamos las sesiones base de la asignatura
-            Optional<List<SesionBaseDto>> sesionesBaseOptional = this.generadorSesionBaseRepository.buscarSesionesBasePorAsignaturaProfesor(asignatura, profesor) ;
+            Optional<List<SesionBaseDto>> sesionesBaseOptional = 
+                    this.generadorSesionBaseRepository.buscarSesionesBasePorAsignaturaProfesorDto(asignatura, profesor) ;
 
             return ResponseEntity.ok(sesionesBaseOptional.get()) ;
         }
@@ -341,6 +409,76 @@ public class Paso9GeneradorController
 
             // Devolver el DTO del generador
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(generadorDto);
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/soluciones")
+    public ResponseEntity<?> obtenerTodasLasPosiblesSoluciones()
+    {
+        try
+        {
+            // Obtenemos todas las posibles soluciones
+            List<GeneradorInstancia> generadorInstancias = this.generadorInstanciaRepository.obtenerTodasLasPosiblesSoluciones() ;
+
+            return ResponseEntity.ok(generadorInstancias) ;
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron obtener todas las posibles soluciones";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/soluciones")
+    public ResponseEntity<?> seleccionarSolucion(@RequestHeader(value = "idGeneradorInstancia") Integer idGeneradorInstancia)
+    {
+        try
+        {
+            // Buscamos la instancia del generador
+            Optional<GeneradorInstancia> generadorInstanciaOptional = this.generadorInstanciaRepository.findById(idGeneradorInstancia) ;
+
+            // Si no existe, devolvemos un error
+            if (!generadorInstanciaOptional.isPresent())
+            {
+                String mensajeError = "La instancia del generador con id " + idGeneradorInstancia + " no existe" ;
+
+                log.error(mensajeError) ;
+                throw new SchoolManagerServerException(Constants.ERROR_CODE_GENERADOR_INSTANCIA_NO_ENCONTRADA, mensajeError) ;
+            }
+
+            // Cualquier solución que haya sido elegida, la deseleccionamos
+            this.generadorInstanciaRepository.deseleccionarSoluciones() ;
+
+            // Actualizamos la instancia del generador
+            GeneradorInstancia generadorInstancia = generadorInstanciaOptional.get() ;
+            generadorInstancia.setSolucionElegida(true) ;
+            this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
+
+            // Devolvemos un OK
+            return ResponseEntity.ok().build() ;
+        }   
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudo seleccionar la solución";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 

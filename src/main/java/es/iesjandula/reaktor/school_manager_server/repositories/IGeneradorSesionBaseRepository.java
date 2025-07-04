@@ -18,11 +18,17 @@ import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 @Repository
 public interface IGeneradorSesionBaseRepository extends JpaRepository<GeneradorSesionBase, IdGeneradorSesionBase>
 {
-    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto(gsb.idGeneradorSesionBase.numeroSesion, gsb.idGeneradorSesionBase.diaTramoTipoHorario.dia, gsb.idGeneradorSesionBase.diaTramoTipoHorario.tramo) " +
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto(gsb.idGeneradorSesionBase.numeroSesion, gsb.idGeneradorSesionBase.diaTramoTipoHorario.diaDesc, gsb.idGeneradorSesionBase.diaTramoTipoHorario.tramoDesc) " +
            "FROM GeneradorSesionBase gsb " +
            "WHERE gsb.idGeneradorSesionBase.asignatura = :asignatura " +
            "AND gsb.idGeneradorSesionBase.profesor = :profesor")
-    Optional<List<SesionBaseDto>> buscarSesionesBasePorAsignaturaProfesor(@Param("asignatura") Asignatura asignatura, @Param("profesor") Profesor profesor);
+    Optional<List<SesionBaseDto>> buscarSesionesBasePorAsignaturaProfesorDto(@Param("asignatura") Asignatura asignatura, @Param("profesor") Profesor profesor);
+
+    @Query("SELECT gsb " +
+           "FROM GeneradorSesionBase gsb " +
+           "WHERE gsb.idGeneradorSesionBase.asignatura = :asignatura " +
+           "AND gsb.idGeneradorSesionBase.profesor = :profesor")
+    Optional<List<GeneradorSesionBase>> buscarSesionesBasePorAsignaturaProfesor(@Param("asignatura") Asignatura asignatura, @Param("profesor") Profesor profesor);
 
     @Query("SELECT gsb " +
            "FROM GeneradorSesionBase gsb " +

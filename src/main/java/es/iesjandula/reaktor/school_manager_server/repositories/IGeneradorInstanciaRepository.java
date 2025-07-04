@@ -1,5 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,4 +24,17 @@ public interface IGeneradorInstanciaRepository extends JpaRepository<GeneradorIn
      */
     @Query("SELECT MAX(gi.puntuacion) FROM GeneradorInstancia gi WHERE gi.estado = '" + Constants.ESTADO_GENERADOR_FINALIZADO + "'")
     Optional<Integer> buscarMaximaPuntuacionSolucion();
+
+    /**
+     * Método que deselecciona todas las soluciones
+     */
+    @Query("UPDATE GeneradorInstancia gi SET gi.solucionElegida = false")
+    void deseleccionarSoluciones();
+
+    /**
+     * Método que obtiene todas las posibles soluciones
+     * @return List con todas las posibles soluciones
+     */
+    @Query("SELECT gi FROM GeneradorInstancia gi WHERE gi.estado = '" + Constants.ESTADO_GENERADOR_FINALIZADO + "' ORDER BY gi.puntuacion DESC")
+    List<GeneradorInstancia> obtenerTodasLasPosiblesSoluciones();
 }

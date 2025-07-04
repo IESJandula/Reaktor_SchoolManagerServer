@@ -13,8 +13,8 @@ public class SesionBaseDto
     private int numeroSesion;
 
     /** Día de la semana */
-    private int dia;
+    private String diaDesc;
 
     /** Tramo horario */
-    private int tramo;
+    private String tramoDesc;
 }

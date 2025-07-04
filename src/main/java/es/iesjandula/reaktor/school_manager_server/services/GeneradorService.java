@@ -26,6 +26,7 @@ import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionAsignada;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
@@ -226,32 +227,33 @@ public class GeneradorService
         for (Impartir impartir : impartirList)
         {
             // Obtenemos la lista de restricciones base de la asignatura de BBDD
-            Optional<List<SesionBaseDto>> restriccionesBaseOptional = this.generadorSesionBaseRepository.buscarSesionesBasePorAsignaturaProfesor(impartir.getAsignatura(), impartir.getProfesor()) ;
+            Optional<List<GeneradorSesionBase>> generadorRestriccionesBaseOptional = 
+                    this.generadorSesionBaseRepository.buscarSesionesBasePorAsignaturaProfesor(impartir.getAsignatura(), impartir.getProfesor()) ;
             
             List<RestriccionHoraria> restriccionesHorarias = null ;
 
             // Si hay restricciones base, las añadimos a la lista
-            if (restriccionesBaseOptional.isPresent())
+            if (generadorRestriccionesBaseOptional.isPresent())
             {
                 // Creamos una lista de restricciones horarias
                 restriccionesHorarias = new ArrayList<RestriccionHoraria>() ;
 
                 // Obtenemos la lista de restricciones base
-                List<SesionBaseDto> sesionBaseList = restriccionesBaseOptional.get() ;
+                List<GeneradorSesionBase> generadorSesionBaseList = generadorRestriccionesBaseOptional.get() ;
 
                 // Obtenemos el curso, etapa y grupo de la asignatura, y si es matutino o vespertino
                 CursoEtapaGrupo cursoEtapaGrupo = impartir.getAsignatura().getIdAsignatura().getCursoEtapaGrupo() ;
                 boolean tipoHorarioMatutino     = cursoEtapaGrupo.getHorarioMatutino() ;
 
                 // Iteramos para cada restricción base
-                for (SesionBaseDto restriccionBase : sesionBaseList)
+                for (GeneradorSesionBase generadorSesionBase : generadorSesionBaseList)
                 {
                     // Obtenemos el curso, etapa y grupo en formato String
                     String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
 
                     // Obtenemos el día y el tramo de la restricción base
-                    int dia   = restriccionBase.getDia() ;
-                    int tramo = restriccionBase.getTramo() ;
+                    int dia   = generadorSesionBase.getIdGeneradorSesionBase().getDiaTramoTipoHorario().getDia() ;
+                    int tramo = generadorSesionBase.getIdGeneradorSesionBase().getDiaTramoTipoHorario().getTramo() ;
 
                     // Vemos si el tipo de horario es matutino o vespertino
                     if (tipoHorarioMatutino)
