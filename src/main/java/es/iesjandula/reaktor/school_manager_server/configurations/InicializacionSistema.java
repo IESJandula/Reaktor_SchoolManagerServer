@@ -83,9 +83,6 @@ public class InicializacionSistema
 	    	// Copiamos las plantillas (origen) al destino
 	    	schoolManagerServerConfig.copyToDirectory(schoolManagerServerConfigExec) ;
 	    }
-		
-		// Parseamos los dias, tramos y tipo de horario
-		//this.cargarDiasTramosTipoHorarioDesdeCSVInternal() ;
 
 		if (Constants.MODO_DDL_CREATE.equalsIgnoreCase(this.modoDdl))
 		{

@@ -563,6 +563,9 @@ public class Paso7EleccionDeHorariosController
 
             // Borramos la preferencia actual
             this.iPreferenciasHorariasRepository.delete(preferenciasHorariasProfesor) ;
+
+            // Hacemos flush para que se actualice la base de datos
+            this.iPreferenciasHorariasRepository.flush();
         }
         else
         {
