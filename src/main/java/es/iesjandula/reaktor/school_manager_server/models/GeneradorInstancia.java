@@ -1,5 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -60,6 +61,7 @@ public class GeneradorInstancia
      */
     @ManyToOne
     @JoinColumn(name = "idGenerador")
+    @JsonBackReference
     private Generador generador ;
 
     public GeneradorInstancia()

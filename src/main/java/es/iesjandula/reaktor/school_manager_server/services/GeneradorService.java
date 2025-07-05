@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
+import es.iesjandula.reaktor.school_manager_server.dtos.InfoGeneradorDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.generator.core.CreadorSesiones;
 import es.iesjandula.reaktor.school_manager_server.generator.core.Horario;
@@ -73,47 +74,6 @@ public class GeneradorService
     @Autowired
     private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
 
-
-    /**
-     * Método que realiza una serie de validaciones previas
-     * @throws SchoolManagerServerException - Excepción personalizada
-     */
-    public void validarNoHayGeneradorEnCurso() throws SchoolManagerServerException
-    {
-        // Validamos si ya hay un generador en curso
-        Optional<Generador> generadorEnCurso = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
-
-        if (generadorEnCurso.isPresent())
-        {
-            String mensajeError = "Hay un generador en curso que fue lanzado el " + generadorEnCurso.get().getFechaInicio() ;
-
-            log.error(mensajeError) ;
-            throw new SchoolManagerServerException(Constants.ERROR_CODE_GENERADOR_EN_CURSO, mensajeError) ;
-        }
-    }
-
-    /**
-     * Método que obtiene el generador en curso
-     * @return Generador - Generador en curso
-     * @throws SchoolManagerServerException - Excepción personalizada
-     */
-    public Generador obtenerGeneradorEnCurso() throws SchoolManagerServerException
-    {
-        // Buscamos el generador
-        Optional<Generador> generador = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
-
-        // Si no existe, lanzamos una excepción
-        if (!generador.isPresent())
-        {
-            String mensajeError = "No hay un generador en curso" ;
-
-            log.error(mensajeError) ;
-            throw new SchoolManagerServerException(Constants.ERROR_CODE_NO_GENERADOR_EN_CURSO, mensajeError) ;
-        }
-
-        return generador.get() ;
-    }
-
     /**
      * Método que arranca el generador
      * @throws SchoolManagerServerException
@@ -121,7 +81,19 @@ public class GeneradorService
     public void configurarYarrancarGenerador() throws SchoolManagerServerException
     {
         // Obtenemos el generador en curso
-        Generador generador = this.obtenerGeneradorEnCurso() ;
+        Optional<Generador> optionalGenerador = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
+
+        // Si no hay generador en curso, lanzamos una excepción
+        if (!optionalGenerador.isPresent())
+        {
+            String mensajeError = "ERROR - No hay generador en curso" ; 
+
+            log.error(mensajeError) ;
+            throw new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, null);
+        }
+
+        // Obtenemos el generador
+        Generador generador = optionalGenerador.get() ;
 
         // Obtengo todos los cursos, etapas y grupos de BBDD
         List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGrupos() ;
@@ -331,6 +303,10 @@ public class GeneradorService
         return new ManejadorThreads(manejadorThreadsParams) ;
     }
 
+    /**
+     * Método que obtiene el umbral mínimo de errores
+     * @return Umbral mínimo de errores
+     */
     private int obtenerUmbralMinimoError()
     {
         int umbralMinimoError = 0 ;
@@ -355,6 +331,10 @@ public class GeneradorService
         return umbralMinimoError ;
     }
 
+    /**
+     * Método que obtiene el umbral mínimo de soluciones
+     * @return Umbral mínimo de soluciones
+     */
     private int obtenerUmbralMinimoSolucion()
     {
         int umbralMinimoSolucion = 0 ;
@@ -521,5 +501,115 @@ public class GeneradorService
     {
         // Eliminamos el GeneradorInstancia
         this.generadorInstanciaRepository.delete(generadorInstancia) ;
+    }
+
+    /**
+     * Método que obtiene el estado del generador
+     * @return InfoGeneradorDto - DTO con el estado del generador
+     */
+    public InfoGeneradorDto obtenerEstadoGenerador()
+    {
+        // Obtenemos el estado del generador y sus detalles generales
+        InfoGeneradorDto infoGeneradorDto = this.obtenerEstadoGeneradorDetallesGenerales() ;
+
+        // Ahora obtenemos la información de las soluciones (si existieran)
+        this.obtenerEstadoGeneradorInfoSoluciones(infoGeneradorDto) ;
+
+       return infoGeneradorDto ;
+    }
+
+    /**
+     * Método que obtiene el estado del generador y sus detalles generales
+     * @return InfoGeneradorDto - DTO con el estado del generador y sus detalles generales
+     */
+    private InfoGeneradorDto obtenerEstadoGeneradorDetallesGenerales()
+    {
+        InfoGeneradorDto infoGeneradorDto = new InfoGeneradorDto() ;
+
+        // Verificamos si hay un generador en curso
+        Optional<Generador> optionalGeneradorEnCurso = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
+
+        // Si hay un generador en curso, seteamos el estado y la fecha de inicio
+        if (optionalGeneradorEnCurso.isPresent())
+        {
+            // Obtenemos el generador en curso
+            Generador generadorEnCurso = optionalGeneradorEnCurso.get() ;
+
+            // Seteamos el estado del generador
+            infoGeneradorDto.setEstado(generadorEnCurso.getEstado()) ;
+
+            // Seteamos la fecha de inicio del generador
+            infoGeneradorDto.setFechaInicio(generadorEnCurso.getFechaInicio()) ;
+        }
+        else // Si no hay un generador en curso, buscamos el último generador que se lanzó mediante la fecha de inicio
+        {
+            // Buscamos el último generador que se lanzó mediante la fecha de inicio
+            Optional<Generador> optionalGeneradorDetenido = this.generadorRepository.buscarUltimoGeneradorLanzadoUsandoFechaInicio() ;
+
+            if (optionalGeneradorDetenido.isPresent())
+            {
+                // Obtenemos el generador
+                Generador generadorDetenido = optionalGeneradorDetenido.get() ;
+
+                // Seteamos el estado del generador
+                infoGeneradorDto.setEstado(generadorDetenido.getEstado()) ;
+
+                // Seteamos la fecha de inicio del generador
+                infoGeneradorDto.setFechaInicio(generadorDetenido.getFechaInicio()) ;
+
+                // Seteamos la fecha de fin del generador
+                infoGeneradorDto.setFechaFin(generadorDetenido.getFechaFin()) ;
+            }
+            else
+            {
+                // Seteamos el estado del generador
+                infoGeneradorDto.setEstado(Constants.ESTADO_GENERADOR_DETENIDO) ;
+
+                // Seteamos la fecha de inicio del generador
+                infoGeneradorDto.setFechaInicio(null) ;
+
+                // Seteamos la fecha de fin del generador
+                infoGeneradorDto.setFechaFin(null) ;
+            }
+        }
+
+        return infoGeneradorDto ;
+    }
+
+    /**
+     * Método que obtiene la información de las soluciones
+     * @param infoGeneradorDto - DTO con el estado del generador y sus detalles generales
+     */
+    private void obtenerEstadoGeneradorInfoSoluciones(InfoGeneradorDto infoGeneradorDto)
+    {
+        // Buscamos todas aquellas instancias del generador que tengan una solución
+        Optional<List<GeneradorInstancia>> optionalGeneradorInstancias = this.generadorInstanciaRepository.obtenerTodasLasPosiblesSoluciones() ;
+
+        // Creamos un mapa de puntuaciones
+        Map<Integer, List<String>> infoPuntuaciones = new HashMap<Integer, List<String>>() ;
+
+        // Si hay soluciones, seteamos la información de las soluciones
+        if (optionalGeneradorInstancias.isPresent())
+        {
+            // Obtenemos las soluciones
+            List<GeneradorInstancia> generadorInstancias = optionalGeneradorInstancias.get() ;
+
+            // Iteramos por cada solución
+            for (GeneradorInstancia generadorInstancia : generadorInstancias)
+            {
+                // Obtenemos la puntuación de la solución
+                int puntuacion = generadorInstancia.getPuntuacion() ;
+
+                List<String> listaPuntuaciones = new ArrayList<String>() ;
+
+                // Añadimos la puntuación y el mensaje a la lista
+                listaPuntuaciones.add("pruebaaaa") ;
+
+                infoPuntuaciones.put(puntuacion, listaPuntuaciones) ;
+            }
+        }
+
+        // Seteamos la información de las soluciones
+        infoGeneradorDto.setInfoPuntuaciones(infoPuntuaciones) ;
     }
 }

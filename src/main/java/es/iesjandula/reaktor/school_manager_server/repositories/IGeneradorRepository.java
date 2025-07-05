@@ -21,12 +21,12 @@ public interface IGeneradorRepository extends JpaRepository<Generador, Integer>
     Optional<Generador> buscarGeneradorPorEstado(@Param("estado") String estado) ;
 
     /**
-     * Método que obtiene el generador en curso
+     * Método que obtiene el último generador lanzado usando la fecha de inicio
      * @return - Generador
      */
     @Query("SELECT g " + 
            "FROM Generador g " + 
-           "WHERE g.fechaInicio IS NOT NULL AND g.fechaFin IS NULL " + 
-           "ORDER BY g.fechaInicio DESC")
-    public Generador buscarGeneradorActivo();
+           "WHERE g.fechaInicio IS NOT NULL AND " +
+                 "g.fechaInicio = (SELECT MAX(g2.fechaInicio) FROM Generador g2)")
+    Optional<Generador> buscarUltimoGeneradorLanzadoUsandoFechaInicio();
 }

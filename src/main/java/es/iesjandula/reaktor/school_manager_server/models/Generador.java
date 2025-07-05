@@ -1,5 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.util.Date;
 import java.util.List;
 
@@ -52,6 +53,7 @@ public class Generador
      * <p>Representa la lista de instancias del generador.</p>
      */
     @OneToMany(mappedBy = "generador")
+    @JsonManagedReference
     private List<GeneradorInstancia> generadorInstancias ;
 
     /**

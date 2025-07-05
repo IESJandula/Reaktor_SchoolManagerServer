@@ -8,13 +8,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.InfoGeneradorDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
@@ -73,37 +75,24 @@ public class Paso9GeneradorController
     @RequestMapping(method = RequestMethod.GET, value = "/estado")
     public ResponseEntity<?> obtenerEstadoGenerador()
     {
-        GeneradorDto generadorDto = null ;
-
         try
         {
-            // Obtenemos el generador en curso
-            Generador generador = this.generadorService.obtenerGeneradorEnCurso() ;
-
-            // Creamos el DTO del generador
-            generadorDto = new GeneradorDto(generador) ;
+            // Obtenemos el estado del generador y sus detalles generales
+            InfoGeneradorDto infoGeneradorDto = this.generadorService.obtenerEstadoGenerador() ;
 
             // Devolver el DTO del generador
-            return ResponseEntity.ok(generadorDto) ;
+            return ResponseEntity.ok(infoGeneradorDto) ;
         }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            // Generamos el DTO del generador
-            generadorDto = new GeneradorDto(schoolManagerServerException.getMessage()) ;
-
-            // Devolver el DTO del generador
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(generadorDto);
-        }   
         catch (Exception exception)
         {
-            // Generamos el DTO del generador
-            generadorDto = new GeneradorDto(exception.getMessage()) ;
+            String mensajeError = "ERROR - No se pudo obtener el estado del generador";
 
-            // Logueamos el error
-            log.error("ERROR - No se pudo obtener el estado del generador", exception) ;
+            log.error(mensajeError, exception) ;
 
-            // Devolver el DTO del generador
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(generadorDto);
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 
@@ -342,7 +331,7 @@ public class Paso9GeneradorController
         try
         {
             // Realizamos una serie de validaciones previas 
-            this.validacionesPrevias() ;
+            this.arrancarGeneradorValidacionesPrevias() ;
 
             // Creamos un nuevo generador en la base de datos
             Generador generador = new Generador() ;
@@ -372,60 +361,69 @@ public class Paso9GeneradorController
         }
     }
 
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.POST, value = "/forzarDetencion")
-    public ResponseEntity<?> forzarDetencion()
+        /**
+     * Método que realiza una serie de validaciones previas
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    private void arrancarGeneradorValidacionesPrevias() throws SchoolManagerServerException
     {
-        GeneradorDto generadorDto = null ;
-
-        try
+        // Validaciones de datosprevias
+        ValidadorDatosDto validadorDatosDto = this.validadorDatosService.validacionDatos() ;
+        
+        // Si hay mensajes de error, devolvemos un error
+        if (!validadorDatosDto.getErroresDatos().isEmpty())
         {
-            // Obtenemos el generador en curso
-            Generador generador = this.generadorService.obtenerGeneradorEnCurso() ;
-
-            // Detenemos el generador, guardamos en la BBDD y creamos el DTO
-            generador.pararGenerador(Constants.ESTADO_GENERADOR_DETENIDO) ;
-            this.generadorRepository.saveAndFlush(generador);
-
-            generadorDto = new GeneradorDto(generador) ;
-
-            return ResponseEntity.ok().body(generadorDto);
+            throw new SchoolManagerServerException(Constants.ERROR_VALIDACIONES_DATOS_INCORRECTOS, validadorDatosDto.getErroresDatos().toString()) ;
         }
-        catch (SchoolManagerServerException schoolManagerServerException)
+
+        // Validamos si ya hay un generador en curso
+        Optional<Generador> generadorEnCurso = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
+
+        if (generadorEnCurso.isPresent())
         {
-            // Generamos el DTO del generador
-            generadorDto = new GeneradorDto(schoolManagerServerException.getMessage()) ;
+            String mensajeError = "Hay un generador en curso que fue lanzado el " + generadorEnCurso.get().getFechaInicio() ;
 
-            // Devolver el DTO del generador
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(generadorDto);
-        }
-        catch (Exception exception)
-        {
-            // Generamos el DTO del generador
-            generadorDto = new GeneradorDto(exception.getMessage()) ;
-
-            // Logueamos el error
-            log.error("ERROR - No se pudo forzar la detención del generador", exception) ;
-
-            // Devolver el DTO del generador
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(generadorDto);
+            log.error(mensajeError) ;
+            throw new SchoolManagerServerException(Constants.ERROR_CODE_GENERADOR_EN_CURSO, mensajeError) ;
         }
     }
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/soluciones")
-    public ResponseEntity<?> obtenerTodasLasPosiblesSoluciones()
+    @RequestMapping(method = RequestMethod.POST, value = "/forzarDetencion")
+    public ResponseEntity<?> forzarDetencion()
     {
         try
         {
-            // Obtenemos todas las posibles soluciones
-            List<GeneradorInstancia> generadorInstancias = this.generadorInstanciaRepository.obtenerTodasLasPosiblesSoluciones() ;
+            // Buscamos el generador
+            Optional<Generador> optionalGenerador = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
 
-            return ResponseEntity.ok(generadorInstancias) ;
+            // Si no existe, lanzamos una excepción
+            if (!optionalGenerador.isPresent())
+            {
+                String mensajeError = "No hay un generador en curso" ;
+
+                log.error(mensajeError) ;
+                throw new SchoolManagerServerException(Constants.ERROR_CODE_NO_GENERADOR_EN_CURSO, mensajeError) ;
+            }
+
+            // Obtenemos el generador
+            Generador generador = optionalGenerador.get() ;
+
+            // Detenemos el generador, guardamos en la BBDD
+            generador.pararGenerador(Constants.ESTADO_GENERADOR_DETENIDO) ;
+
+            // Guardamos el generador en la BBDD
+            this.generadorRepository.saveAndFlush(generador);
+
+            return ResponseEntity.ok().build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudieron obtener todas las posibles soluciones";
+            String mensajeError = "ERROR - No se pudo forzar la detención del generador";
 
             log.error(mensajeError, exception) ;
 
@@ -480,24 +478,5 @@ public class Paso9GeneradorController
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
-    }
-
-    /**
-     * Método que realiza una serie de validaciones previas
-     * @throws SchoolManagerServerException - Excepción personalizada
-     */
-    private void validacionesPrevias() throws SchoolManagerServerException
-    {
-        // Validaciones de datosprevias
-        ValidadorDatosDto validadorDatosDto = this.validadorDatosService.validacionDatos() ;
-        
-        // Si hay mensajes de error, devolvemos un error
-        if (!validadorDatosDto.getErroresDatos().isEmpty())
-        {
-            throw new SchoolManagerServerException(Constants.ERROR_VALIDACIONES_DATOS_INCORRECTOS, validadorDatosDto.getErroresDatos().toString()) ;
-        }
-
-        // Validamos que no haya un generador en curso
-        this.generadorService.validarNoHayGeneradorEnCurso() ;
     }
 }
