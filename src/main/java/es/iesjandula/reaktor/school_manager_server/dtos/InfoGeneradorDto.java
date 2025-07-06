@@ -36,8 +36,8 @@ public class InfoGeneradorDto
     private String mensajeInformacion ;
 
     /**
-     * Mapa de puntuaciones e información de las soluciones.
-     * <p>Representa el mapa de puntuaciones e información de las soluciones.</p>
+     * Lista de soluciones.
+     * <p>Representa la lista de soluciones.</p>
      */
-    private Map<Integer, List<String>> infoPuntuaciones ;
+    private List<GeneradorInstanciaDto> soluciones ;
 }

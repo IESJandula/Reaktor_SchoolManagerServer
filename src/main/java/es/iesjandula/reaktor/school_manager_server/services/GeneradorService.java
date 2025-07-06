@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
+import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInstanciaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.InfoGeneradorDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.generator.core.CreadorSesiones;
@@ -585,8 +586,8 @@ public class GeneradorService
         // Buscamos todas aquellas instancias del generador que tengan una solución
         Optional<List<GeneradorInstancia>> optionalGeneradorInstancias = this.generadorInstanciaRepository.obtenerTodasLasPosiblesSoluciones() ;
 
-        // Creamos un mapa de puntuaciones
-        Map<Integer, List<String>> infoPuntuaciones = new HashMap<Integer, List<String>>() ;
+        // Creamos una lista de soluciones
+        List<GeneradorInstanciaDto> soluciones = new ArrayList<GeneradorInstanciaDto>() ;
 
         // Si hay soluciones, seteamos la información de las soluciones
         if (optionalGeneradorInstancias.isPresent())
@@ -597,19 +598,19 @@ public class GeneradorService
             // Iteramos por cada solución
             for (GeneradorInstancia generadorInstancia : generadorInstancias)
             {
-                // Obtenemos la puntuación de la solución
-                int puntuacion = generadorInstancia.getPuntuacion() ;
+                // Creamos una instancia de GeneradorInstanciaDto
+                GeneradorInstanciaDto generadorInstanciaDto = new GeneradorInstanciaDto() ;
 
-                List<String> listaPuntuaciones = new ArrayList<String>() ;
+                // Seteamos los valores de la instancia
+                generadorInstanciaDto.setIdGeneradorInstancia(generadorInstancia.getId()) ;
+                generadorInstanciaDto.setPuntuacion(generadorInstancia.getPuntuacion()) ;
 
-                // Añadimos la puntuación y el mensaje a la lista
-                listaPuntuaciones.add("pruebaaaa") ;
-
-                infoPuntuaciones.put(puntuacion, listaPuntuaciones) ;
+                // Añadimos la instancia a la lista de soluciones
+                soluciones.add(generadorInstanciaDto) ;
             }
         }
 
-        // Seteamos la información de las soluciones
-        infoGeneradorDto.setInfoPuntuaciones(infoPuntuaciones) ;
+        // Seteamos la lista de soluciones
+        infoGeneradorDto.setSoluciones(soluciones) ;
     }
 }
