@@ -3,7 +3,11 @@ package es.iesjandula.reaktor.school_manager_server.models;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

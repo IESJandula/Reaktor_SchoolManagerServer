@@ -8,6 +8,7 @@ import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
+import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -53,14 +54,16 @@ public class Horario implements Comparable<Horario>
     
     /**
      * Método que calcula la puntuación de una solución
+     * 
+     * @throws SchoolManagerServerException - Excepción personalizada
      * @return la puntuación obtenida
      */
-    public int calcularPuntuacion()
+    public int calcularPuntuacion() throws SchoolManagerServerException
     {
-    	// Calculamos primero la puntuación en función del número de sesiones insertadas
+    	// Calculamos la puntuación en función del número de sesiones insertadas
     	this.puntuacion = this.calcularPuntuacionNumeroSesionesInsertadas() ;
     	
-    	// Segundo, calculamos la puntuación en función de la consecutividad de asignaturas o profesor
+    	// Calculamos la puntuación en función de la consecutividad de asignaturas o profesor
     	this.puntuacion = this.puntuacion + this.calcularPuntuacionConsecutividad() ;
 
         log.info("Puntuacion obtenida: {}", this.puntuacion) ;
@@ -71,20 +74,35 @@ public class Horario implements Comparable<Horario>
     /**
      * Sumamos por cada sesion insertada
      * 
+     * @throws SchoolManagerServerException - Excepción personalizada
      * @return puntuación en función del número de sesiones insertadas
      */
-    private int calcularPuntuacionNumeroSesionesInsertadas()
+    private int calcularPuntuacionNumeroSesionesInsertadas() throws SchoolManagerServerException
     {
         int puntuacion = 0 ;
 
         if (this.matrizAsignacionesMatutinas != null)
         {
-            puntuacion = puntuacion + calcularPuntuacionNumeroSesionesInsertadasEnMatriz(this.matrizAsignacionesMatutinas) ;
+            // Calculamos la puntuación en función del número de sesiones insertadas en la matriz matutina
+            int puntuacionMatutina = this.calcularPuntuacionNumeroSesionesInsertadasEnMatriz(this.matrizAsignacionesMatutinas) ;
+
+            // Guardamos la puntuación en la BBDD
+            this.horarioParams.getGeneradorService().guardarGeneradorInstanciaSolucionInfoGeneral(this.horarioParams.getGeneradorInstancia(), Constants.SOL_INFO_NUM_SES_INSERTADAS, puntuacionMatutina, true) ;
+
+            // Sumamos la puntuación obtenida
+            puntuacion = puntuacion + puntuacionMatutina ;
         }
 
         if (this.matrizAsignacionesVespertinas != null)
         {
-            puntuacion = puntuacion + calcularPuntuacionNumeroSesionesInsertadasEnMatriz(this.matrizAsignacionesVespertinas) ;
+            // Calculamos la puntuación en función del número de sesiones insertadas en la matriz vespertina
+            int puntuacionVespertina = this.calcularPuntuacionNumeroSesionesInsertadasEnMatriz(this.matrizAsignacionesVespertinas) ;
+
+            // Guardamos la puntuación en la BBDD
+            this.horarioParams.getGeneradorService().guardarGeneradorInstanciaSolucionInfoGeneral(this.horarioParams.getGeneradorInstancia(), Constants.SOL_INFO_NUM_SES_INSERTADAS, puntuacionVespertina, false) ;
+
+            // Sumamos la puntuación obtenida
+            puntuacion = puntuacion + puntuacionVespertina ;
         }
 
         return puntuacion ;
@@ -117,20 +135,35 @@ public class Horario implements Comparable<Horario>
     /**
      * Sumamos por cada consecutividad
      * 
+     * @throws SchoolManagerServerException - Excepción personalizada
      * @return puntuación en función de la consecutividad de asignaturas o profesor
      */
-    private int calcularPuntuacionConsecutividad()
+    private int calcularPuntuacionConsecutividad() throws SchoolManagerServerException
     {
         int puntuacion = 0 ;
 
         if (this.matrizAsignacionesMatutinas != null)
         {
-            puntuacion = puntuacion + this.calcularPuntuacionConsecutividadMatutina() ;
+            // Calculamos la puntuación en función de la consecutividad en la matriz matutina
+            int puntuacionMatutina = this.calcularPuntuacionConsecutividadMatutina() ;
+
+            // Guardamos la puntuación en la BBDD
+            this.horarioParams.getGeneradorService().guardarGeneradorInstanciaSolucionInfoGeneral(this.horarioParams.getGeneradorInstancia(), Constants.SOL_INFO_CONSECUTIVIDAD, puntuacionMatutina, true) ;
+
+            // Sumamos la puntuación obtenida
+            puntuacion = puntuacion + puntuacionMatutina ;
         }
 
         if (this.matrizAsignacionesVespertinas != null)
         {
-            puntuacion = puntuacion + this.calcularPuntuacionConsecutividadVespertina() ;
+            // Calculamos la puntuación en función de la consecutividad en la matriz vespertina
+            int puntuacionVespertina = this.calcularPuntuacionConsecutividadVespertina() ;
+
+            // Guardamos la puntuación en la BBDD
+            this.horarioParams.getGeneradorService().guardarGeneradorInstanciaSolucionInfoGeneral(this.horarioParams.getGeneradorInstancia(), Constants.SOL_INFO_CONSECUTIVIDAD, puntuacionVespertina, false) ;
+
+            // Sumamos la puntuación obtenida
+            puntuacion = puntuacion + puntuacionVespertina ;
         }
 
         return puntuacion ;
@@ -139,9 +172,10 @@ public class Horario implements Comparable<Horario>
     /**
      * Sumamos por cada consecutividad matutina
      * 
+     * @throws SchoolManagerServerException - Excepción personalizada
      * @return puntuación en función de la consecutividad matutina de asignaturas o profesor
      */
-    private int calcularPuntuacionConsecutividadMatutina()
+    private int calcularPuntuacionConsecutividadMatutina() throws SchoolManagerServerException
     {
         int puntuacion = 0 ;
 
@@ -164,19 +198,31 @@ public class Horario implements Comparable<Horario>
 		            	// Verificamos si hay otro tramo horario después de este
 		            	if (indiceTramoHorario + 1 < this.matrizAsignacionesMatutinas[indiceCursoDia].length)
 		            	{
-		            		// Buscamos en el tramo horario siguiente si el profesor tiene clase
-		            		puntuacion = puntuacion + 
-		            					 this.calcularPuntuacionSesionesConsecutivasProfesor(this.matrizAsignacionesMatutinas,
-                                                                                             this.horarioParams.getNumeroCursosMatutinos(),
-                                                                                             diaExacto,
-                                                                                             indiceTramoHorario + 1,
-                                                                                             profesor) ;
+                            // Buscamos en el tramo horario siguiente si el profesor tiene clase
+                            int puntuacionSesionesConsecutivasProfesor = 
+                                this.calcularPuntuacionSesionesConsecutivasProfesor(this.matrizAsignacionesMatutinas,
+                                                                                    this.horarioParams.getNumeroCursosMatutinos(),
+                                                                                    diaExacto,
+                                                                                    indiceTramoHorario + 1,
+                                                                                    profesor) ;
+
+                            // Guardamos la puntuación en la BBDD
+                            this.horarioParams.getGeneradorService().guardarGeneradorInstanciaSolucionInfoProfesor(this.horarioParams.getGeneradorInstancia(), profesor, Constants.SOL_INFO_CONSECUTIVIDAD, puntuacionSesionesConsecutivasProfesor, true) ;
+
+                            // Sumamos la puntuación obtenida
+		            		puntuacion = puntuacion + puntuacionSesionesConsecutivasProfesor ;
 		            	}
                         else // Si entramos aquí, es porque es el último tramo horario de la matutina
                         {
-		            		// Buscamos en el tramo horario vespertino por si el profesor tiene clase la primera hora de la tarde
-		            		puntuacion = puntuacion + 
-		            					 this.calcularPuntuacionSesionesConsecutivasProfesorPrimeraHoraVespertina(diaExacto, profesor) ;
+                            // Buscamos en el tramo horario vespertino por si el profesor tiene clase la primera hora de la tarde
+                            int puntuacionSesionesConsecutivasProfesorPrimeraHoraVespertina = 
+                                this.calcularPuntuacionSesionesConsecutivasProfesorPrimeraHoraVespertina(diaExacto, profesor) ;
+
+                            // Guardamos la puntuación en la BBDD
+                            this.horarioParams.getGeneradorService().guardarGeneradorInstanciaSolucionInfoProfesor(this.horarioParams.getGeneradorInstancia(), profesor, Constants.SOL_INFO_CONSECUTIVIDAD_MATUTINA_VESPERTINA, puntuacionSesionesConsecutivasProfesorPrimeraHoraVespertina, false) ;
+
+                            // Sumamos la puntuación obtenida
+                            puntuacion = puntuacion + puntuacionSesionesConsecutivasProfesorPrimeraHoraVespertina ;
                         }
                 	}
             	}
@@ -189,9 +235,10 @@ public class Horario implements Comparable<Horario>
     /**
      * Sumamos por cada consecutividad vespertina
      * 
+     * @throws SchoolManagerServerException - Excepción personalizada
      * @return puntuación en función de la consecutividad vespertina de asignaturas o profesor
      */
-    private int calcularPuntuacionConsecutividadVespertina()
+    private int calcularPuntuacionConsecutividadVespertina() throws SchoolManagerServerException
     {
         int puntuacion = 0 ;
 
@@ -214,13 +261,19 @@ public class Horario implements Comparable<Horario>
 		            	// Verificamos si hay otro tramo horario después de este
 		            	if (indiceTramoHorario + 1 < this.matrizAsignacionesVespertinas[indiceCursoDia].length)
 		            	{
-		            		// Buscamos en el tramo horario siguiente si el profesor tiene clase
-		            		puntuacion = puntuacion + 
-		            					 this.calcularPuntuacionSesionesConsecutivasProfesor(this.matrizAsignacionesVespertinas,
+                            // Buscamos en el tramo horario siguiente si el profesor tiene clase
+                            int puntuacionSesionesConsecutivasProfesor = 
+                                this.calcularPuntuacionSesionesConsecutivasProfesor(this.matrizAsignacionesVespertinas,
                                                                                              this.horarioParams.getNumeroCursosVespertinos(),
                                                                                              diaExacto,
                                                                                              indiceTramoHorario + 1,
-                                                                                             profesor) ;            		
+                                                                                             profesor) ;
+
+                            // Guardamos la puntuación en la BBDD
+                            this.horarioParams.getGeneradorService().guardarGeneradorInstanciaSolucionInfoProfesor(this.horarioParams.getGeneradorInstancia(), profesor, Constants.SOL_INFO_CONSECUTIVIDAD, puntuacionSesionesConsecutivasProfesor, false) ;
+
+                            // Sumamos la puntuación obtenida
+                            puntuacion = puntuacion + puntuacionSesionesConsecutivasProfesor ;
 		            	}
                 	}
             	}
@@ -237,13 +290,14 @@ public class Horario implements Comparable<Horario>
      * @param diaExacto día exacto
      * @param tramoHorario tramo horario para verificar si tiene clase el profesor
      * @param profesor profesor
+     * @throws SchoolManagerServerException - Excepción personalizada
      * @return puntuación en función del número de sesiones consecutivas que tenga un profesor
      */
     private int calcularPuntuacionSesionesConsecutivasProfesor(Asignacion[][] matrizAsignaciones,
                                                                int numeroCursos,
     														   int diaExacto,
     														   int tramoHorario,
-    														   Profesor profesor)
+    														   Profesor profesor) throws SchoolManagerServerException
     {
     	int puntuacion = 0 ;
     	
@@ -277,9 +331,10 @@ public class Horario implements Comparable<Horario>
     /**
      * @param diaExacto día exacto
      * @param profesor profesor
+     * @throws SchoolManagerServerException - Excepción personalizada
      * @return puntuación en función del número de sesiones consecutivas que tenga un profesor
      */
-    private int calcularPuntuacionSesionesConsecutivasProfesorPrimeraHoraVespertina(int diaExacto, Profesor profesor)
+    private int calcularPuntuacionSesionesConsecutivasProfesorPrimeraHoraVespertina(int diaExacto, Profesor profesor) throws SchoolManagerServerException
     {
         int puntuacion = 0 ;
 

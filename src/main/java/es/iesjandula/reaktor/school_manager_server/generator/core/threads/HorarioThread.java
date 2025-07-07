@@ -94,12 +94,6 @@ public class HorarioThread extends Thread
 				// Decrementamos el número de threads pendientes
 				this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
 
-				// Si llegamos aquí es porque la aplicación vio alguna incompatibilidad
-				// Por lo que se para este thread y se informa al manejador
-				this.horarioThreadParams.getManejadorThreads().gestionarErrorEnAsignacionHoraria(this.matrizAsignacionesMatutinas, 
-																								 this.matrizAsignacionesVespertinas,
-																								 schoolManagerServerException.getMessage()) ;
-
 				// Si sucede una excepción aquí, el sistema no tendrá más remedio que comenzar de nuevo
 				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador() ;
 			}

@@ -604,6 +604,39 @@ public class Constants
 	 */
 	public static final String ESTADO_GENERADOR_DETENIDO   = "DETENIDO" ;
 
+	/******************************************************/
+	/******************** Categorías **********************/
+	/******************************************************/
+	
+	/**
+	 * Categoría de la solución - General
+	 */	
+	public static final String CATEGORIA_SOLUCION_GENERAL = "General";
+
+	/**
+	 * Categoría de la solución - Profesor
+	 */	
+	public static final String CATEGORIA_SOLUCION_PROFESOR = "Profesor";
+
+	/******************************************************/
+	/******************** Soluciones **********************/
+	/******************************************************/
+	
+	/**
+	 * Solución - Número de sesiones insertadas
+	 */
+	public static final String SOL_INFO_NUM_SES_INSERTADAS = "Sesiones Insertadas";
+
+	/**
+	 * Solución - Consecutividad
+	 */
+	public static final String SOL_INFO_CONSECUTIVIDAD = "Consecutividad";
+
+	/**
+	 * Solución - Consecutividad matutina-vespertina
+	 */
+	public static final String SOL_INFO_CONSECUTIVIDAD_MATUTINA_VESPERTINA = "Consecutividad Matutina-Vespertina";
+
 
 	/******************************************************/
 	/******************** Mensajes ************************/
@@ -627,8 +660,6 @@ public class Constants
 	/** Tabla de constantes - Umbral mínimo de soluciones */
 	public static final String TABLA_CONST_UMBRAL_MINIMO_SOLUCION 		   = "Umbral mínimo de soluciones";
 
-	/** Tabla de constantes - Umbral mínimo de errores */
-	public static final String TABLA_CONST_UMBRAL_MINIMO_ERROR 			   = "Umbral mínimo de errores";
 
 	/*********************************************************/
 	/******************* Parámetros YAML *********************/
@@ -648,11 +679,6 @@ public class Constants
 	 * Constante - Parámetros YAML - Umbral mínimo de soluciones
 	 */
 	public static final String PARAM_YAML_UMBRAL_MINIMO_SOLUCION = "reaktor.constantes.umbralMinimoSolucion";
-
-	/**
-	 * Constante - Parámetros YAML - Umbral mínimo de errores
-	 */
-	public static final String PARAM_YAML_UMBRAL_MINIMO_ERROR = "reaktor.constantes.umbralMinimoError";
 
 	/**
 	 * Constante - Parámetros YAML - MODO_INICIALIZAR_SISTEMA

@@ -1,6 +1,8 @@
 package es.iesjandula.reaktor.school_manager_server.generator.core;
 
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
+import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 
 public class HorarioParams
 {
@@ -25,6 +27,12 @@ public class HorarioParams
     /** Matriz de asignaciones vespertinas */
     private Asignacion[][] matrizAsignacionesVespertinas ;
 
+    /** GeneradorService */
+    private GeneradorService generadorService ;
+
+    /** GeneradorInstancia */
+    private GeneradorInstancia generadorInstancia ;
+
     /**
      * Constructor privado para forzar el uso del Builder
      * 
@@ -39,6 +47,8 @@ public class HorarioParams
         this.factorSesionesConsecutivasProfesorMatVes = builder.factorSesionesConsecutivasProfesorMatVes ;
         this.matrizAsignacionesMatutinas              = builder.matrizAsignacionesMatutinas ;
         this.matrizAsignacionesVespertinas            = builder.matrizAsignacionesVespertinas ;
+        this.generadorService                         = builder.generadorService ;
+        this.generadorInstancia                       = builder.generadorInstancia ;
     }
     
     /**
@@ -98,6 +108,22 @@ public class HorarioParams
     }
 
     /**
+     * @return generadorService
+     */
+    public GeneradorService getGeneradorService()
+    {
+        return this.generadorService ;
+    }
+
+    /**
+     * @return generadorInstancia
+     */
+    public GeneradorInstancia getGeneradorInstancia()
+    {
+        return this.generadorInstancia ;
+    }
+
+    /**
      * Clase estática interna Builder
      */
     public static class Builder
@@ -123,6 +149,12 @@ public class HorarioParams
         /** Matriz de asignaciones vespertinas */
         private Asignacion[][] matrizAsignacionesVespertinas ;
         
+        /** GeneradorService */
+        private GeneradorService generadorService ;
+
+        /** GeneradorInstancia */
+        private GeneradorInstancia generadorInstancia ;
+
         /**
          * @param numeroCursosMatutinos numero de cursos matutinos
          * @return builder
@@ -196,6 +228,28 @@ public class HorarioParams
         public Builder setMatrizAsignacionesVespertinas(Asignacion[][] matrizAsignacionesVespertinas)
         {
             this.matrizAsignacionesVespertinas = matrizAsignacionesVespertinas ;
+            
+            return this ;
+        }
+
+        /**
+         * @param generadorService generadorService
+         * @return builder
+         */
+        public Builder setGeneradorService(GeneradorService generadorService)
+        {
+            this.generadorService = generadorService ;
+            
+            return this ;
+        }
+
+        /**
+         * @param generadorInstancia generadorInstancia
+         * @return builder
+         */
+        public Builder setGeneradorInstancia(GeneradorInstancia generadorInstancia)
+        {
+            this.generadorInstancia = generadorInstancia ;
             
             return this ;
         }

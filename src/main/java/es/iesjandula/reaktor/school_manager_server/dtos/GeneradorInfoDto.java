@@ -2,14 +2,11 @@ package es.iesjandula.reaktor.school_manager_server.dtos;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
-import es.iesjandula.reaktor.school_manager_server.models.Generador;
-import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import lombok.Data;
 
 @Data
-public class InfoGeneradorDto
+public class GeneradorInfoDto
 {
     /**
      * Estado del generador.

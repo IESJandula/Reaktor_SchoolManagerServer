@@ -1,5 +1,8 @@
 package es.iesjandula.reaktor.school_manager_server.dtos;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -11,6 +14,12 @@ public class GeneradorInstanciaDto
     /** Puntuación de la instancia del generador */
     private int puntuacion ;
 
-    /** Mensaje de la instancia del generador */
-    private String mensaje ;
+    /** Puntuaciones desglosadas de la instancia del generador (general y por profesor) */
+    private List<GeneradorInstanciaSolucionInfoGeneralDto> puntuacionesDesglosadas ;
+
+    /** Constructor de la clase */
+    public GeneradorInstanciaDto()
+    {
+        this.puntuacionesDesglosadas = new ArrayList<>() ;
+    }
 }

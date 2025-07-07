@@ -42,4 +42,3 @@ reaktor:
   constantes:
     seleccionHorariosPorClaustro: ""
     umbralMinimoSolucion: 100
-    umbralMinimoError: 100

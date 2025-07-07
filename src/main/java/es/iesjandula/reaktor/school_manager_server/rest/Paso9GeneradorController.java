@@ -16,7 +16,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.school_manager_server.dtos.InfoGeneradorDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInfoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
@@ -78,10 +78,10 @@ public class Paso9GeneradorController
         try
         {
             // Obtenemos el estado del generador y sus detalles generales
-            InfoGeneradorDto infoGeneradorDto = this.generadorService.obtenerEstadoGenerador() ;
+            GeneradorInfoDto generadorInfoDto = this.generadorService.obtenerEstadoGenerador() ;
 
             // Devolver el DTO del generador
-            return ResponseEntity.ok(infoGeneradorDto) ;
+            return ResponseEntity.ok(generadorInfoDto) ;
         }
         catch (Exception exception)
         {

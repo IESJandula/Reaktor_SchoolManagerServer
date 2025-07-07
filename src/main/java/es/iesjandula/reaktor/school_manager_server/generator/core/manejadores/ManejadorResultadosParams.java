@@ -7,9 +7,6 @@ public class ManejadorResultadosParams
     /** Umbral mínimo para considerar una solución válida */
     private int umbralMinimoSolucion ;
 
-    /** Umbral mínimo para considerar un error */
-    private int umbralMinimoError ;
-
     /** Generador de horarios */
     private GeneradorService generadorService ;
     
@@ -21,7 +18,6 @@ public class ManejadorResultadosParams
     private ManejadorResultadosParams(Builder builder)
     {
         this.umbralMinimoSolucion = builder.umbralMinimoSolucion ;
-        this.umbralMinimoError    = builder.umbralMinimoError ;
         this.generadorService     = builder.generadorService ;
     }
 
@@ -31,14 +27,6 @@ public class ManejadorResultadosParams
     public int getUmbralMinimoSolucion()
     {
         return this.umbralMinimoSolucion ;
-    }
-
-    /**
-     * @return umbral mínimo para considerar un error
-     */
-    public int getUmbralMinimoError()
-    {
-        return this.umbralMinimoError ;
     }
 
     /**
@@ -56,10 +44,7 @@ public class ManejadorResultadosParams
     {
         /** Umbral mínimo para considerar una solución válida */
         private int umbralMinimoSolucion ;
-
-        /** Umbral mínimo para considerar un error */
-        private int umbralMinimoError ;
-
+        
         /** Generador de horarios */
         private GeneradorService generadorService ;
 
@@ -70,16 +55,6 @@ public class ManejadorResultadosParams
         public Builder setUmbralMinimoSolucion(int umbralMinimoSolucion)
         {
             this.umbralMinimoSolucion = umbralMinimoSolucion ;
-            return this ;
-        }
-
-        /**
-         * @param umbral mínimo para considerar un error
-         * @return builder
-         */
-        public Builder setUmbralMinimoError(int umbralMinimoError)
-        {
-            this.umbralMinimoError = umbralMinimoError ;
             return this ;
         }
 

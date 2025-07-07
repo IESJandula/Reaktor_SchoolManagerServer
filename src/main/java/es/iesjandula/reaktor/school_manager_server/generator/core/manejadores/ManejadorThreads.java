@@ -177,24 +177,6 @@ public class ManejadorThreads
 		}
 	}
 	
-	/**
-	 * @param matrizAsignacionesMatutinas matriz con las asignaciones matutinas
-	 * @param matrizAsignacionesVespertinas matriz con las asignaciones vespertinas
-	 * @param mensajeError mensaje de error
-	 * @throws SchoolManagerServerException con un error
-	 */
-	public void gestionarErrorEnAsignacionHoraria(Asignacion[][] matrizAsignacionesMatutinas,
-												  Asignacion[][] matrizAsignacionesVespertinas,
-												  String mensajeError) throws SchoolManagerServerException
-	{
-		// Creamos la nueva instancia de horario
-		Horario horario = this.crearInstanciaHorario(matrizAsignacionesMatutinas, matrizAsignacionesVespertinas) ;
-		
-		// Avisamos al manejador de resultados que guarde este horario de error
-		this.manejadorThreadsParams.getManejadorResultados()
-								   .agregarHorarioError(this.manejadorThreadsParams.getGeneradorInstancia(), horario, mensajeError) ;
-	}
-	
     /**
      * @param matrizAsignacionesMatutinas matriz con las asignaciones matutinas
      * @param matrizAsignacionesVespertinas matriz con las asignaciones vespertinas
@@ -211,6 +193,8 @@ public class ManejadorThreads
 			     .setFactorSesionesConsecutivasProfesorMatVes(this.manejadorThreadsParams.getFactorSesionesConsecutivasProfesorMatVes())
 			     .setMatrizAsignacionesMatutinas(matrizAsignacionesMatutinas)
 				 .setMatrizAsignacionesVespertinas(matrizAsignacionesVespertinas)
+				 .setGeneradorInstancia(this.manejadorThreadsParams.getGeneradorInstancia())
+				 .setGeneradorService(this.manejadorThreadsParams.getGeneradorService())
 			     .build() ;
 		
 		return new Horario(horarioParams) ;

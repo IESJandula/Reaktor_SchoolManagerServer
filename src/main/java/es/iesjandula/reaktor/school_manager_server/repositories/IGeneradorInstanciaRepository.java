@@ -15,13 +15,6 @@ import jakarta.transaction.Transactional;
 public interface IGeneradorInstanciaRepository extends JpaRepository<GeneradorInstancia, Integer>
 {
     /**
-     * Método que busca la máxima puntuación de errores
-     * @return Optional con la máxima puntuación de errores
-     */
-    @Query("SELECT MAX(gi.puntuacion) FROM GeneradorInstancia gi WHERE gi.estado = '" + Constants.ESTADO_GENERADOR_ERROR + "'")
-    Optional<Integer> buscarMaximaPuntuacionError();
-
-    /**
      * Método que busca la máxima puntuación de soluciones
      * @return Optional con la máxima puntuación de soluciones
      */

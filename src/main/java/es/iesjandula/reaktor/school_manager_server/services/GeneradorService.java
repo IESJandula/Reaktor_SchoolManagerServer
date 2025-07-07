@@ -2,6 +2,7 @@ package es.iesjandula.reaktor.school_manager_server.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,8 +12,9 @@ import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInstanciaDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.InfoGeneradorDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInstanciaSolucionInfoGeneralDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInstanciaSolucionInfoProfesorDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInfoDto;
 import es.iesjandula.reaktor.school_manager_server.generator.core.CreadorSesiones;
 import es.iesjandula.reaktor.school_manager_server.generator.core.Horario;
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorResultados;
@@ -27,14 +29,20 @@ import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoGeneral;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoProfesor;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionAsignada;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorInstanciaSolucionInfoGeneral;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorInstanciaSolucionInfoProfesor;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionAsignada;
 import es.iesjandula.reaktor.school_manager_server.repositories.IConstantesRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaSolucionInfoGeneral;
+import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaSolucionInfoProfesor;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
@@ -42,7 +50,6 @@ import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesion
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionBaseRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
-import jakarta.annotation.PostConstruct;
 
 @Service
 @Slf4j
@@ -65,6 +72,12 @@ public class GeneradorService
 
     @Autowired
     private IGeneradorInstanciaRepository generadorInstanciaRepository ;
+
+    @Autowired
+    private IGeneradorInstanciaSolucionInfoGeneral generadorInstanciaSolucionInfoGeneralRepository ;
+
+    @Autowired
+    private IGeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesorRepository ;
 
     @Autowired
     private IConstantesRepository constantesRepository ;
@@ -267,14 +280,12 @@ public class GeneradorService
                                                    CreadorSesiones creadorSesiones,
                                                    GeneradorInstancia generadorInstancia)
     {
-        // Obtenemos el mayor de los umbrales mínimos tanto para los errores como para las soluciones de BBDD
-        int umbralMinimoError    = this.obtenerUmbralMinimoError() ;
+        // Obtenemos el mayor de los umbrales mínimos de las soluciones de BBDD
         int umbralMinimoSolucion = this.obtenerUmbralMinimoSolucion() ;
 
         ManejadorResultadosParams manejadorResultadosParams =  
             new ManejadorResultadosParams.Builder()
                                          .setUmbralMinimoSolucion(umbralMinimoSolucion)
-                                         .setUmbralMinimoError(umbralMinimoError)
                                          .setGeneradorService(this)
                                          .build();
 
@@ -302,34 +313,6 @@ public class GeneradorService
                                   .build() ;
 
         return new ManejadorThreads(manejadorThreadsParams) ;
-    }
-
-    /**
-     * Método que obtiene el umbral mínimo de errores
-     * @return Umbral mínimo de errores
-     */
-    private int obtenerUmbralMinimoError()
-    {
-        int umbralMinimoError = 0 ;
-
-        // Tratamos de obtener el umbral mínimo de errores de la tabla de constantes
-        Optional<Constantes> optionalUmbralMinimoError = this.constantesRepository.findByClave(Constants.TABLA_CONST_UMBRAL_MINIMO_ERROR) ;
-
-        if (optionalUmbralMinimoError.isPresent() && optionalUmbralMinimoError.get().getValor() != null)
-        {
-            umbralMinimoError = Integer.parseInt(optionalUmbralMinimoError.get().getValor()) ;
-        }
-
-        // Obtenemos el umbral mínimo de errores de BBDD
-        Optional<Integer> optionalMaximaPuntuacionError = this.generadorInstanciaRepository.buscarMaximaPuntuacionError() ;
-
-        // Si hay umbral mínimo de errores, lo asignamos
-        if (optionalMaximaPuntuacionError.isPresent() && optionalMaximaPuntuacionError.get() > umbralMinimoError)
-        {
-            umbralMinimoError = optionalMaximaPuntuacionError.get() ;
-        }
-    
-        return umbralMinimoError ;
     }
 
     /**
@@ -498,34 +481,44 @@ public class GeneradorService
      * @param generadorInstancia - Generador instancia
      * @throws SchoolManagerServerException - Excepción personalizada
      */
+    @Transactional
     public void eliminarGeneradorInstancia(GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
     {
+        // Borramos por primera vez todas las soluciones generales de esta instancia
+        this.generadorInstanciaSolucionInfoGeneralRepository.borrarPorGeneradorInstanciaId(generadorInstancia.getId()) ;
+
+        // Borramos por primera vez todas las soluciones de profesores de esta instancia
+        this.generadorInstanciaSolucionInfoProfesorRepository.borrarPorGeneradorInstanciaId(generadorInstancia.getId()) ;
+        
+        // Borramos por primera vez todas las sesiones asignadas de esta instancia
+        this.generadorSesionAsignadaRepository.borrarPorGeneradorInstanciaId(generadorInstancia.getId()) ;
+
         // Eliminamos el GeneradorInstancia
         this.generadorInstanciaRepository.delete(generadorInstancia) ;
     }
 
     /**
      * Método que obtiene el estado del generador
-     * @return InfoGeneradorDto - DTO con el estado del generador
+     * @return GeneradorInfoDto - DTO con el estado del generador
      */
-    public InfoGeneradorDto obtenerEstadoGenerador()
+    public GeneradorInfoDto obtenerEstadoGenerador()
     {
         // Obtenemos el estado del generador y sus detalles generales
-        InfoGeneradorDto infoGeneradorDto = this.obtenerEstadoGeneradorDetallesGenerales() ;
+        GeneradorInfoDto generadorInfoDto = this.obtenerEstadoGeneradorDetallesGenerales() ;
 
         // Ahora obtenemos la información de las soluciones (si existieran)
-        this.obtenerEstadoGeneradorInfoSoluciones(infoGeneradorDto) ;
+        this.obtenerEstadoGeneradorInfoSoluciones(generadorInfoDto) ;
 
-       return infoGeneradorDto ;
+       return generadorInfoDto ;
     }
 
     /**
      * Método que obtiene el estado del generador y sus detalles generales
-     * @return InfoGeneradorDto - DTO con el estado del generador y sus detalles generales
+     * @return GeneradorInfoDto - DTO con el estado del generador y sus detalles generales
      */
-    private InfoGeneradorDto obtenerEstadoGeneradorDetallesGenerales()
+    private GeneradorInfoDto obtenerEstadoGeneradorDetallesGenerales()
     {
-        InfoGeneradorDto infoGeneradorDto = new InfoGeneradorDto() ;
+        GeneradorInfoDto generadorInfoDto = new GeneradorInfoDto() ;
 
         // Verificamos si hay un generador en curso
         Optional<Generador> optionalGeneradorEnCurso = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
@@ -537,10 +530,10 @@ public class GeneradorService
             Generador generadorEnCurso = optionalGeneradorEnCurso.get() ;
 
             // Seteamos el estado del generador
-            infoGeneradorDto.setEstado(generadorEnCurso.getEstado()) ;
+            generadorInfoDto.setEstado(generadorEnCurso.getEstado()) ;
 
             // Seteamos la fecha de inicio del generador
-            infoGeneradorDto.setFechaInicio(generadorEnCurso.getFechaInicio()) ;
+            generadorInfoDto.setFechaInicio(generadorEnCurso.getFechaInicio()) ;
         }
         else // Si no hay un generador en curso, buscamos el último generador que se lanzó mediante la fecha de inicio
         {
@@ -553,35 +546,35 @@ public class GeneradorService
                 Generador generadorDetenido = optionalGeneradorDetenido.get() ;
 
                 // Seteamos el estado del generador
-                infoGeneradorDto.setEstado(generadorDetenido.getEstado()) ;
+                generadorInfoDto.setEstado(generadorDetenido.getEstado()) ;
 
                 // Seteamos la fecha de inicio del generador
-                infoGeneradorDto.setFechaInicio(generadorDetenido.getFechaInicio()) ;
+                generadorInfoDto.setFechaInicio(generadorDetenido.getFechaInicio()) ;
 
                 // Seteamos la fecha de fin del generador
-                infoGeneradorDto.setFechaFin(generadorDetenido.getFechaFin()) ;
+                generadorInfoDto.setFechaFin(generadorDetenido.getFechaFin()) ;
             }
             else
             {
                 // Seteamos el estado del generador
-                infoGeneradorDto.setEstado(Constants.ESTADO_GENERADOR_DETENIDO) ;
+                generadorInfoDto.setEstado(Constants.ESTADO_GENERADOR_DETENIDO) ;
 
                 // Seteamos la fecha de inicio del generador
-                infoGeneradorDto.setFechaInicio(null) ;
+                generadorInfoDto.setFechaInicio(null) ;
 
                 // Seteamos la fecha de fin del generador
-                infoGeneradorDto.setFechaFin(null) ;
+                generadorInfoDto.setFechaFin(null) ;
             }
         }
 
-        return infoGeneradorDto ;
+        return generadorInfoDto ;
     }
 
     /**
      * Método que obtiene la información de las soluciones
-     * @param infoGeneradorDto - DTO con el estado del generador y sus detalles generales
+     * @param generadorInfoDto - DTO con el estado del generador y sus detalles generales
      */
-    private void obtenerEstadoGeneradorInfoSoluciones(InfoGeneradorDto infoGeneradorDto)
+    private void obtenerEstadoGeneradorInfoSoluciones(GeneradorInfoDto generadorInfoDto)
     {
         // Buscamos todas aquellas instancias del generador que tengan una solución
         Optional<List<GeneradorInstancia>> optionalGeneradorInstancias = this.generadorInstanciaRepository.obtenerTodasLasPosiblesSoluciones() ;
@@ -598,19 +591,180 @@ public class GeneradorService
             // Iteramos por cada solución
             for (GeneradorInstancia generadorInstancia : generadorInstancias)
             {
-                // Creamos una instancia de GeneradorInstanciaDto
-                GeneradorInstanciaDto generadorInstanciaDto = new GeneradorInstanciaDto() ;
-
-                // Seteamos los valores de la instancia
-                generadorInstanciaDto.setIdGeneradorInstancia(generadorInstancia.getId()) ;
-                generadorInstanciaDto.setPuntuacion(generadorInstancia.getPuntuacion()) ;
-
-                // Añadimos la instancia a la lista de soluciones
-                soluciones.add(generadorInstanciaDto) ;
+                this.obtenerEstadoGeneradorInfoSolucionesInternal(soluciones, generadorInstancia) ;                
             }
         }
 
         // Seteamos la lista de soluciones
-        infoGeneradorDto.setSoluciones(soluciones) ;
+        generadorInfoDto.setSoluciones(soluciones) ;
     }
+
+    /**
+     * Método que obtiene la información de una solución
+     * @param soluciones - Lista de soluciones
+     * @param generadorInstancia - Generador instancia
+     */
+    private void obtenerEstadoGeneradorInfoSolucionesInternal(List<GeneradorInstanciaDto> soluciones, GeneradorInstancia generadorInstancia)
+    {
+        // Creamos una instancia de GeneradorInstanciaDto
+        GeneradorInstanciaDto generadorInstanciaDto = new GeneradorInstanciaDto() ;
+
+        // Seteamos los valores de la instancia
+        generadorInstanciaDto.setIdGeneradorInstancia(generadorInstancia.getId()) ;
+        generadorInstanciaDto.setPuntuacion(generadorInstancia.getPuntuacion()) ;
+
+        // Obtenemos la información de las puntuaciones generales
+        this.obtenerEstadoGeneradorInfoSolucionesInternalGeneral(generadorInstanciaDto, generadorInstancia) ;
+
+        // Obtenemos la información de las puntuaciones de profesores
+        this.obtenerEstadoGeneradorInfoSolucionesInternalProfesores(generadorInstanciaDto, generadorInstancia) ;
+
+        // Añadimos la instancia a la lista de soluciones
+        soluciones.add(generadorInstanciaDto) ;
+    }
+
+    /**
+     * Método que obtiene la información de las puntuaciones generales
+     * @param generadorInstanciaDto - Generador instancia DTO
+     * @param generadorInstancia - Generador instancia
+     */
+    private void obtenerEstadoGeneradorInfoSolucionesInternalGeneral(GeneradorInstanciaDto generadorInstanciaDto, GeneradorInstancia generadorInstancia)
+    {
+        // Buscamos para esta instancia todos los tipos de puntuaciones generales
+        Optional<List<GeneradorInstanciaSolucionInfoGeneral>> optionalGeneradorInstanciaSolucionInfoGenerals = 
+        this.generadorInstanciaSolucionInfoGeneralRepository.buscarPorGeneradorInstancia(generadorInstancia.getId()) ;
+
+        // Si hay puntuaciones generales, seteamos la información de las puntuaciones generales
+        if (optionalGeneradorInstanciaSolucionInfoGenerals.isPresent())
+        {
+            // Obtenemos las puntuaciones generales
+            List<GeneradorInstanciaSolucionInfoGeneral> generadorInstanciaSolucionInfoGenerals = 
+                                    optionalGeneradorInstanciaSolucionInfoGenerals.get() ;
+
+            // Iteramos por cada puntuación general
+            for (GeneradorInstanciaSolucionInfoGeneral generadorInstanciaSolucionInfoGeneral : generadorInstanciaSolucionInfoGenerals)
+            {
+                // Creamos una instancia de GeneradorInstanciaSolucionInfoGeneralDto
+                GeneradorInstanciaSolucionInfoGeneralDto generadorInstanciaSolucionInfoGeneralDto = 
+                                    new GeneradorInstanciaSolucionInfoGeneralDto() ;
+
+                // Seteamos los valores de la instancia
+                generadorInstanciaSolucionInfoGeneralDto.setTipo(generadorInstanciaSolucionInfoGeneral.getIdGeneradorInstanciaSolucionInfoGeneral().getTipo()) ;
+                generadorInstanciaSolucionInfoGeneralDto.setPuntuacion(generadorInstanciaSolucionInfoGeneral.getPuntuacion()) ;
+
+                // Añadimos la puntuación general a la instancia
+                generadorInstanciaDto.getPuntuacionesDesglosadas().add(generadorInstanciaSolucionInfoGeneralDto) ;
+            }
+        }
+    }
+
+    /**
+     * Método que obtiene la información de las puntuaciones de profesores
+     * @param generadorInstanciaDto - Generador instancia DTO
+     * @param generadorInstancia - Generador instancia
+     */
+    private void obtenerEstadoGeneradorInfoSolucionesInternalProfesores(GeneradorInstanciaDto generadorInstanciaDto, GeneradorInstancia generadorInstancia)
+    {
+        // Buscamos para esta instancia todos los tipos de puntuaciones de profesores
+        Optional<List<GeneradorInstanciaSolucionInfoProfesor>> optionalGeneradorInstanciaSolucionInfoProfesors = 
+        this.generadorInstanciaSolucionInfoProfesorRepository.buscarPorGeneradorInstancia(generadorInstancia.getId()) ;
+
+        // Si hay puntuaciones de profesores, seteamos la información de las puntuaciones de profesores
+        if (optionalGeneradorInstanciaSolucionInfoProfesors.isPresent())
+        {
+            // Obtenemos las puntuaciones de profesores
+            List<GeneradorInstanciaSolucionInfoProfesor> generadorInstanciaSolucionInfoProfesors = 
+                            optionalGeneradorInstanciaSolucionInfoProfesors.get() ;
+
+            // Iteramos por cada puntuación de profesor
+            for (GeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesor : generadorInstanciaSolucionInfoProfesors)
+            {
+                // Creamos una instancia de GeneradorInstanciaSolucionInfoProfesorDto
+                GeneradorInstanciaSolucionInfoProfesorDto generadorInstanciaSolucionInfoProfesorDto =
+                            new GeneradorInstanciaSolucionInfoProfesorDto() ;
+
+                // Seteamos los valores de la instancia
+                generadorInstanciaSolucionInfoProfesorDto.setEmailProfesor(generadorInstanciaSolucionInfoProfesor.getIdGeneradorInstanciaSolucionInfoProfesor().getProfesor().getEmail()) ;
+                generadorInstanciaSolucionInfoProfesorDto.setTipo(generadorInstanciaSolucionInfoProfesor.getIdGeneradorInstanciaSolucionInfoProfesor().getTipo()) ;
+                generadorInstanciaSolucionInfoProfesorDto.setPuntuacion(generadorInstanciaSolucionInfoProfesor.getPuntuacion()) ;
+
+                // Añadimos la puntuación de profesor a la instancia
+                generadorInstanciaDto.getPuntuacionesDesglosadas().add(generadorInstanciaSolucionInfoProfesorDto) ;
+            }
+        }
+    }
+
+    /**
+     * Método que guarda la información de la solución general
+     * @param generadorInstancia - Generador instancia
+     * @param tipo - Tipo de información de la solución
+     * @param puntuacion - Puntuación de la solución
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    public void guardarGeneradorInstanciaSolucionInfoGeneral(GeneradorInstancia generadorInstancia, String tipo, int puntuacion, boolean horarioMatutino) throws SchoolManagerServerException
+    {        
+        // Creamos una instancia de GeneradorInstanciaSolucionInfoGeneral
+        GeneradorInstanciaSolucionInfoGeneral generadorInstanciaSolucionInfoGeneral = new GeneradorInstanciaSolucionInfoGeneral() ;
+
+        // Creamos una instancia de IdGeneradorInstanciaSolucionInfoGeneral
+        IdGeneradorInstanciaSolucionInfoGeneral idGeneradorInstanciaSolucionInfoGeneral = new IdGeneradorInstanciaSolucionInfoGeneral() ;
+        
+        // Seteamos los valores del ID compuesto
+        idGeneradorInstanciaSolucionInfoGeneral.setGeneradorInstancia(generadorInstancia) ;
+        idGeneradorInstanciaSolucionInfoGeneral.setTipo(tipo) ;
+
+        // Seteamos los valores de la entidad
+        generadorInstanciaSolucionInfoGeneral.setIdGeneradorInstanciaSolucionInfoGeneral(idGeneradorInstanciaSolucionInfoGeneral) ;
+        generadorInstanciaSolucionInfoGeneral.setPuntuacion(puntuacion) ;
+        generadorInstanciaSolucionInfoGeneral.setHorarioMatutino(horarioMatutino) ;
+
+        // Guardamos la instancia en la base de datos
+        this.generadorInstanciaSolucionInfoGeneralRepository.saveAndFlush(generadorInstanciaSolucionInfoGeneral) ;
+    }
+
+    /**
+     * Método que guarda la información de la solución de un profesor
+     * @param generadorInstancia - Generador instancia
+     * @param profesor - Profesor
+     * @param tipo - Tipo de información de la solución
+     * @param puntuacion - Puntuación de la solución
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    public void guardarGeneradorInstanciaSolucionInfoProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, String tipo, int puntuacion, boolean horarioMatutino) throws SchoolManagerServerException
+    {
+        // Creamos una instancia de GeneradorInstanciaSolucionInfoProfesor
+        GeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesor = new GeneradorInstanciaSolucionInfoProfesor() ;
+
+        // Creamos una instancia de IdGeneradorInstanciaSolucionInfoProfesor
+        IdGeneradorInstanciaSolucionInfoProfesor idGeneradorInstanciaSolucionInfoProfesor = new IdGeneradorInstanciaSolucionInfoProfesor() ;
+        
+        // Seteamos los valores del ID compuesto
+        idGeneradorInstanciaSolucionInfoProfesor.setGeneradorInstancia(generadorInstancia) ;
+        idGeneradorInstanciaSolucionInfoProfesor.setProfesor(profesor) ;
+        idGeneradorInstanciaSolucionInfoProfesor.setTipo(tipo) ;
+
+        // Buscamos si ya existe el la instancia de GeneradorInstanciaSolucionInfoProfesor
+        Optional<GeneradorInstanciaSolucionInfoProfesor> optionalGeneradorInstanciaSolucionInfoProfesor = 
+                this.generadorInstanciaSolucionInfoProfesorRepository.findById(idGeneradorInstanciaSolucionInfoProfesor) ;
+        
+        // Si ya existe, incrementamos la puntuación con el valor de la nueva puntuación
+        if (optionalGeneradorInstanciaSolucionInfoProfesor.isPresent())
+        {
+            // Obtenemos la instancia
+            generadorInstanciaSolucionInfoProfesor = optionalGeneradorInstanciaSolucionInfoProfesor.get() ;
+
+            // Actualizamos la puntuación
+            generadorInstanciaSolucionInfoProfesor.setPuntuacion(generadorInstanciaSolucionInfoProfesor.getPuntuacion() + puntuacion) ;
+        }
+        else // Si no existe, creamos una nueva instancia
+        {
+            // Seteamos los valores de la entidad
+            generadorInstanciaSolucionInfoProfesor.setIdGeneradorInstanciaSolucionInfoProfesor(idGeneradorInstanciaSolucionInfoProfesor) ;
+            generadorInstanciaSolucionInfoProfesor.setPuntuacion(puntuacion) ;
+            generadorInstanciaSolucionInfoProfesor.setHorarioMatutino(horarioMatutino) ;
+        }
+
+        // Guardamos la instancia en la base de datos
+        this.generadorInstanciaSolucionInfoProfesorRepository.saveAndFlush(generadorInstanciaSolucionInfoProfesor) ;
+    } 
 }
