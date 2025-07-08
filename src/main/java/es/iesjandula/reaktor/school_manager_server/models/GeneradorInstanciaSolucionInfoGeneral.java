@@ -28,6 +28,6 @@ public class GeneradorInstanciaSolucionInfoGeneral
     /** Puntuación */
     private int puntuacion ;
 
-    /** Si el tipo de horario es matutino */
-    private Boolean horarioMatutino ;
+    /** Porcentaje con respecto al total */
+    private double porcentaje ;
 }

@@ -3,6 +3,7 @@ package es.iesjandula.reaktor.school_manager_server.generator.core.threads;
 import java.util.Map;
 
 import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorThreads;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 
@@ -29,6 +30,9 @@ public class HorarioThreadParams
     /** Generador service */
     private GeneradorService generadorService ;
 
+    /** Instancia del generador */
+    private GeneradorInstancia generadorInstancia ;
+
     /**
      * Constructor privado para forzar el uso del Builder
      * 
@@ -43,6 +47,7 @@ public class HorarioThreadParams
         this.manejadorThreads                    = builder.manejadorThreads ;
         this.asignaturaService                   = builder.asignaturaService ;
         this.generadorService                    = builder.generadorService ;
+        this.generadorInstancia                  = builder.generadorInstancia ;
     }
     
     /**
@@ -102,6 +107,14 @@ public class HorarioThreadParams
     }
 
     /**
+     * @return generador instancia
+     */
+    public GeneradorInstancia getGeneradorInstancia()
+    {
+        return this.generadorInstancia ;
+    }
+
+    /**
      * Clase estática interna Builder
      */
     public static class Builder
@@ -126,6 +139,9 @@ public class HorarioThreadParams
 
         /** Generador service */
         private GeneradorService generadorService ;
+
+        /** Instancia del generador */
+        private GeneradorInstancia generadorInstancia ;
 
         /**
          * @param numeroCursos numero de cursos matutinos
@@ -200,6 +216,17 @@ public class HorarioThreadParams
         public Builder setGeneradorService(GeneradorService generadorService)
         {
             this.generadorService = generadorService ;
+            
+            return this ;
+        }
+
+        /**
+         * @param generadorInstancia generador instancia
+         * @return builder
+         */
+        public Builder setGeneradorInstancia(GeneradorInstancia generadorInstancia)
+        {
+            this.generadorInstancia = generadorInstancia ;
             
             return this ;
         }

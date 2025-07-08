@@ -45,6 +45,7 @@ import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstan
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaSolucionInfoProfesor;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionAsignadaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionBaseRepository;
@@ -78,6 +79,9 @@ public class GeneradorService
 
     @Autowired
     private IGeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesorRepository ;
+
+    @Autowired
+    private IProfesorRepository profesorRepository ;
 
     @Autowired
     private IConstantesRepository constantesRepository ;
@@ -299,9 +303,7 @@ public class GeneradorService
         new ManejadorThreadsParams.Builder()
                                   .setNumeroCursosMatutinos(numeroCursosMatutinos)
                                   .setNumeroCursosVespertinos(numeroCursosVespertinos)
-                                  .setFactorNumeroSesionesInsertadas(Constants.FACTOR_NUMERO_SESIONES_INSERTADAS) // Factor de puntuación por número de sesiones insertadas
-                                  .setFactorSesionesConsecutivasProfesor(Constants.FACTOR_SESIONES_CONSECUTIVAS_PROFESOR) // Factor de puntuación por sesiones consecutivas de profesor
-                                  .setFactorSesionesConsecutivasProfesorMatVes(Constants.FACTOR_SESIONES_CONSECUTIVAS_PROFESOR_MAT_VES) // Factor de puntuación por sesiones consecutivas de profesor en la primera hora vespertina
+                                  .setFactorSesionesConsecutivasProfesor(this.obtenerFactorSesionesConsecutivas())
                                   .setMapCorrelacionadorCursosMatutinos(mapCorrelacionadorCursosMatutinos) // Mapa de correlacionador de cursos (debe ser rellenado con los datos reales)
                                   .setMapCorrelacionadorCursosVespertinos(mapCorrelacionadorCursosVespertinos) // Mapa de correlacionador de cursos (debe ser rellenado con los datos reales)
                                   .setPoolSize(Constants.THREAD_POOL_SIZE)                     // Tamaño del pool
@@ -344,6 +346,25 @@ public class GeneradorService
     }
 
     /**
+     * Método que obtiene el factor de puntuación por número de sesiones consecutivas
+     * @return Factor de puntuación por número de sesiones consecutivas
+     */
+    private int obtenerFactorSesionesConsecutivas()
+    {
+        int factorSesionesConsecutivas = 1 ;
+
+        // Obtenemos el factor de puntuación por número de sesiones insertadas de la tabla de constantes
+        Optional<Constantes> optionalFactorSesionesConsecutivas = this.constantesRepository.findByClave(Constants.TABLA_CONST_FACTOR_SESIONES_CONSECUTIVAS) ;
+
+        if (optionalFactorSesionesConsecutivas.isPresent() && optionalFactorSesionesConsecutivas.get().getValor() != null)
+        {
+            factorSesionesConsecutivas = Integer.parseInt(optionalFactorSesionesConsecutivas.get().getValor()) ;
+        }
+
+        return factorSesionesConsecutivas ;
+    }
+
+    /**
      * Método que guarda una sesión asignada
      * @param generadorInstancia - Generador instancia
      * @param horario - Horario de la sesión asignada
@@ -352,6 +373,15 @@ public class GeneradorService
      */
     public void guardarHorario(GeneradorInstancia generadorInstancia, Horario horario, int puntuacionObtenida, String mensajeInformacion) throws SchoolManagerServerException
     {
+        // Obtenemos los profesores de BBDD
+        List<Profesor> profesores = this.profesorRepository.findAll() ;
+        
+        // Para cada profesor, actualizamos la tabla de información del profesor con los porcentajes de sesiones consecutivas
+        for (Profesor profesor : profesores)
+        {
+            this.generadorInstanciaSolucionInfoProfesorRepository.actualizarPorcentajesSesionesInsertadasYConsecutivas(generadorInstancia.getId(), profesor.getEmail()) ;
+        }
+
         // Actualizamos el GeneradorInstancia y el Generador en BBDD
         this.actualizarGeneradorYgeneradorInstancia(generadorInstancia, mensajeInformacion, puntuacionObtenida) ;
 
@@ -373,6 +403,9 @@ public class GeneradorService
             // Actualizamos el GeneradorInstancia con el estado, puntuación y mensaje de información
             generadorInstancia.pararGeneradorInstancia(Constants.ESTADO_GENERADOR_FINALIZADO, puntuacionObtenida, mensajeInformacion) ;
             this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
+
+            // Seleccionamos la solución
+            this.seleccionarSolucionInternal(generadorInstancia) ;
 
             // Actualizamos el Generador con el estado a finalizado
             Generador generador = generadorInstancia.getGenerador() ;
@@ -485,13 +518,13 @@ public class GeneradorService
     public void eliminarGeneradorInstancia(GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
     {
         // Borramos por primera vez todas las soluciones generales de esta instancia
-        this.generadorInstanciaSolucionInfoGeneralRepository.borrarPorGeneradorInstanciaId(generadorInstancia.getId()) ;
+        this.generadorInstanciaSolucionInfoGeneralRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
 
         // Borramos por primera vez todas las soluciones de profesores de esta instancia
-        this.generadorInstanciaSolucionInfoProfesorRepository.borrarPorGeneradorInstanciaId(generadorInstancia.getId()) ;
+        this.generadorInstanciaSolucionInfoProfesorRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
         
         // Borramos por primera vez todas las sesiones asignadas de esta instancia
-        this.generadorSesionAsignadaRepository.borrarPorGeneradorInstanciaId(generadorInstancia.getId()) ;
+        this.generadorSesionAsignadaRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
 
         // Eliminamos el GeneradorInstancia
         this.generadorInstanciaRepository.delete(generadorInstancia) ;
@@ -651,6 +684,7 @@ public class GeneradorService
                 // Seteamos los valores de la instancia
                 generadorInstanciaSolucionInfoGeneralDto.setTipo(generadorInstanciaSolucionInfoGeneral.getIdGeneradorInstanciaSolucionInfoGeneral().getTipo()) ;
                 generadorInstanciaSolucionInfoGeneralDto.setPuntuacion(generadorInstanciaSolucionInfoGeneral.getPuntuacion()) ;
+                generadorInstanciaSolucionInfoGeneralDto.setPorcentaje(generadorInstanciaSolucionInfoGeneral.getPorcentaje()) ;
 
                 // Añadimos la puntuación general a la instancia
                 generadorInstanciaDto.getPuntuacionesDesglosadas().add(generadorInstanciaSolucionInfoGeneralDto) ;
@@ -687,6 +721,7 @@ public class GeneradorService
                 generadorInstanciaSolucionInfoProfesorDto.setEmailProfesor(generadorInstanciaSolucionInfoProfesor.getIdGeneradorInstanciaSolucionInfoProfesor().getProfesor().getEmail()) ;
                 generadorInstanciaSolucionInfoProfesorDto.setTipo(generadorInstanciaSolucionInfoProfesor.getIdGeneradorInstanciaSolucionInfoProfesor().getTipo()) ;
                 generadorInstanciaSolucionInfoProfesorDto.setPuntuacion(generadorInstanciaSolucionInfoProfesor.getPuntuacion()) ;
+                generadorInstanciaSolucionInfoProfesorDto.setPorcentaje(generadorInstanciaSolucionInfoProfesor.getPorcentaje()) ;
 
                 // Añadimos la puntuación de profesor a la instancia
                 generadorInstanciaDto.getPuntuacionesDesglosadas().add(generadorInstanciaSolucionInfoProfesorDto) ;
@@ -701,7 +736,7 @@ public class GeneradorService
      * @param puntuacion - Puntuación de la solución
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    public void guardarGeneradorInstanciaSolucionInfoGeneral(GeneradorInstancia generadorInstancia, String tipo, int puntuacion, boolean horarioMatutino) throws SchoolManagerServerException
+    public void guardarGeneradorInstanciaSolucionInfoGeneral(GeneradorInstancia generadorInstancia, String tipo, int puntuacion, double porcentaje) throws SchoolManagerServerException
     {        
         // Creamos una instancia de GeneradorInstanciaSolucionInfoGeneral
         GeneradorInstanciaSolucionInfoGeneral generadorInstanciaSolucionInfoGeneral = new GeneradorInstanciaSolucionInfoGeneral() ;
@@ -716,7 +751,7 @@ public class GeneradorService
         // Seteamos los valores de la entidad
         generadorInstanciaSolucionInfoGeneral.setIdGeneradorInstanciaSolucionInfoGeneral(idGeneradorInstanciaSolucionInfoGeneral) ;
         generadorInstanciaSolucionInfoGeneral.setPuntuacion(puntuacion) ;
-        generadorInstanciaSolucionInfoGeneral.setHorarioMatutino(horarioMatutino) ;
+        generadorInstanciaSolucionInfoGeneral.setPorcentaje(porcentaje) ;
 
         // Guardamos la instancia en la base de datos
         this.generadorInstanciaSolucionInfoGeneralRepository.saveAndFlush(generadorInstanciaSolucionInfoGeneral) ;
@@ -730,7 +765,7 @@ public class GeneradorService
      * @param puntuacion - Puntuación de la solución
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    public void guardarGeneradorInstanciaSolucionInfoProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, String tipo, int puntuacion, boolean horarioMatutino) throws SchoolManagerServerException
+    public void guardarGeneradorInstanciaSolucionInfoProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, String tipo, int puntuacion) throws SchoolManagerServerException
     {
         // Creamos una instancia de GeneradorInstanciaSolucionInfoProfesor
         GeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesor = new GeneradorInstanciaSolucionInfoProfesor() ;
@@ -761,10 +796,48 @@ public class GeneradorService
             // Seteamos los valores de la entidad
             generadorInstanciaSolucionInfoProfesor.setIdGeneradorInstanciaSolucionInfoProfesor(idGeneradorInstanciaSolucionInfoProfesor) ;
             generadorInstanciaSolucionInfoProfesor.setPuntuacion(puntuacion) ;
-            generadorInstanciaSolucionInfoProfesor.setHorarioMatutino(horarioMatutino) ;
         }
 
         // Guardamos la instancia en la base de datos
         this.generadorInstanciaSolucionInfoProfesorRepository.saveAndFlush(generadorInstanciaSolucionInfoProfesor) ;
-    } 
+    }
+
+    /**
+     * Método que selecciona una solución
+     * @param idGeneradorInstancia - ID de la instancia del generador
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    @Transactional
+    public void seleccionarSolucion(Integer idGeneradorInstancia) throws SchoolManagerServerException
+    {
+        // Buscamos la instancia del generador
+        Optional<GeneradorInstancia> generadorInstanciaOptional = this.generadorInstanciaRepository.findById(idGeneradorInstancia) ;
+
+        // Si no existe, devolvemos un error
+        if (!generadorInstanciaOptional.isPresent())
+        {
+            String mensajeError = "La instancia del generador con id " + idGeneradorInstancia + " no existe" ;
+
+            log.error(mensajeError) ;
+            throw new SchoolManagerServerException(Constants.ERROR_CODE_GENERADOR_INSTANCIA_NO_ENCONTRADA, mensajeError) ;
+        }
+
+        // Actualizamos la instancia del generador
+        GeneradorInstancia generadorInstancia = generadorInstanciaOptional.get() ;
+
+        // Seleccionamos la solución
+        this.seleccionarSolucionInternal(generadorInstancia) ;
+    }
+
+    private void seleccionarSolucionInternal(GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
+    {
+        // Cualquier solución que haya sido elegida, la deseleccionamos
+        this.generadorInstanciaRepository.deseleccionarSoluciones() ;
+
+        // Actualizamos la instancia del generador
+        generadorInstancia.setSolucionElegida(true) ;
+
+        // Guardamos la instancia en la base de datos
+        this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
+    }   
 }

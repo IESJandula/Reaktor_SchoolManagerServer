@@ -440,6 +440,35 @@ public class Paso9GeneradorController
     {
         try
         {
+            // Llamamos al servicio para seleccionar la solución
+            this.generadorService.seleccionarSolucion(idGeneradorInstancia) ;
+
+            // Devolvemos un OK
+            return ResponseEntity.ok().build() ;
+        }   
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudo seleccionar la solución";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/soluciones")
+    public ResponseEntity<?> eliminarSoluciones(@RequestHeader(value = "idGeneradorInstancia") Integer idGeneradorInstancia)
+    {
+        try 
+        {
             // Buscamos la instancia del generador
             Optional<GeneradorInstancia> generadorInstanciaOptional = this.generadorInstanciaRepository.findById(idGeneradorInstancia) ;
 
@@ -452,24 +481,19 @@ public class Paso9GeneradorController
                 throw new SchoolManagerServerException(Constants.ERROR_CODE_GENERADOR_INSTANCIA_NO_ENCONTRADA, mensajeError) ;
             }
 
-            // Cualquier solución que haya sido elegida, la deseleccionamos
-            this.generadorInstanciaRepository.deseleccionarSoluciones() ;
-
-            // Actualizamos la instancia del generador
-            GeneradorInstancia generadorInstancia = generadorInstanciaOptional.get() ;
-            generadorInstancia.setSolucionElegida(true) ;
-            this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
+            // Eliminamos la instancia del generador y sus referencias
+            this.generadorService.eliminarGeneradorInstancia(generadorInstanciaOptional.get()) ;
 
             // Devolvemos un OK
             return ResponseEntity.ok().build() ;
-        }   
+        }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
-        {
-            String mensajeError = "ERROR - No se pudo seleccionar la solución";
+        {   
+            String mensajeError = "ERROR - No se pudieron eliminar las soluciones";
 
             log.error(mensajeError, exception) ;
 

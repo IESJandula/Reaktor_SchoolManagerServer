@@ -12,14 +12,8 @@ public class HorarioParams
 	/** Número de cursos vespertinos */
 	private int numeroCursosVespertinos ;
 	
-    /** Factor de puntuación en función del número de sesiones insertadas */
-    private int factorNumeroSesionesInsertadas ;
-
     /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
     private int factorSesionesConsecutivasProfesor ;
-
-    /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina */
-    private int factorSesionesConsecutivasProfesorMatVes ;
 
     /** Matriz de asignaciones matutinas */
     private Asignacion[][] matrizAsignacionesMatutinas ;
@@ -42,9 +36,7 @@ public class HorarioParams
     {
     	this.numeroCursosMatutinos				      = builder.numeroCursosMatutinos ;
     	this.numeroCursosVespertinos			      = builder.numeroCursosVespertinos ;
-        this.factorNumeroSesionesInsertadas           = builder.factorNumeroSesionesInsertadas ;
         this.factorSesionesConsecutivasProfesor       = builder.factorSesionesConsecutivasProfesor ;
-        this.factorSesionesConsecutivasProfesorMatVes = builder.factorSesionesConsecutivasProfesorMatVes ;
         this.matrizAsignacionesMatutinas              = builder.matrizAsignacionesMatutinas ;
         this.matrizAsignacionesVespertinas            = builder.matrizAsignacionesVespertinas ;
         this.generadorService                         = builder.generadorService ;
@@ -68,27 +60,11 @@ public class HorarioParams
     }
 
     /**
-     * @return factor de puntuación en función del número de sesiones insertadas
-     */
-    public int getFactorNumeroSesionesInsertadas()
-    {
-        return this.factorNumeroSesionesInsertadas ;
-    }
-
-    /**
      * @return factor de puntuación en función del número de sesiones consecutivas que tenga un profesor
      */
     public int getFactorSesionesConsecutivasProfesor()
     {
         return this.factorSesionesConsecutivasProfesor ;
-    }
-
-    /**
-     * @return factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina
-     */
-    public int getFactorSesionesConsecutivasProfesorMatVes()
-    {
-        return this.factorSesionesConsecutivasProfesorMatVes ;
     }
 
     /**
@@ -134,14 +110,8 @@ public class HorarioParams
     	/** Número de cursos vespertinos */
     	private int numeroCursosVespertinos ;
     	
-        /** Factor de puntuación en función del número de sesiones insertadas */
-        private int factorNumeroSesionesInsertadas ;
-
         /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
         private int factorSesionesConsecutivasProfesor ;
-
-        /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina */
-        private int factorSesionesConsecutivasProfesorMatVes ;
 
         /** Matriz de asignaciones matutinas */
         private Asignacion[][] matrizAsignacionesMatutinas ;
@@ -178,34 +148,12 @@ public class HorarioParams
         }
 
         /**
-         * @param factorNumeroSesionesInsertadas factor de puntuación en función del número de sesiones insertadas
-         * @return builder
-         */
-        public Builder setFactorNumeroSesionesInsertadas(int factorNumeroSesionesInsertadas)
-        {
-            this.factorNumeroSesionesInsertadas = factorNumeroSesionesInsertadas ;
-            
-            return this ;
-        }
-
-        /**
          * @param factorSesionesConsecutivasProfesor factor de puntuación en función del número de sesiones consecutivas que tenga un profesor
          * @return builder
          */
         public Builder setFactorSesionesConsecutivasProfesor(int factorSesionesConsecutivasProfesor)
         {
             this.factorSesionesConsecutivasProfesor = factorSesionesConsecutivasProfesor ;
-            
-            return this ;
-        }
-
-        /**
-         * @param factorSesionesConsecutivasProfesorMatVes factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina
-         * @return builder
-         */
-        public Builder setFactorSesionesConsecutivasProfesorMatVes(int factorSesionesConsecutivasProfesorMatVes)
-        {
-            this.factorSesionesConsecutivasProfesorMatVes = factorSesionesConsecutivasProfesorMatVes ;
             
             return this ;
         }

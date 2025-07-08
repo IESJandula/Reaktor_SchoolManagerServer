@@ -41,4 +41,6 @@ reaktor:
   reiniciarConstantes: true
   constantes:
     seleccionHorariosPorClaustro: ""
-    umbralMinimoSolucion: 100
+    umbralMinimoSolucion: 30
+    factores:
+      sesionesConsecutivas: 1

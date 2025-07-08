@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoGeneral;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorInstanciaSolucionInfoGeneral;
 
@@ -28,7 +30,8 @@ public interface IGeneradorInstanciaSolucionInfoGeneral extends JpaRepository<Ge
      * @param id - Id de la instancia de GeneradorInstancia
      */
     @Modifying
+    @Transactional
     @Query("DELETE FROM GeneradorInstanciaSolucionInfoGeneral gisig WHERE gisig.idGeneradorInstanciaSolucionInfoGeneral.generadorInstancia.id = :id")
-    void borrarPorGeneradorInstanciaId(int id);
+    void borrarPorIdGeneradorInstancia(Integer id);
 
 }

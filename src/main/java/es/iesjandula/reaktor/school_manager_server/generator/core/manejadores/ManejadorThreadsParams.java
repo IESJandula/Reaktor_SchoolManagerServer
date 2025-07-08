@@ -28,15 +28,9 @@ public class ManejadorThreadsParams
     
     /** Manejador de resultados */
     private ManejadorResultados manejadorResultados ;
-    
-    /** Factor de puntuación en función del número de sesiones insertadas */
-    private int factorNumeroSesionesInsertadas ;
 
     /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
     private int factorSesionesConsecutivasProfesor ;
-
-    /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina */
-    private int factorSesionesConsecutivasProfesorMatVes ;
 
     /** Asignatura service */
     private AsignaturaService asignaturaService ;
@@ -61,9 +55,7 @@ public class ManejadorThreadsParams
         this.poolSize                 			      = builder.poolSize ;
         this.numeroThreadPorIteracion 			      = builder.numeroThreadPorIteracion ;
         this.manejadorResultados	  			      = builder.manejadorResultados ;
-        this.factorNumeroSesionesInsertadas 	      = builder.factorNumeroSesionesInsertadas ;
         this.factorSesionesConsecutivasProfesor       = builder.factorSesionesConsecutivasProfesor ;
-        this.factorSesionesConsecutivasProfesorMatVes = builder.factorSesionesConsecutivasProfesorMatVes ;
         this.asignaturaService                        = builder.asignaturaService ;
         this.generadorService                         = builder.generadorService ;
         this.generadorInstancia                       = builder.generadorInstancia ;
@@ -126,28 +118,12 @@ public class ManejadorThreadsParams
     }
     
     /**
-	 * @return the factorNumeroSesionesInsertadas
-	 */
-	public int getFactorNumeroSesionesInsertadas()
-	{
-		return this.factorNumeroSesionesInsertadas ;
-	}
-
-	/**
 	 * @return the factorSesionesConsecutivasProfesor
 	 */
 	public int getFactorSesionesConsecutivasProfesor()
 	{
 		return this.factorSesionesConsecutivasProfesor ;
 	}
-
-    /**
-     * @return the factorSesionesConsecutivasProfesorMatVes
-     */
-    public int getFactorSesionesConsecutivasProfesorMatVes()
-    {
-        return this.factorSesionesConsecutivasProfesorMatVes ;
-    }
 
     /**
      * @return asignatura service
@@ -199,14 +175,8 @@ public class ManejadorThreadsParams
         /** Manejador de resultados */
         private ManejadorResultados manejadorResultados ;
         
-        /** Factor de puntuación en función del número de sesiones insertadas */
-        private int factorNumeroSesionesInsertadas ;
-
         /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
         private int factorSesionesConsecutivasProfesor ;
-
-        /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina */
-        private int factorSesionesConsecutivasProfesorMatVes ;
 
         /** Asignatura service */
         private AsignaturaService asignaturaService ;
@@ -289,32 +259,12 @@ public class ManejadorThreadsParams
         }
         
         /**
-         * @param factor número sesiones insertadas
-         * @return builder
-         */
-        public Builder setFactorNumeroSesionesInsertadas(int factorNumeroSesionesInsertadas)
-        {
-            this.factorNumeroSesionesInsertadas = factorNumeroSesionesInsertadas ;
-            return this ;
-        }
-        
-        /**
          * @param factor sesiones consecutivas profesor
          * @return builder
          */
         public Builder setFactorSesionesConsecutivasProfesor(int factorSesionesConsecutivasProfesor)
         {
             this.factorSesionesConsecutivasProfesor = factorSesionesConsecutivasProfesor ;
-            return this ;
-        }
-
-        /**
-         * @param factor sesiones consecutivas profesor en la primera hora vespertina
-         * @return builder
-         */
-        public Builder setFactorSesionesConsecutivasProfesorMatVes(int factorSesionesConsecutivasProfesorMatVes)
-        {
-            this.factorSesionesConsecutivasProfesorMatVes = factorSesionesConsecutivasProfesorMatVes ;
             return this ;
         }
 

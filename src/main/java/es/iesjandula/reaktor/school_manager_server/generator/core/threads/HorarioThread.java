@@ -94,6 +94,10 @@ public class HorarioThread extends Thread
 				// Decrementamos el número de threads pendientes
 				this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
 
+				// Borramos la instancia del generador relacionada
+				this.horarioThreadParams.getGeneradorService()
+										.eliminarGeneradorInstancia(this.horarioThreadParams.getGeneradorInstancia()) ;
+
 				// Si sucede una excepción aquí, el sistema no tendrá más remedio que comenzar de nuevo
 				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador() ;
 			}

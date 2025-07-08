@@ -545,26 +545,6 @@ public class Constants
 	 */
 	public static final int THREAD_POOL_SIZE = 10;
 
-
-	/******************************************************/
-	/*************** Factor de puntuación *****************/
-	/******************************************************/
-
-	/**
-	 * Factor de puntuación por número de sesiones insertadas
-	 */
-	public static final int FACTOR_NUMERO_SESIONES_INSERTADAS = 1;
-
-	/**
-	 * Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor
-	 */
-	public static final int FACTOR_SESIONES_CONSECUTIVAS_PROFESOR = 2;
-
-	/**
-	 * Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor en la primera hora vespertina
-	 */
-	public static final int FACTOR_SESIONES_CONSECUTIVAS_PROFESOR_MAT_VES = 4;
-
 	/******************************************************/
 	/**************** Ocurrencias por día *****************/
 	/******************************************************/
@@ -621,21 +601,11 @@ public class Constants
 	/******************************************************/
 	/******************** Soluciones **********************/
 	/******************************************************/
-	
-	/**
-	 * Solución - Número de sesiones insertadas
-	 */
-	public static final String SOL_INFO_NUM_SES_INSERTADAS = "Sesiones Insertadas";
 
 	/**
 	 * Solución - Consecutividad
 	 */
-	public static final String SOL_INFO_CONSECUTIVIDAD = "Consecutividad";
-
-	/**
-	 * Solución - Consecutividad matutina-vespertina
-	 */
-	public static final String SOL_INFO_CONSECUTIVIDAD_MATUTINA_VESPERTINA = "Consecutividad Matutina-Vespertina";
+	public static final String SOL_INFO_SESIONES_CONSECUTIVAS = "Sesiones consecutivas";
 
 
 	/******************************************************/
@@ -660,6 +630,9 @@ public class Constants
 	/** Tabla de constantes - Umbral mínimo de soluciones */
 	public static final String TABLA_CONST_UMBRAL_MINIMO_SOLUCION 		   = "Umbral mínimo de soluciones";
 
+	/** Tabla de constantes - Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
+	public static final String TABLA_CONST_FACTOR_SESIONES_CONSECUTIVAS = "Factor de puntuación - Sesiones consecutivas";
+
 
 	/*********************************************************/
 	/******************* Parámetros YAML *********************/
@@ -679,6 +652,11 @@ public class Constants
 	 * Constante - Parámetros YAML - Umbral mínimo de soluciones
 	 */
 	public static final String PARAM_YAML_UMBRAL_MINIMO_SOLUCION = "reaktor.constantes.umbralMinimoSolucion";
+
+	/**
+	 * Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor
+	 */
+	public static final String PARAM_YAML_FACTOR_SESIONES_CONSECUTIVAS = "reaktor.constantes.factores.sesionesConsecutivas";
 
 	/**
 	 * Constante - Parámetros YAML - MODO_INICIALIZAR_SISTEMA

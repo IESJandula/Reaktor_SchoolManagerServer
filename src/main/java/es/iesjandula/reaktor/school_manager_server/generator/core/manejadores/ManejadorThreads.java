@@ -137,6 +137,7 @@ public class ManejadorThreads
 								   .setManejadorThreads(this)
 								   .setAsignaturaService(this.manejadorThreadsParams.getAsignaturaService())
 								   .setGeneradorService(this.manejadorThreadsParams.getGeneradorService())
+								   .setGeneradorInstancia(this.manejadorThreadsParams.getGeneradorInstancia())
 								   .build() ;
 		
 		// Lanzamos varios threads
@@ -188,9 +189,7 @@ public class ManejadorThreads
 			new HorarioParams.Builder()
 				 .setNumeroCursosMatutinos(this.manejadorThreadsParams.getNumeroCursosMatutinos())
 				 .setNumeroCursosVespertinos(this.manejadorThreadsParams.getNumeroCursosVespertinos())
-			     .setFactorNumeroSesionesInsertadas(this.manejadorThreadsParams.getFactorNumeroSesionesInsertadas())
 			     .setFactorSesionesConsecutivasProfesor(this.manejadorThreadsParams.getFactorSesionesConsecutivasProfesor())
-			     .setFactorSesionesConsecutivasProfesorMatVes(this.manejadorThreadsParams.getFactorSesionesConsecutivasProfesorMatVes())
 			     .setMatrizAsignacionesMatutinas(matrizAsignacionesMatutinas)
 				 .setMatrizAsignacionesVespertinas(matrizAsignacionesVespertinas)
 				 .setGeneradorInstancia(this.manejadorThreadsParams.getGeneradorInstancia())
