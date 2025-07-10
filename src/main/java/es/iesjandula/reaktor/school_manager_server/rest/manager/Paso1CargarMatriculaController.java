@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.rest;
+package es.iesjandula.reaktor.school_manager_server.rest.manager;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 
-import es.iesjandula.reaktor.school_manager_server.dtos.*;
-import es.iesjandula.reaktor.school_manager_server.models.*;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
-import es.iesjandula.reaktor.school_manager_server.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,9 +20,28 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
+import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto3;
+import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos;
+import es.iesjandula.reaktor.school_manager_server.models.Alumno;
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.models.Bloque;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
+import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
+import es.iesjandula.reaktor.school_manager_server.models.Matricula;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
+import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IBloqueRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;

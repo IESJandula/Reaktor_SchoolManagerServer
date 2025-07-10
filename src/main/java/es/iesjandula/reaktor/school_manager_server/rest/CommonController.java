@@ -6,6 +6,7 @@ import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.services.DiaTramoTipoHorarioService;
 import es.iesjandula.reaktor.school_manager_server.services.ReduccionProfesorService;
 import es.iesjandula.reaktor.school_manager_server.services.ValidacionesGlobales;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -35,6 +36,9 @@ public class CommonController
 
     @Autowired
     private IProfesorReduccionRepository iProfesorReduccionRepository;
+
+    @Autowired
+    private DiaTramoTipoHorarioService diaTramoTipoHorarioService;
 
     @Autowired
     private ReduccionProfesorService reduccionProfesorService;
@@ -92,6 +96,62 @@ public class CommonController
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/diasSemana")
+    public ResponseEntity<?> obtenerDiasSemana()
+    {
+        try
+        {
+            // Obtenemos los días de la semana
+            List<String> diasSemana = this.diaTramoTipoHorarioService.obtenerDiasSemana() ;
+
+            return ResponseEntity.ok(diasSemana) ;
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron obtener los días de la semana";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+            
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/tramosHorarios")
+    public ResponseEntity<?> obtenerTramosHorarios()
+    {
+        try
+        {
+            // Obtenemos los tramos horarios
+            List<String> tramosHorarios = this.diaTramoTipoHorarioService.obtenerTramosHorarios() ;
+
+            return ResponseEntity.ok(tramosHorarios) ;
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron obtener los tramos horarios";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
     }
 

@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.rest;
+package es.iesjandula.reaktor.school_manager_server.rest.timetable;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -19,7 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping("/schoolManager/validadorDatos")
-public class Paso8ValidadorDatosController
+public class Paso2ValidadorDatosController
 {
     @Autowired
     private ValidadorDatosService validadorDatosService ; 

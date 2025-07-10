@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.rest;
+package es.iesjandula.reaktor.school_manager_server.rest.timetable;
 
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequestMapping("/schoolManager/generador")
-public class Paso9GeneradorController
+public class Paso3GeneradorController
 {
     @Autowired
     private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
@@ -86,62 +86,6 @@ public class Paso9GeneradorController
         catch (Exception exception)
         {
             String mensajeError = "ERROR - No se pudo obtener el estado del generador";
-
-            log.error(mensajeError, exception) ;
-
-            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
-
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-    }
-
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/diasSemana")
-    public ResponseEntity<?> obtenerDiasSemana()
-    {
-        try
-        {
-            // Obtenemos los días de la semana
-            List<String> diasSemana = this.diaTramoTipoHorarioService.obtenerDiasSemana() ;
-
-            return ResponseEntity.ok(diasSemana) ;
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-        catch (Exception exception)
-        {
-            String mensajeError = "ERROR - No se pudieron obtener los días de la semana";
-
-            log.error(mensajeError, exception) ;
-
-            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
-            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
-            
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(exception.getMessage());
-        }
-    }
-
-    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/tramosHorarios")
-    public ResponseEntity<?> obtenerTramosHorarios()
-    {
-        try
-        {
-            // Obtenemos los tramos horarios
-            List<String> tramosHorarios = this.diaTramoTipoHorarioService.obtenerTramosHorarios() ;
-
-            return ResponseEntity.ok(tramosHorarios) ;
-        }
-        catch (SchoolManagerServerException schoolManagerServerException)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
-        }
-        catch (Exception exception)
-        {
-            String mensajeError = "ERROR - No se pudieron obtener los tramos horarios";
 
             log.error(mensajeError, exception) ;
 

@@ -276,7 +276,6 @@ public class Constants
 	 */
 	public static final int TRAMOS_HORARIOS_NO_ENCONTRADOS = 74;
 
-
 	/************* ERRORES - Generales/De Conexión ***************/
 
 	/**
@@ -363,6 +362,11 @@ public class Constants
 	 * Error - No se encontró la instancia del generador
 	 */
 	public static final int ERROR_CODE_GENERADOR_INSTANCIA_NO_ENCONTRADA = 306;
+
+	/**
+	 * Error - No se han encontrado sesiones asignadas
+	 */
+	public static final int ERROR_CODE_SESIONES_ASIGNADAS_NO_ENCONTRADAS = 307;
 	
 	/**
 	 * Constantes/Configuración

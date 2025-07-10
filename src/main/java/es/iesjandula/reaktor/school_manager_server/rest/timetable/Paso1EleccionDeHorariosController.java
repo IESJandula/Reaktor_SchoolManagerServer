@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.rest;
+package es.iesjandula.reaktor.school_manager_server.rest.timetable;
 
 import es.iesjandula.reaktor.base.security.models.DtoUsuarioExtended;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
@@ -13,7 +13,6 @@ import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerExce
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -33,7 +32,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestController
 @RequestMapping(value = "/schoolManager/eleccionDeHorarios")
-public class Paso7EleccionDeHorariosController
+public class Paso1EleccionDeHorariosController
 {
     @Autowired
     private IProfesorRepository iProfesorRepository;

@@ -1,12 +1,9 @@
-package es.iesjandula.reaktor.school_manager_server.rest;
+package es.iesjandula.reaktor.school_manager_server.rest.manager;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import es.iesjandula.reaktor.school_manager_server.dtos.*;
-import es.iesjandula.reaktor.school_manager_server.models.*;
-import es.iesjandula.reaktor.school_manager_server.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -20,6 +17,18 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
+import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto2;
+import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto3;
+import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.HorasYBloquesDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.MatriculaDto;
+import es.iesjandula.reaktor.school_manager_server.models.Alumno;
+import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.models.Bloque;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
+import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
+import es.iesjandula.reaktor.school_manager_server.models.Matricula;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
@@ -28,6 +37,7 @@ import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepositor
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;

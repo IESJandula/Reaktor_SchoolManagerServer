@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.rest;
+package es.iesjandula.reaktor.school_manager_server.rest.manager;
 
 import java.util.List;
 import java.util.Objects;

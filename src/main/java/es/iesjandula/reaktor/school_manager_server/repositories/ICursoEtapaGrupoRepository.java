@@ -24,7 +24,19 @@ import org.springframework.data.jpa.repository.Modifying;
 @Repository
 public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrupo, IdCursoEtapaGrupo>
 {
-
+    /**
+     * Método que busca un curso etapa grupo por curso, etapa y grupo
+     * @param curso - Curso
+     * @param etapa - Etapa
+     * @param grupo - Grupo
+     * @return - Curso etapa grupo
+     */ 
+    @Query("SELECT c "
+            + "FROM CursoEtapaGrupo c "
+            + "WHERE c.idCursoEtapaGrupo.curso = :curso AND c.idCursoEtapaGrupo.etapa = :etapa AND c.idCursoEtapaGrupo.grupo = :grupo")
+    CursoEtapaGrupo buscarCursoEtapaGrupo(@Param("curso") int curso,
+                                          @Param("etapa") String etapa,
+                                          @Param("grupo") String grupo);
 
     @Query("SELECT c "
             + "FROM CursoEtapaGrupo c "
