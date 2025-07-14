@@ -29,9 +29,6 @@ public class ManejadorThreadsParams
     /** Manejador de resultados */
     private ManejadorResultados manejadorResultados ;
 
-    /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
-    private int factorSesionesConsecutivasProfesor ;
-
     /** Asignatura service */
     private AsignaturaService asignaturaService ;
 
@@ -55,7 +52,6 @@ public class ManejadorThreadsParams
         this.poolSize                 			      = builder.poolSize ;
         this.numeroThreadPorIteracion 			      = builder.numeroThreadPorIteracion ;
         this.manejadorResultados	  			      = builder.manejadorResultados ;
-        this.factorSesionesConsecutivasProfesor       = builder.factorSesionesConsecutivasProfesor ;
         this.asignaturaService                        = builder.asignaturaService ;
         this.generadorService                         = builder.generadorService ;
         this.generadorInstancia                       = builder.generadorInstancia ;
@@ -118,14 +114,6 @@ public class ManejadorThreadsParams
     }
     
     /**
-	 * @return the factorSesionesConsecutivasProfesor
-	 */
-	public int getFactorSesionesConsecutivasProfesor()
-	{
-		return this.factorSesionesConsecutivasProfesor ;
-	}
-
-    /**
      * @return asignatura service
      */
     public AsignaturaService getAsignaturaService()
@@ -174,9 +162,6 @@ public class ManejadorThreadsParams
         
         /** Manejador de resultados */
         private ManejadorResultados manejadorResultados ;
-        
-        /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
-        private int factorSesionesConsecutivasProfesor ;
 
         /** Asignatura service */
         private AsignaturaService asignaturaService ;
@@ -259,16 +244,6 @@ public class ManejadorThreadsParams
         }
         
         /**
-         * @param factor sesiones consecutivas profesor
-         * @return builder
-         */
-        public Builder setFactorSesionesConsecutivasProfesor(int factorSesionesConsecutivasProfesor)
-        {
-            this.factorSesionesConsecutivasProfesor = factorSesionesConsecutivasProfesor ;
-            return this ;
-        }
-
-        /** 
          * @param asignaturaService asignatura service
          * @return builder
          */

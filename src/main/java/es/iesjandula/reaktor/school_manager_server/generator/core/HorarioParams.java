@@ -11,9 +11,6 @@ public class HorarioParams
 	
 	/** Número de cursos vespertinos */
 	private int numeroCursosVespertinos ;
-	
-    /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
-    private int factorSesionesConsecutivasProfesor ;
 
     /** Matriz de asignaciones matutinas */
     private Asignacion[][] matrizAsignacionesMatutinas ;
@@ -36,7 +33,6 @@ public class HorarioParams
     {
     	this.numeroCursosMatutinos				      = builder.numeroCursosMatutinos ;
     	this.numeroCursosVespertinos			      = builder.numeroCursosVespertinos ;
-        this.factorSesionesConsecutivasProfesor       = builder.factorSesionesConsecutivasProfesor ;
         this.matrizAsignacionesMatutinas              = builder.matrizAsignacionesMatutinas ;
         this.matrizAsignacionesVespertinas            = builder.matrizAsignacionesVespertinas ;
         this.generadorService                         = builder.generadorService ;
@@ -57,14 +53,6 @@ public class HorarioParams
     public int getNumeroCursosVespertinos()
     {
         return this.numeroCursosVespertinos ;
-    }
-
-    /**
-     * @return factor de puntuación en función del número de sesiones consecutivas que tenga un profesor
-     */
-    public int getFactorSesionesConsecutivasProfesor()
-    {
-        return this.factorSesionesConsecutivasProfesor ;
     }
 
     /**
@@ -110,9 +98,6 @@ public class HorarioParams
     	/** Número de cursos vespertinos */
     	private int numeroCursosVespertinos ;
     	
-        /** Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
-        private int factorSesionesConsecutivasProfesor ;
-
         /** Matriz de asignaciones matutinas */
         private Asignacion[][] matrizAsignacionesMatutinas ;
 
@@ -147,18 +132,7 @@ public class HorarioParams
             return this ;
         }
 
-        /**
-         * @param factorSesionesConsecutivasProfesor factor de puntuación en función del número de sesiones consecutivas que tenga un profesor
-         * @return builder
-         */
-        public Builder setFactorSesionesConsecutivasProfesor(int factorSesionesConsecutivasProfesor)
-        {
-            this.factorSesionesConsecutivasProfesor = factorSesionesConsecutivasProfesor ;
-            
-            return this ;
-        }
-
-        /**
+        /** 
          * @param matrizAsignacionesMatutinas matriz de asignaciones matutinas
          * @return builder
          */

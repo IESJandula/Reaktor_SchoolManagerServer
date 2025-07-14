@@ -303,7 +303,6 @@ public class GeneradorService
         new ManejadorThreadsParams.Builder()
                                   .setNumeroCursosMatutinos(numeroCursosMatutinos)
                                   .setNumeroCursosVespertinos(numeroCursosVespertinos)
-                                  .setFactorSesionesConsecutivasProfesor(this.obtenerFactorSesionesConsecutivas())
                                   .setMapCorrelacionadorCursosMatutinos(mapCorrelacionadorCursosMatutinos) // Mapa de correlacionador de cursos (debe ser rellenado con los datos reales)
                                   .setMapCorrelacionadorCursosVespertinos(mapCorrelacionadorCursosVespertinos) // Mapa de correlacionador de cursos (debe ser rellenado con los datos reales)
                                   .setPoolSize(Constants.THREAD_POOL_SIZE)                     // Tamaño del pool
@@ -346,57 +345,13 @@ public class GeneradorService
     }
 
     /**
-     * Método que obtiene el factor de puntuación por número de sesiones consecutivas
-     * @return Factor de puntuación por número de sesiones consecutivas
-     */
-    private int obtenerFactorSesionesConsecutivas()
-    {
-        int factorSesionesConsecutivas = 1 ;
-
-        // Obtenemos el factor de puntuación por número de sesiones insertadas de la tabla de constantes
-        Optional<Constantes> optionalFactorSesionesConsecutivas = this.constantesRepository.findByClave(Constants.TABLA_CONST_FACTOR_SESIONES_CONSECUTIVAS) ;
-
-        if (optionalFactorSesionesConsecutivas.isPresent() && optionalFactorSesionesConsecutivas.get().getValor() != null)
-        {
-            factorSesionesConsecutivas = Integer.parseInt(optionalFactorSesionesConsecutivas.get().getValor()) ;
-        }
-
-        return factorSesionesConsecutivas ;
-    }
-
-    /**
-     * Método que guarda una sesión asignada
-     * @param generadorInstancia - Generador instancia
-     * @param horario - Horario de la sesión asignada
-     * @param puntuacionObtenida - Puntuación obtenida
-     * @param mensajeInformacion - Mensaje de información
-     */
-    public void guardarHorario(GeneradorInstancia generadorInstancia, Horario horario, int puntuacionObtenida, String mensajeInformacion) throws SchoolManagerServerException
-    {
-        // Obtenemos los profesores de BBDD
-        List<Profesor> profesores = this.profesorRepository.findAll() ;
-        
-        // Para cada profesor, actualizamos la tabla de información del profesor con los porcentajes de sesiones consecutivas
-        for (Profesor profesor : profesores)
-        {
-            this.generadorInstanciaSolucionInfoProfesorRepository.actualizarPorcentajesSesionesInsertadasYConsecutivas(generadorInstancia.getId(), profesor.getEmail()) ;
-        }
-
-        // Actualizamos el GeneradorInstancia y el Generador en BBDD
-        this.actualizarGeneradorYgeneradorInstancia(generadorInstancia, mensajeInformacion, puntuacionObtenida) ;
-
-        // Actualizamos la tabla de asignación de sesiones
-        this.actualizarGeneradorSesionAsignada(generadorInstancia, horario) ;
-    }
-
-    /**
      * Método que actualiza el GeneradorInstancia y el Generador en BBDD
      * @param generadorInstancia - Generador instancia
      * @param mensajeInformacion - Mensaje de información
      * @param puntuacionObtenida - Puntuación obtenida
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    private void actualizarGeneradorYgeneradorInstancia(GeneradorInstancia generadorInstancia, String mensajeInformacion, int puntuacionObtenida) throws SchoolManagerServerException
+    public void actualizarGeneradorYgeneradorInstancia(GeneradorInstancia generadorInstancia, String mensajeInformacion, double puntuacionObtenida) throws SchoolManagerServerException
     {
         if (Constants.MENSAJE_SOLUCION_ENCONTRADA.equals(mensajeInformacion))
         {
@@ -421,12 +376,12 @@ public class GeneradorService
     }
 
     /**
-     * Método que actualiza la tabla de asignación de sesiones
+     * Método que guarda los horarios en la tabla de asignación de sesiones
      * @param generadorInstancia - Generador instancia
      * @param horario - Horario
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    private void actualizarGeneradorSesionAsignada(GeneradorInstancia generadorInstancia, Horario horario) throws SchoolManagerServerException  
+    public void guardarHorariosEnGeneradorSesionAsignada(GeneradorInstancia generadorInstancia, Horario horario) throws SchoolManagerServerException  
     {
         // Si hay horario matutino, recorremos la matriz de asignaciones matutinas para insertar las sesiones asignadas
         if (horario.getHorarioParams().getMatrizAsignacionesMatutinas() != null)
@@ -684,8 +639,21 @@ public class GeneradorService
 
                 // Seteamos los valores de la instancia
                 generadorInstanciaSolucionInfoGeneralDto.setTipo(generadorInstanciaSolucionInfoGeneral.getIdGeneradorInstanciaSolucionInfoGeneral().getTipo()) ;
-                generadorInstanciaSolucionInfoGeneralDto.setPuntuacion(generadorInstanciaSolucionInfoGeneral.getPuntuacion()) ;
-                generadorInstanciaSolucionInfoGeneralDto.setPorcentaje(generadorInstanciaSolucionInfoGeneral.getPorcentaje()) ;
+                generadorInstanciaSolucionInfoGeneralDto.setPuntuacion(generadorInstanciaSolucionInfoGeneral.getPuntuacionMatutina() + 
+                                                                generadorInstanciaSolucionInfoGeneral.getPuntuacionVespertina()) ;
+                
+                double porcentajeTotal = generadorInstanciaSolucionInfoGeneral.getPorcentajeMatutina() ;
+                if (generadorInstanciaSolucionInfoGeneral.getPorcentajeMatutina() != 0 && generadorInstanciaSolucionInfoGeneral.getPorcentajeVespertina() != 0)
+                {
+                    porcentajeTotal = (double) (generadorInstanciaSolucionInfoGeneral.getPorcentajeMatutina() + generadorInstanciaSolucionInfoGeneral.getPorcentajeVespertina()) / 2 ;
+                }
+                else if (generadorInstanciaSolucionInfoGeneral.getPorcentajeVespertina() != 0)
+                {
+                    porcentajeTotal = generadorInstanciaSolucionInfoGeneral.getPorcentajeVespertina() ;
+                }
+
+                // Seteamos el porcentaje
+                generadorInstanciaSolucionInfoGeneralDto.setPorcentaje(porcentajeTotal) ;
 
                 // Añadimos la puntuación general a la instancia
                 generadorInstanciaDto.getPuntuacionesDesglosadas().add(generadorInstanciaSolucionInfoGeneralDto) ;
@@ -721,86 +689,33 @@ public class GeneradorService
                 // Seteamos los valores de la instancia
                 generadorInstanciaSolucionInfoProfesorDto.setEmailProfesor(generadorInstanciaSolucionInfoProfesor.getIdGeneradorInstanciaSolucionInfoProfesor().getProfesor().getEmail()) ;
                 generadorInstanciaSolucionInfoProfesorDto.setTipo(generadorInstanciaSolucionInfoProfesor.getIdGeneradorInstanciaSolucionInfoProfesor().getTipo()) ;
-                generadorInstanciaSolucionInfoProfesorDto.setPuntuacion(generadorInstanciaSolucionInfoProfesor.getPuntuacion()) ;
-                generadorInstanciaSolucionInfoProfesorDto.setPorcentaje(generadorInstanciaSolucionInfoProfesor.getPorcentaje()) ;
+                
+                double puntuacionTotal = generadorInstanciaSolucionInfoProfesor.getPuntuacionMatutina() ;
+                if (generadorInstanciaSolucionInfoProfesor.getPuntuacionVespertina() != 0)
+                {
+                    puntuacionTotal += generadorInstanciaSolucionInfoProfesor.getPuntuacionVespertina() ;
+                }
+
+                // Seteamos la puntuación
+                generadorInstanciaSolucionInfoProfesorDto.setPuntuacion(puntuacionTotal) ;
+
+                double porcentajeTotal = generadorInstanciaSolucionInfoProfesor.getPorcentajeMatutina() ;   
+                if (generadorInstanciaSolucionInfoProfesor.getPorcentajeMatutina() != 0 && generadorInstanciaSolucionInfoProfesor.getPorcentajeVespertina() != 0)
+                {
+                    porcentajeTotal = (double) (generadorInstanciaSolucionInfoProfesor.getPorcentajeMatutina() + generadorInstanciaSolucionInfoProfesor.getPorcentajeVespertina()) / 2 ;
+                }
+                else if (generadorInstanciaSolucionInfoProfesor.getPorcentajeVespertina() != 0)
+                {
+                    porcentajeTotal = generadorInstanciaSolucionInfoProfesor.getPorcentajeVespertina() ;
+                }
+
+                // Seteamos el porcentaje
+                generadorInstanciaSolucionInfoProfesorDto.setPorcentaje(porcentajeTotal) ;
 
                 // Añadimos la puntuación de profesor a la instancia
                 generadorInstanciaDto.getPuntuacionesDesglosadas().add(generadorInstanciaSolucionInfoProfesorDto) ;
             }
         }
-    }
-
-    /**
-     * Método que guarda la información de la solución general
-     * @param generadorInstancia - Generador instancia
-     * @param tipo - Tipo de información de la solución
-     * @param puntuacion - Puntuación de la solución
-     * @throws SchoolManagerServerException - Excepción personalizada
-     */
-    public void guardarGeneradorInstanciaSolucionInfoGeneral(GeneradorInstancia generadorInstancia, String tipo, int puntuacion, double porcentaje) throws SchoolManagerServerException
-    {        
-        // Creamos una instancia de GeneradorInstanciaSolucionInfoGeneral
-        GeneradorInstanciaSolucionInfoGeneral generadorInstanciaSolucionInfoGeneral = new GeneradorInstanciaSolucionInfoGeneral() ;
-
-        // Creamos una instancia de IdGeneradorInstanciaSolucionInfoGeneral
-        IdGeneradorInstanciaSolucionInfoGeneral idGeneradorInstanciaSolucionInfoGeneral = new IdGeneradorInstanciaSolucionInfoGeneral() ;
-        
-        // Seteamos los valores del ID compuesto
-        idGeneradorInstanciaSolucionInfoGeneral.setGeneradorInstancia(generadorInstancia) ;
-        idGeneradorInstanciaSolucionInfoGeneral.setTipo(tipo) ;
-
-        // Seteamos los valores de la entidad
-        generadorInstanciaSolucionInfoGeneral.setIdGeneradorInstanciaSolucionInfoGeneral(idGeneradorInstanciaSolucionInfoGeneral) ;
-        generadorInstanciaSolucionInfoGeneral.setPuntuacion(puntuacion) ;
-        generadorInstanciaSolucionInfoGeneral.setPorcentaje(porcentaje) ;
-
-        // Guardamos la instancia en la base de datos
-        this.generadorInstanciaSolucionInfoGeneralRepository.saveAndFlush(generadorInstanciaSolucionInfoGeneral) ;
-    }
-
-    /**
-     * Método que guarda la información de la solución de un profesor
-     * @param generadorInstancia - Generador instancia
-     * @param profesor - Profesor
-     * @param tipo - Tipo de información de la solución
-     * @param puntuacion - Puntuación de la solución
-     * @throws SchoolManagerServerException - Excepción personalizada
-     */
-    public void guardarGeneradorInstanciaSolucionInfoProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, String tipo, int puntuacion) throws SchoolManagerServerException
-    {
-        // Creamos una instancia de GeneradorInstanciaSolucionInfoProfesor
-        GeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesor = new GeneradorInstanciaSolucionInfoProfesor() ;
-
-        // Creamos una instancia de IdGeneradorInstanciaSolucionInfoProfesor
-        IdGeneradorInstanciaSolucionInfoProfesor idGeneradorInstanciaSolucionInfoProfesor = new IdGeneradorInstanciaSolucionInfoProfesor() ;
-        
-        // Seteamos los valores del ID compuesto
-        idGeneradorInstanciaSolucionInfoProfesor.setGeneradorInstancia(generadorInstancia) ;
-        idGeneradorInstanciaSolucionInfoProfesor.setProfesor(profesor) ;
-        idGeneradorInstanciaSolucionInfoProfesor.setTipo(tipo) ;
-
-        // Buscamos si ya existe el la instancia de GeneradorInstanciaSolucionInfoProfesor
-        Optional<GeneradorInstanciaSolucionInfoProfesor> optionalGeneradorInstanciaSolucionInfoProfesor = 
-                this.generadorInstanciaSolucionInfoProfesorRepository.findById(idGeneradorInstanciaSolucionInfoProfesor) ;
-        
-        // Si ya existe, incrementamos la puntuación con el valor de la nueva puntuación
-        if (optionalGeneradorInstanciaSolucionInfoProfesor.isPresent())
-        {
-            // Obtenemos la instancia
-            generadorInstanciaSolucionInfoProfesor = optionalGeneradorInstanciaSolucionInfoProfesor.get() ;
-
-            // Actualizamos la puntuación
-            generadorInstanciaSolucionInfoProfesor.setPuntuacion(generadorInstanciaSolucionInfoProfesor.getPuntuacion() + puntuacion) ;
-        }
-        else // Si no existe, creamos una nueva instancia
-        {
-            // Seteamos los valores de la entidad
-            generadorInstanciaSolucionInfoProfesor.setIdGeneradorInstanciaSolucionInfoProfesor(idGeneradorInstanciaSolucionInfoProfesor) ;
-            generadorInstanciaSolucionInfoProfesor.setPuntuacion(puntuacion) ;
-        }
-
-        // Guardamos la instancia en la base de datos
-        this.generadorInstanciaSolucionInfoProfesorRepository.saveAndFlush(generadorInstanciaSolucionInfoProfesor) ;
     }
 
     /**
@@ -840,5 +755,198 @@ public class GeneradorService
 
         // Guardamos la instancia en la base de datos
         this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
-    }   
+    }
+
+    /**
+     * Método que calcula la puntuación de una solución
+     * @param generadorInstancia - Generador instancia
+     * @return Puntuación de la solución
+     */
+    public int calcularPuntuacion(GeneradorInstancia generadorInstancia)
+    {
+        // Calculamos la puntuación de las sesiones consecutivas
+        int puntuacionTotal = this.calcularHuecosEntreSesiones(generadorInstancia) ;
+
+        return puntuacionTotal ;
+    }
+
+    /**
+     * Método que calcula la puntuación de las sesiones consecutivas
+     * @param generadorInstancia - Generador instancia
+     * @return Puntuación de las sesiones consecutivas
+     */
+    private int calcularHuecosEntreSesiones(GeneradorInstancia generadorInstancia)
+    {
+        int huecosEntreSesionesGeneral = 0 ;
+
+        // Calculamos la puntuación de las sesiones consecutivas (matutino)
+        huecosEntreSesionesGeneral += this.calcularHuecosEntreSesiones(generadorInstancia, true) ;
+
+        // Calculamos la puntuación de las sesiones consecutivas (vespertino)
+        huecosEntreSesionesGeneral += this.calcularHuecosEntreSesiones(generadorInstancia, false) ;
+
+        return huecosEntreSesionesGeneral ;
+    }
+
+    /** 
+     * Método que calcula la puntuación de la consecutividad
+     * @param generadorInstancia - Generador instancia
+     * @param esMatutino - Indica si es matutino    
+     */
+    private int calcularHuecosEntreSesiones(GeneradorInstancia generadorInstancia, boolean esMatutino)
+    {
+        // Inicializamos la puntuación
+        Integer huecosEntreSesiones = 0 ;
+
+        // Obtenemos todos los profesores que según el tipo de horario
+        List<Profesor> profesores = this.generadorSesionAsignadaRepository.buscarProfesoresTipoHorario(generadorInstancia, esMatutino) ;
+
+        // Si hay profesores, calculamos la puntuación
+        if (!profesores.isEmpty())
+        {
+            // Iteramos por cada profesor
+            for (Profesor profesor : profesores)
+            {
+                // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
+                Integer huecosEntreSesionesProfesor = this.generadorSesionAsignadaRepository.contarHuecosEntreSesiones(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+
+                // Obtenemos el numerador de la operación
+                double numeradorOperacionProfesor = (double) (huecosEntreSesionesProfesor / Constants.FACTOR_HUECOS) ;
+
+                // Calculamos el factor de puntuación
+                double porcentajeHuecosEntreSesionesProfesor = (double) 100.00d * ((double) (numeradorOperacionProfesor / Constants.FACTOR_DIVISOR_HUECOS)) ;
+
+                // Guardamos la puntuación en la BBDD
+                this.guardarGeneradorInstanciaSolucionInfoProfesor(generadorInstancia, profesor, Constants.SOL_INFO_HUECOS, huecosEntreSesionesProfesor, porcentajeHuecosEntreSesionesProfesor, esMatutino) ;
+
+                // Incrementamos la puntuación total
+                huecosEntreSesiones += huecosEntreSesionesProfesor ;
+            }
+
+            // Calculamos el numerador
+            double numeradorOperacion = (double) (huecosEntreSesiones / Constants.FACTOR_HUECOS) ;
+
+            // Obtenemos el denominador
+            double denominadorOperacion = Constants.FACTOR_DIVISOR_HUECOS * profesores.size() ;
+
+            // Calculamos el porcentaje de huecos entre sesiones de entre todos los profesores  
+            double porcentajeHuecosEntreSesionesGeneral = (double) 100.00d * ((double) (numeradorOperacion / denominadorOperacion)) ;
+
+            // Guardamos la puntuación en la BBDD
+            this.guardarGeneradorInstanciaSolucionInfoGeneral(generadorInstancia, Constants.SOL_INFO_HUECOS, huecosEntreSesiones, porcentajeHuecosEntreSesionesGeneral, esMatutino) ;
+        }
+
+        return (int) ((Constants.FACTOR_HUECOS * Constants.FACTOR_DIVISOR_HUECOS * profesores.size()) - huecosEntreSesiones) ;
+    }
+
+    /**
+     * Método que guarda la información de la solución de un profesor
+     * @param generadorInstancia - Generador instancia
+     * @param profesor - Profesor
+     * @param tipo - Tipo de información de la solución
+     * @param puntuacion - Puntuación de la solución
+     * @param porcentaje - Porcentaje de la solución
+     */
+    private void guardarGeneradorInstanciaSolucionInfoProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, String tipo, double puntuacion, double porcentaje, boolean esMatutino)
+    {
+        // Creamos una instancia de IdGeneradorInstanciaSolucionInfoProfesor
+        IdGeneradorInstanciaSolucionInfoProfesor idGeneradorInstanciaSolucionInfoProfesor = new IdGeneradorInstanciaSolucionInfoProfesor() ;
+        
+        // Seteamos los valores del ID compuesto
+        idGeneradorInstanciaSolucionInfoProfesor.setGeneradorInstancia(generadorInstancia) ;
+        idGeneradorInstanciaSolucionInfoProfesor.setProfesor(profesor) ;
+        idGeneradorInstanciaSolucionInfoProfesor.setTipo(tipo) ;
+
+        // Buscamos el generadorInstanciaSolucionInfoProfesor en BBDD
+        Optional<GeneradorInstanciaSolucionInfoProfesor> optionalGeneradorInstanciaSolucionInfoProfesor = 
+            this.generadorInstanciaSolucionInfoProfesorRepository.findById(idGeneradorInstanciaSolucionInfoProfesor) ;
+
+        // Creamos una instancia de GeneradorInstanciaSolucionInfoProfesor
+        GeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesor = null ;
+
+        // Si existe, actualizamos la puntuación y el porcentaje
+        if (optionalGeneradorInstanciaSolucionInfoProfesor.isPresent())
+        {
+            // Obtenemos el generadorInstanciaSolucionInfoProfesor
+            generadorInstanciaSolucionInfoProfesor = optionalGeneradorInstanciaSolucionInfoProfesor.get() ;
+        }   
+        else
+        {
+            // Creamos una nueva instancia de GeneradorInstanciaSolucionInfoProfesor
+            generadorInstanciaSolucionInfoProfesor = new GeneradorInstanciaSolucionInfoProfesor() ;
+
+            // Seteamos el ID compuesto
+            generadorInstanciaSolucionInfoProfesor.setIdGeneradorInstanciaSolucionInfoProfesor(idGeneradorInstanciaSolucionInfoProfesor) ;
+        }
+
+        // Si es matutino, seteamos la puntuación y el porcentaje
+        if (esMatutino)
+        {
+            generadorInstanciaSolucionInfoProfesor.setPuntuacionMatutina(puntuacion) ;
+            generadorInstanciaSolucionInfoProfesor.setPorcentajeMatutina(porcentaje) ;
+        }
+        else
+        {
+            generadorInstanciaSolucionInfoProfesor.setPuntuacionVespertina(puntuacion) ;        
+            generadorInstanciaSolucionInfoProfesor.setPorcentajeVespertina(porcentaje) ;
+        }
+
+        // Guardamos la instancia en la base de datos
+        this.generadorInstanciaSolucionInfoProfesorRepository.saveAndFlush(generadorInstanciaSolucionInfoProfesor) ;
+    }
+
+    /**
+     * Método que guarda la información de la solución general
+     * @param generadorInstancia - Generador instancia
+     * @param tipo - Tipo de información de la solución
+     * @param puntuacion - Puntuación de la solución
+     * @param porcentaje - Porcentaje de la solución        
+     * @param esMatutino - Indica si es matutino
+     */
+    public void guardarGeneradorInstanciaSolucionInfoGeneral(GeneradorInstancia generadorInstancia, String tipo, double puntuacion, double porcentaje, boolean esMatutino)
+    {        
+        // Creamos una instancia de IdGeneradorInstanciaSolucionInfoGeneral
+        IdGeneradorInstanciaSolucionInfoGeneral idGeneradorInstanciaSolucionInfoGeneral = new IdGeneradorInstanciaSolucionInfoGeneral() ;
+        
+        // Seteamos los valores del ID compuesto
+        idGeneradorInstanciaSolucionInfoGeneral.setGeneradorInstancia(generadorInstancia) ;
+        idGeneradorInstanciaSolucionInfoGeneral.setTipo(tipo) ;
+
+        // Buscamos el generadorInstanciaSolucionInfoGeneral en BBDD
+        Optional<GeneradorInstanciaSolucionInfoGeneral> optionalGeneradorInstanciaSolucionInfoGeneral = 
+            this.generadorInstanciaSolucionInfoGeneralRepository.findById(idGeneradorInstanciaSolucionInfoGeneral) ;
+
+        // Creamos una instancia de GeneradorInstanciaSolucionInfoGeneral
+        GeneradorInstanciaSolucionInfoGeneral generadorInstanciaSolucionInfoGeneral = null ;
+
+        // Si existe, actualizamos la puntuación y el porcentaje
+        if (optionalGeneradorInstanciaSolucionInfoGeneral.isPresent())
+        {
+            // Obtenemos el generadorInstanciaSolucionInfoGeneral
+            generadorInstanciaSolucionInfoGeneral = optionalGeneradorInstanciaSolucionInfoGeneral.get() ;
+        }
+        else
+        {
+            // Creamos una nueva instancia de GeneradorInstanciaSolucionInfoGeneral
+            generadorInstanciaSolucionInfoGeneral = new GeneradorInstanciaSolucionInfoGeneral() ;
+
+            // Seteamos el ID compuesto
+            generadorInstanciaSolucionInfoGeneral.setIdGeneradorInstanciaSolucionInfoGeneral(idGeneradorInstanciaSolucionInfoGeneral) ;
+        }
+
+        // Si es matutino, seteamos la puntuación y el porcentaje
+        if (esMatutino)
+        {
+            generadorInstanciaSolucionInfoGeneral.setPuntuacionMatutina(puntuacion) ;
+            generadorInstanciaSolucionInfoGeneral.setPorcentajeMatutina(porcentaje) ;
+        }
+        else    
+        {
+            generadorInstanciaSolucionInfoGeneral.setPuntuacionVespertina(puntuacion) ;
+            generadorInstanciaSolucionInfoGeneral.setPorcentajeVespertina(porcentaje) ;
+        }
+
+        // Guardamos la instancia en la base de datos
+        this.generadorInstanciaSolucionInfoGeneralRepository.saveAndFlush(generadorInstanciaSolucionInfoGeneral) ;
+    }
 }

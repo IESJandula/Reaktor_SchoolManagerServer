@@ -31,7 +31,7 @@ public class GeneradorInstancia
      * <p>Representa la puntuación de la instancia del generador.</p>
      */
     @Column(name = "puntuacion")
-    private int puntuacion ;
+    private double puntuacion ;
 
     /**
      * Mensaje de información de la instancia del generador.
@@ -66,7 +66,7 @@ public class GeneradorInstancia
 
     public GeneradorInstancia()
     {
-        this.puntuacion         = 0 ;
+        this.puntuacion         = 0.0 ;
         this.mensajeInformacion = "" ;
         this.estado             = Constants.ESTADO_GENERADOR_EN_CURSO ;
         this.solucionElegida    = false ;
@@ -77,7 +77,7 @@ public class GeneradorInstancia
      * @param estado - El estado de la generación.
      * @param mensajeInformacion - El mensaje de información de la generación.
      */
-    public void pararGeneradorInstancia(String estado, int puntuacion, String mensajeInformacion)
+    public void pararGeneradorInstancia(String estado, double puntuacion, String mensajeInformacion)
     {
         this.estado             = estado ;
         this.puntuacion         = puntuacion ;

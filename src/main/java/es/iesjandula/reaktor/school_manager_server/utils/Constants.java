@@ -389,6 +389,11 @@ public class Constants
 	/******************************************************/
 	/******************************************************/
 
+	/** Factor de huecos entre sesiones */
+	public static final double FACTOR_HUECOS = 2.00d;
+
+	/** Factor divisor de huecos entre sesiones */
+	public static final double FACTOR_DIVISOR_HUECOS = 6.00d;
 
 	/******************************************************/
 	/*** Referencias - Restricciones - Lista de listas ****/
@@ -583,9 +588,9 @@ public class Constants
 	/******************************************************/
 
 	/**
-	 * Solución - Consecutividad
+	 * Solución - Horario con huecos entre sesiones
 	 */
-	public static final String SOL_INFO_SESIONES_CONSECUTIVAS = "Sesiones consecutivas";
+	public static final String SOL_INFO_HUECOS = "Huecos";
 
 
 	/******************************************************/
@@ -610,9 +615,6 @@ public class Constants
 	/** Tabla de constantes - Umbral mínimo de soluciones */
 	public static final String TABLA_CONST_UMBRAL_MINIMO_SOLUCION 		   = "Umbral mínimo de soluciones";
 
-	/** Tabla de constantes - Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor */
-	public static final String TABLA_CONST_FACTOR_SESIONES_CONSECUTIVAS = "Factor de puntuación - Sesiones consecutivas";
-
 
 	/*********************************************************/
 	/******************* Parámetros YAML *********************/
@@ -632,11 +634,6 @@ public class Constants
 	 * Constante - Parámetros YAML - Umbral mínimo de soluciones
 	 */
 	public static final String PARAM_YAML_UMBRAL_MINIMO_SOLUCION = "reaktor.constantes.umbralMinimoSolucion";
-
-	/**
-	 * Factor de puntuación en función del número de sesiones consecutivas que tenga un profesor
-	 */
-	public static final String PARAM_YAML_FACTOR_SESIONES_CONSECUTIVAS = "reaktor.constantes.factores.sesionesConsecutivas";
 
 	/**
 	 * Constante - Parámetros YAML - MODO_INICIALIZAR_SISTEMA

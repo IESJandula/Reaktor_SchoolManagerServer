@@ -13,7 +13,7 @@ public class GeneradorInstanciaSolucionInfoGeneralDto
     private String tipo ;
 
     /** Puntuación de la información de la solución */
-    private int puntuacion ;
+    private double puntuacion ;
 
     /** Porcentaje con respecto al total */
     private double porcentaje ;

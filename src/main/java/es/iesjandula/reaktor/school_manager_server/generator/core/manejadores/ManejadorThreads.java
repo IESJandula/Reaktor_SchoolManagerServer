@@ -189,7 +189,6 @@ public class ManejadorThreads
 			new HorarioParams.Builder()
 				 .setNumeroCursosMatutinos(this.manejadorThreadsParams.getNumeroCursosMatutinos())
 				 .setNumeroCursosVespertinos(this.manejadorThreadsParams.getNumeroCursosVespertinos())
-			     .setFactorSesionesConsecutivasProfesor(this.manejadorThreadsParams.getFactorSesionesConsecutivasProfesor())
 			     .setMatrizAsignacionesMatutinas(matrizAsignacionesMatutinas)
 				 .setMatrizAsignacionesVespertinas(matrizAsignacionesVespertinas)
 				 .setGeneradorInstancia(this.manejadorThreadsParams.getGeneradorInstancia())

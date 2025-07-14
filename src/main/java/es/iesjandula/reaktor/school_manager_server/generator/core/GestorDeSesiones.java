@@ -368,6 +368,8 @@ public class GestorDeSesiones
 			// antes de devolver la instancia de Restriccion Horaria
 			RestriccionHoraria.Builder builder = new RestriccionHoraria.Builder(indiceCursoDiaInicial) ;
 
+			// Añadimos las restricciones blandas
+
 			// Obtenemos las restricciones relacionadas con el día y tramo horario
 			this.obtenerRestriccionHorariaDeSesionPorDiaTramo(sesion, numeroCursos, builder) ;
 

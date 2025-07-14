@@ -2,8 +2,6 @@ package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.List;
 import java.util.Objects;
-import es.iesjandula.reaktor.school_manager_server.utils.Constants;
-import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

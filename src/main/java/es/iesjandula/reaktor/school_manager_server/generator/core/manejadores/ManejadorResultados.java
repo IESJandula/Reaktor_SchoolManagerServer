@@ -56,9 +56,12 @@ public class ManejadorResultados
     {
     	// Si llegamos aquí es porque se encontró un horario definitivo,  
 		// por lo que lo informamos al manejador de soluciones
+
+        // Guardamos el horario en la base de datos
+        this.manejadorResultadosParams.getGeneradorService().guardarHorariosEnGeneradorSesionAsignada(generadorInstancia, horario) ;
 		
     	// Calculamos las puntuación de esta solución
-        int puntuacionObtenida = horario.calcularPuntuacion() ;
+        int puntuacionObtenida = this.manejadorResultadosParams.getGeneradorService().calcularPuntuacion(generadorInstancia) ;
 
         // Vemos si la solución es la mejor hasta el momento
         boolean solucionSuperaUmbral = puntuacionObtenida > this.manejadorResultadosParams.getUmbralMinimoSolucion() &&
@@ -89,9 +92,9 @@ public class ManejadorResultados
             // Guardamos la puntuación y el índice de la solución óptima
         	this.horarioSolucionMayorPuntuacion 	  = puntuacionObtenida ; 
             this.horarioSolucionMayorPuntuacionIndice = indiceActual ;
-            
-            // Guardamos el horario en la base de datos
-            this.manejadorResultadosParams.getGeneradorService().guardarHorario(generadorInstancia, horario, puntuacionObtenida, Constants.MENSAJE_SOLUCION_ENCONTRADA) ;
+
+            // Actualizamos el GeneradorInstancia y el Generador en BBDD
+                this.manejadorResultadosParams.getGeneradorService().actualizarGeneradorYgeneradorInstancia(generadorInstancia, Constants.MENSAJE_SOLUCION_ENCONTRADA, puntuacionObtenida) ;
         }
 
         return solucionSuperaUmbral ;

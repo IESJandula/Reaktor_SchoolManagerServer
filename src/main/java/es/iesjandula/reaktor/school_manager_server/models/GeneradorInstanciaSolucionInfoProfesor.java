@@ -19,9 +19,15 @@ public class GeneradorInstanciaSolucionInfoProfesor
     @EmbeddedId
     private IdGeneradorInstanciaSolucionInfoProfesor idGeneradorInstanciaSolucionInfoProfesor ;
 
-    /** Puntuación */
-    private int puntuacion ;
+    /** Puntuación matutina */
+    private double puntuacionMatutina ;
 
-    /** Porcentaje con respecto al total */
-    private double porcentaje ;
+    /** Puntuación vespertina */
+    private double puntuacionVespertina ;
+
+    /** Porcentaje matutina */
+    private double porcentajeMatutina ;
+
+    /** Porcentaje vespertina */
+    private double porcentajeVespertina ;
 }

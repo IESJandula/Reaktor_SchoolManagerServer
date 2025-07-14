@@ -12,7 +12,7 @@ public class GeneradorInstanciaDto
     private int idGeneradorInstancia ;
 
     /** Puntuación de la instancia del generador */
-    private int puntuacion ;
+    private double puntuacion ;
 
     /** Solución elegida */
     private Boolean solucionElegida ;

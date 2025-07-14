@@ -61,9 +61,6 @@ public class InicializacionSistema
 	@Value("${" + Constants.PARAM_YAML_UMBRAL_MINIMO_SOLUCION + "}")
 	private String umbralMinimoSolucion;
 
-	@Value("${" + Constants.PARAM_YAML_FACTOR_SESIONES_CONSECUTIVAS + "}")
-	private String factorSesionesConsecutivas;
-
 	/**
 	 * Este método se encarga de inicializar el sistema ya sea en el entorno de desarrollo o ejecutando JAR
 	 * @throws BaseException con un error
@@ -368,7 +365,6 @@ public class InicializacionSistema
 	{
 		this.cargarPropiedad(Constants.TABLA_CONST_SELECCION_HORARIOS_POR_CLAUSTRO, this.seleccionHorariosPorClaustro);
 		this.cargarPropiedad(Constants.TABLA_CONST_UMBRAL_MINIMO_SOLUCION, this.umbralMinimoSolucion);
-		this.cargarPropiedad(Constants.TABLA_CONST_FACTOR_SESIONES_CONSECUTIVAS, this.factorSesionesConsecutivas);
 	}
 
 	private void cargarPropiedad(String key, String value)
