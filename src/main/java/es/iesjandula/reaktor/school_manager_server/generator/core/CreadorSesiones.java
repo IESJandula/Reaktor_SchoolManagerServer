@@ -105,7 +105,7 @@ public class CreadorSesiones
         {
             listaSesionesElegida = this.sesionesConRestriccionesHorarias ;
         }
-        else if (profesor.getConciliacion() != null)
+        else if (profesor.getObservacionesAdicionales().getConciliacion() != null && profesor.getObservacionesAdicionales().getConciliacion())
         {
             listaSesionesElegida = this.sesionesConConciliaciones ;
         }

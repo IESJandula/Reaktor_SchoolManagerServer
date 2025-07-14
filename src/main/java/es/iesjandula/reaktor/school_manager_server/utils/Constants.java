@@ -137,144 +137,139 @@ public class Constants
 	public final static int SIN_ALUMNOS_ENCONTRADOS = 45;
 
 	/**
-	 * Error - La conciliación no es válida
-	 */
-	public static final int ERROR_CONCILIACION_NO_VALIDA = 46;
-
-	/**
 	 * Error - El tipo de horario no es válido
 	 */
-	public static final int ERROR_TIPO_HORARIO_NO_VALIDO = 47;
+	public static final int ERROR_TIPO_HORARIO_NO_VALIDO = 46;
 
 	/**
 	 * Error - Archivo vacío
 	 */
-	public final static int ARCHIVO_VACIO = 48;
+	public final static int ARCHIVO_VACIO = 47;
 
 	/**
 	 * Error - Matricula no encotrada
 	 */
-	public final static int MATRICULA_NO_ENCONTRADA = 49;
+	public final static int MATRICULA_NO_ENCONTRADA = 48;
 
 	/**
 	 * Error - Datos matricula no encontrados
 	 */
-	public final static int DATOS_MATRICULA_NO_ENCONTRADA = 51;
+	public final static int DATOS_MATRICULA_NO_ENCONTRADA = 49;
 
 	/**
 	 * Error - Matricula alumno no encontrada
 	 */
-	public final static int MATRICULA_ALUMNO_NO_ENCONTRADA = 52;
+	public final static int MATRICULA_ALUMNO_NO_ENCONTRADA = 50;
 
 	/**
 	 * Error - Matricula alumno ya existente
 	 */
-	public final static int MATRICULA_ALUMNO_EXISTENTE = 53;
+	public final static int MATRICULA_ALUMNO_EXISTENTE = 51;
 
 	/**
 	 * Error - Grupo no encontrado
 	 */
-	public final static int GRUPO_NO_ENCONTRADO = 54;
+	public final static int GRUPO_NO_ENCONTRADO = 52;
 
 	/**
 	 * Error - Asignaturas mínimas no seleccionadas
 	 */
-	public final static int  ASIGNATURAS_MINIMAS_NO_SELECCIONADAS = 55;
+	public final static int  ASIGNATURAS_MINIMAS_NO_SELECCIONADAS = 53;
 
 	/**
 	 * Error - Asignatura con bloque asignado
 	 */
-	public final static int ASIGNATURA_CON_BLOQUE = 56;
+	public final static int ASIGNATURA_CON_BLOQUE = 54;
 
 	/**
 	 * Error - Reducción ya asignada a un profesor
 	 */
-	public final static int REDUCCION_ASIGNADA = 57;
+	public final static int REDUCCION_ASIGNADA = 55;
 
 	/**
 	 * Error - Departamento no encontrado
 	 */
-	public final static int DEPARTAMENTO_NO_ENCONTRADO = 58;
+	public final static int DEPARTAMENTO_NO_ENCONTRADO = 56;
 
 	/**
 	 * Error - La reducción ya existe
 	 */
-	public final static int REDUCCION_EXISTENTE = 59;
+	public final static int REDUCCION_EXISTENTE = 57;
 
 	/**
 	 * Error - No se encontró la reducción
 	 */
-	public final static int REDUCCION_NO_ENCONTRADA = 60;
+	public final static int REDUCCION_NO_ENCONTRADA = 58;
 
 	/**
 	 * Error - No se encontro ninguna una reducción asignada a un profesor
 	 */
-	public final static int REDUCCION_NO_ASIGNADA_A_PROFESOR = 61;
+	public final static int REDUCCION_NO_ASIGNADA_A_PROFESOR = 59;
 
 	/**
 	 * Error - La asignatura ya ha sido asignada a el profesor
 	 */
-	public final static int ASIGNATURA_ASIGNADA_A_PROFESOR = 62;
+	public final static int ASIGNATURA_ASIGNADA_A_PROFESOR = 60;
 
 	/**
 	 * Error - Días, tramos y tipos horarios no encontrados
 	 */
-	public final static int DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS = 63;
+	public final static int DIAS_TRAMOS_TIPOS_HORARIOS_NO_ENCONTRADOS = 61;
 
 	/**
 	 * Error - No se han encontrado asignaturas para el departamento
 	 */
-	public final static int ASIGNATURAS_NO_ENCONTRADAS_PARA_DEPARTAMENTO = 64;
+	public final static int ASIGNATURAS_NO_ENCONTRADAS_PARA_DEPARTAMENTO = 62;
 
 	/**
 	 * Error - No se han encontrado grupos para esa asignatura
 	 */
-	public final static int GRUPOS_NO_ENCONTRADOS_PARA_ASIGNATURA = 65;
+	public final static int GRUPOS_NO_ENCONTRADOS_PARA_ASIGNATURA = 63;
 
 	/**
 	 * Error - No se encontró una asignatura asignada al profesor con esos datos
 	 */
-	public final static int ASIGNATURA_NO_ASIGNADA_A_PROFESOR = 66;
+	public final static int ASIGNATURA_NO_ASIGNADA_A_PROFESOR = 64;
 
 	/**
 	 * Error - No se encontraron profesores en la base de datos
 	 */
-	public static final int SIN_PROFESORES_ENCONTRADOS = 67;
+	public static final int SIN_PROFESORES_ENCONTRADOS = 65;
 
 	/**
 	 * Error - No se ha encontrado el alumno en la base de datos
 	 */
-	public static final int ALUMNO_NO_ENCONTRADO = 68;
+	public static final int ALUMNO_NO_ENCONTRADO = 66;
 
 	/**
 	 * Error - La asignatura está asigna a un departamento
 	 */
-	public static final int ASIGNATURA_ASIGNADA_A_DEPARTAMENTO = 69;
+	public static final int ASIGNATURA_ASIGNADA_A_DEPARTAMENTO = 67;
 
 	/**
 	 * Error - El alumno está asignado a un grupo y no se puede desmatricular
 	 */
-	public static final int ALUMNO_ASIGNADO_A_GRUPO = 70;
+	public static final int ALUMNO_ASIGNADO_A_GRUPO = 68;
 
 	/**
 	 * Error - La relación entre la asignatura y el profesor no existe
 	 */
-	public static final int IMPARTIR_NO_ENCONTRADA = 71;
+	public static final int IMPARTIR_NO_ENCONTRADA = 69;
 
 	/**
 	 * Error - El día y el tramo no existe
 	 */
-	public static final int DIA_TRAMO_NO_ENCONTRADO = 72;
+	public static final int DIA_TRAMO_NO_ENCONTRADO = 70;
 
 	/**
 	 * Error - No se han encontrado días de la semana
 	 */
-	public static final int DIAS_SEMANA_NO_ENCONTRADOS = 73;
+	public static final int DIAS_SEMANA_NO_ENCONTRADOS = 71;
 
 	/**
 	 * Error - No se han encontrado tramos horarios
 	 */
-	public static final int TRAMOS_HORARIOS_NO_ENCONTRADOS = 74;
+	public static final int TRAMOS_HORARIOS_NO_ENCONTRADOS = 72;
 
 	/************* ERRORES - Generales/De Conexión ***************/
 
@@ -377,25 +372,6 @@ public class Constants
 	public static final int ERROR_OBTENIENDO_PARAMETROS = 23;
 	public static final int ERROR_APP_DESHABILITADA = 24;
 
-
-	/******************************************************/
-	/*************** Constantes - Conciliaciones **********/
-	/******************************************************/
-
-	/**
-	 * Conciliación - Sin conciliación
-	 */
-	public static final String CONCILIACION_SIN_CONCILIACION = "SIN_CONCILIACION";
-
-	/**
-	 * Conciliación - Entrar después de la segunda hora
-	 */
-	public static final String CONCILIACION_ENTRAR_DESPUES_SEGUNDA_HORA = "ENTRAR_DESPUES_SEGUNDA_HORA";
-
-	/**
-	 * Conciliación - Salir antes de la quinta hora
-	 */
-	public static final String CONCILIACION_SALIR_ANTES_QUINTA_HORA = "SALIR_ANTES_QUINTA_HORA";
 
 	/******************************************************/
 	/*********** Constantes - Validador de datos **********/

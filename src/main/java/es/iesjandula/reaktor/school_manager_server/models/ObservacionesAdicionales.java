@@ -1,6 +1,5 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdObservacionesAdicionales;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,8 +11,13 @@ import lombok.NoArgsConstructor;
 @Entity
 public class ObservacionesAdicionales
 {
-    @EmbeddedId
-    private IdObservacionesAdicionales idObservacionesAdicionales;
+    @Id
+    @Column(name = "profesor_email")
+    private String profesorEmail;
+
+    @OneToOne
+    @JoinColumn(name = "profesor_email", referencedColumnName = "email")
+    private Profesor profesor;
 
     @Column
     private Boolean conciliacion;

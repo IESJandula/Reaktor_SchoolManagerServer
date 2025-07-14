@@ -14,6 +14,9 @@ public class GeneradorInstanciaDto
     /** Puntuación de la instancia del generador */
     private int puntuacion ;
 
+    /** Solución elegida */
+    private Boolean solucionElegida ;
+
     /** Puntuaciones desglosadas de la instancia del generador (general y por profesor) */
     private List<GeneradorInstanciaSolucionInfoGeneralDto> puntuacionesDesglosadas ;
 

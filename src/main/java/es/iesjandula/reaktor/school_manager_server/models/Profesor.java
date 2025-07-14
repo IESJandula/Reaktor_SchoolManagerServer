@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -71,39 +72,10 @@ public class Profesor
 	private List<ProfesorReduccion> profesorReducciones;
 
 	/**
-	 * Indica la conciliación del profesor que puede ser:
-	 * - SIN_CONCILIACION
-	 * - ENTRAR_DESPUES_SEGUNDA_HORA
-	 * - SALIR_ANTES_QUINTA_HORA
+	 * Observaciones adicionales del profesor. Relación de uno a uno con la entidad {@link ObservacionesAdicionales}.
 	 */
-	@Column(length = 100)
-	private String conciliacion ;
-
-	/**
-	 * Establece la conciliación del profesor.
-	 * @param conciliacion - La conciliación del profesor.
-	 * @throws SchoolManagerServerException - Si la conciliación no es válida.
-	 */
-	public void setConciliacion(String conciliacion) throws SchoolManagerServerException
-	{
-		if (conciliacion != null)
-		{
-			boolean esValida = conciliacion.equals(Constants.CONCILIACION_SIN_CONCILIACION) 		   ||
-							   conciliacion.equals(Constants.CONCILIACION_ENTRAR_DESPUES_SEGUNDA_HORA) ||
-							   conciliacion.equals(Constants.CONCILIACION_SALIR_ANTES_QUINTA_HORA) ;
-			if (esValida)
-			{
-				this.conciliacion = conciliacion;
-			}
-			else
-			{
-				String mensajeError = "La conciliación no es válida.";
-
-				log.error(mensajeError) ;
-				throw new SchoolManagerServerException(Constants.ERROR_CONCILIACION_NO_VALIDA, mensajeError);
-			}
-		}
-	}
+	@OneToOne(mappedBy = "profesor")
+	private ObservacionesAdicionales observacionesAdicionales;
 
 	@Override
     public String toString()

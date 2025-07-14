@@ -34,12 +34,4 @@ public interface IGeneradorInstanciaRepository extends JpaRepository<GeneradorIn
      */
     @Query("SELECT gi FROM GeneradorInstancia gi WHERE gi.estado = '" + Constants.ESTADO_GENERADOR_FINALIZADO + "' ORDER BY gi.puntuacion DESC")
     Optional<List<GeneradorInstancia>> obtenerTodasLasPosiblesSoluciones();
-
-    /**
-     * Método que obtiene la información de las puntuaciones
-     * @param list - List con las posibles soluciones
-     * @return Map con la información de las puntuaciones
-     */
-    @Query("SELECT gi FROM GeneradorInstancia gi WHERE gi.estado = '" + Constants.ESTADO_GENERADOR_FINALIZADO + "' ORDER BY gi.puntuacion DESC")
-    Optional<List<GeneradorInstancia>> obtenerInfoPuntuaciones();
 }

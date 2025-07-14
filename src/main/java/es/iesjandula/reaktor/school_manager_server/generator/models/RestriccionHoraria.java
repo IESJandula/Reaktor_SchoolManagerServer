@@ -1,5 +1,11 @@
 package es.iesjandula.reaktor.school_manager_server.generator.models;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -7,56 +13,20 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RestriccionHoraria
 {
-	/** Índice Día curso inicial */
-	private final int indiceCursoDiaInicial ;
-	
-	/** Índice Día curso final */
-	private final int indiceCursoDiaFinal ;
-	
-	/** Índice Tramo horario inicial */
-	private int indiceTramoHorarioInicial ;
-	
-	/** Índice Tramo horario final */
-	private int indiceTramoHorarioFinal ;
+	/** Restricciones horarias */
+	private final List<RestriccionHorariaItem> restriccionesHorarias ;
 
     private RestriccionHoraria(Builder builder)
     {
-        this.indiceCursoDiaInicial     = builder.indiceCursoDiaInicial ;
-        this.indiceCursoDiaFinal       = builder.indiceCursoDiaFinal ;
-        this.indiceTramoHorarioInicial = builder.indiceTramoHorarioInicial ;
-        this.indiceTramoHorarioFinal   = builder.indiceTramoHorarioFinal ;
+        this.restriccionesHorarias = builder.restriccionesHorarias ;
     }
 
     /**
-     * @return the indiceCursoDiaInicial
+     * @return the restriccionesHorarias
      */
-    public int getIndiceCursoDiaInicial() 
+    public List<RestriccionHorariaItem> getRestriccionesHorarias() 
     {
-        return this.indiceCursoDiaInicial ;
-    }
-
-    /**
-     * @return the indiceCursoDiaFinal
-     */
-    public int getIndiceCursoDiaFinal() 
-    {
-        return this.indiceCursoDiaFinal ;
-    }
-
-    /**
-     * @return the indiceTramoHorarioInicial
-     */
-    public int getIndiceTramoHorarioInicial() 
-    {
-        return this.indiceTramoHorarioInicial ;
-    }
-
-    /**
-     * @return the indiceTramoHorarioFinal
-     */
-    public int getIndiceTramoHorarioFinal() 
-    {
-        return this.indiceTramoHorarioFinal ;
+        return this.restriccionesHorarias ;
     }
 
     /**
@@ -64,47 +34,67 @@ public class RestriccionHoraria
      */
     public static class Builder
     {
-        /** Índice Día curso inicial */
-        private int indiceCursoDiaInicial ;
-
-        /** Índice Día curso final */
-        private int indiceCursoDiaFinal ;
-
-        /** Índice Tramo horario inicial */
-        private int indiceTramoHorarioInicial ;
-
-        /** Índice Tramo horario final */
-        private int indiceTramoHorarioFinal ;
+        /** Restricciones horarias */
+        private List<RestriccionHorariaItem> restriccionesHorarias ;
 
         /**
          * @param indiceCursoDiaInicial Índice Día curso inicial
          */
         public Builder(int indiceCursoDiaInicial)
         {
-            this.indiceCursoDiaInicial     = indiceCursoDiaInicial ;
-            this.indiceCursoDiaFinal       = indiceCursoDiaInicial + Constants.NUMERO_DIAS_SEMANA ;
+            // Por defecto, damos de alta todas las posibilidades
+            this.restriccionesHorarias = new ArrayList<>() ;
 
-            this.indiceTramoHorarioInicial = 0 ;
-            this.indiceTramoHorarioFinal   = Constants.NUMERO_TRAMOS_HORARIOS ;
+            for (int i = indiceCursoDiaInicial ; i < (indiceCursoDiaInicial + Constants.NUMERO_DIAS_SEMANA) ; i++)
+            {
+                for (int j = Constants.TRAMO_HORARIO_PRIMERA_HORA ; j < Constants.NUMERO_TRAMOS_HORARIOS ; j++)
+                {
+                    this.restriccionesHorarias.add(new RestriccionHorariaItem(i, j)) ;
+                }
+            }
         }
 
         /**
-         * @param indiceTramoHorarioInicial Índice Tramo horario inicial
+         * Eliminamos la primera hora (tramo 0) de todos los items de la lista
+         * 
          * @return this
          */
-        public Builder docenteEntraDespuesSegundaHora()
+        public Builder sinClasePrimeraHora()
         {
-            this.indiceTramoHorarioInicial = Constants.TRAMO_HORARIO_SEGUNDA_HORA ;
+            Iterator<RestriccionHorariaItem> iterator = this.restriccionesHorarias.iterator() ;
+
+            while (iterator.hasNext())
+            {
+                RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+                if (restriccionHorariaItem.getTramoHorario() == Constants.TRAMO_HORARIO_PRIMERA_HORA)
+                {
+                    iterator.remove() ;
+                }
+            }
+
             return this ;
         }
 
         /**
-         * @param indiceTramoHorarioInicial Índice Tramo horario inicial
+         * Eliminamos la última hora (tramo 5) de todos los items de la lista
+         * 
          * @return this
          */
-        public Builder docenteSaleAntesQuintaHora()
+        public Builder conClasePrimerHora()
         {
-            this.indiceTramoHorarioFinal = Constants.TRAMO_HORARIO_QUINTA_HORA ;
+            Iterator<RestriccionHorariaItem> iterator = this.restriccionesHorarias.iterator() ;
+
+            while (iterator.hasNext())
+            {
+                RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+                if (restriccionHorariaItem.getTramoHorario() == Constants.TRAMO_HORARIO_SEXTA_HORA)
+                {
+                    iterator.remove() ;
+                }
+            }
+
             return this ;
         }
 
@@ -117,13 +107,8 @@ public class RestriccionHoraria
          */
         public Builder hacerCoincidirConOptativaDelBloque(int indiceCursoDia, int indiceTramoHorario)
         {
-            // Asignamos justo la curso-dia necesario para asignarlo
-            this.indiceCursoDiaInicial     = indiceCursoDia ;
-            this.indiceCursoDiaFinal       = indiceCursoDia + 1 ;
-
-            // Asignamos justo la hora necesaria para asignarlo
-            this.indiceTramoHorarioInicial = indiceTramoHorario ;
-            this.indiceTramoHorarioFinal   = indiceTramoHorario + 1 ;
+            // Hacemos coincidir el tramo horario con el día
+            this.hacerCoincidirEnDiaHora(indiceCursoDia, indiceTramoHorario) ;
 
             return this ;
         }
@@ -137,13 +122,8 @@ public class RestriccionHoraria
          */
         public Builder hacerCoincidirConModuloFp(int indiceCursoDia, int indiceTramoHorario)
         {
-            // Asignamos justo la curso-dia necesario para asignarlo
-            this.indiceCursoDiaInicial     = indiceCursoDia ;
-            this.indiceCursoDiaFinal       = indiceCursoDia + 1 ;
-
-            // Asignamos justo la hora necesaria para asignarlo
-            this.indiceTramoHorarioInicial = indiceTramoHorario ;
-            this.indiceTramoHorarioFinal   = indiceTramoHorario + 1 ;
+            // Hacemos coincidir el tramo horario con el día
+            this.hacerCoincidirEnDiaHora(indiceCursoDia, indiceTramoHorario) ;
 
             return this ;
         }
@@ -156,8 +136,17 @@ public class RestriccionHoraria
          */
         public Builder asignarUnDiaConcreto(int diaDeLaSemana)
         {
-            this.indiceCursoDiaInicial = this.indiceCursoDiaInicial + diaDeLaSemana ;
-            this.indiceCursoDiaFinal   = this.indiceCursoDiaInicial + 1 ;
+            Iterator<RestriccionHorariaItem> iterator = this.restriccionesHorarias.iterator() ;
+
+            while (iterator.hasNext())
+            {
+                RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+                if (restriccionHorariaItem.getIndiceDia() != diaDeLaSemana)
+                {
+                    iterator.remove() ;
+                }
+            }
 
             return this ;
         }
@@ -171,42 +160,51 @@ public class RestriccionHoraria
          */
         public Builder asignarUnDiaTramoConcreto(int diaDeLaSemana, int numerotramo)
         {
-            this.indiceCursoDiaInicial     = this.indiceCursoDiaInicial + diaDeLaSemana ;
-            this.indiceCursoDiaFinal       = this.indiceCursoDiaInicial + 1 ;
-
-            this.indiceTramoHorarioInicial = numerotramo ;
-            this.indiceTramoHorarioFinal   = numerotramo + 1 ;
+            this.hacerCoincidirEnDiaHora(diaDeLaSemana, numerotramo) ;
 
             return this ;
         }
 
         /**
-         * Incrementamos un día ya que el anterior no es válido
+         * Hace coincidir el tramo horario con el día
          * 
+         * @param indiceCursoDia índice del curso y día donde está la otra optativa
+         * @param indiceTramoHorario índice del tramo horario donde está la otra optativa
+         */
+        private void hacerCoincidirEnDiaHora(int indiceCursoDia, int indiceTramoHorario)
+        {
+            Iterator<RestriccionHorariaItem> iterator = this.restriccionesHorarias.iterator() ;
+
+            while (iterator.hasNext())
+            {
+                RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+                if (restriccionHorariaItem.getIndiceDia() != indiceCursoDia || restriccionHorariaItem.getTramoHorario() != indiceTramoHorario)
+                {
+                    iterator.remove() ;
+                }
+            }
+        }
+
+        /** 
+         * Elimina un item de la restricción horaria
+         * 
+         * @param restriccionHorariaItem item a eliminar
          * @return this
          */
-        public Builder incrementarUnDia()
+        public Builder eliminarRestriccionHorariaItem(RestriccionHorariaItem restriccionHorariaItem)
         {
-            // Incrementamos
-            this.indiceCursoDiaInicial ++ ;
+            this.restriccionesHorarias.remove(restriccionHorariaItem) ;
 
             return this ;
         }
 
         /**
-         * @return the indiceCursoDiaInicial
+         * @return the restriccionesHorarias
          */
-        public int getIndiceCursoDiaInicial() 
+        public List<RestriccionHorariaItem> getRestriccionesHorarias()
         {
-            return this.indiceCursoDiaInicial ;
-        }
-
-        /**
-         * @return the indiceCursoDiaFinal
-         */
-        public int getIndiceCursoDiaFinal() 
-        {
-            return this.indiceCursoDiaFinal ;
+            return this.restriccionesHorarias ;
         }
 
         /** Builder para {@link RestriccionHoraria}
@@ -219,40 +217,49 @@ public class RestriccionHoraria
     }
 
     /**
-	 * Método que amplia el intervalo en caso de que no se encuentre hueco para una sesión
-	 * 
-	 * @param sesion sesión a asignar
-	 * @throws SchoolManagerServerException con un error
-	 */
-	public void ampliarIntervalo(Sesion sesion) throws SchoolManagerServerException
-	{
-		if (this.indiceTramoHorarioInicial <= 0 || this.indiceTramoHorarioFinal >= (Constants.NUMERO_TRAMOS_HORARIOS - 1))
-		{
+     * Método que comprueba si existe hueco para una sesión
+     * 
+     * @return true si existe hueco, false en caso contrario
+     * @throws SchoolManagerServerException si no hay más intervalo para asignar la sesión  
+     */
+    public RestriccionHorariaItem obtenerRestriccionHorariaItem(Sesion sesion) throws SchoolManagerServerException
+    {
+        if (this.restriccionesHorarias.isEmpty())
+        {
 			// Logueamos y lanzamos una excepción para cortar esta generación de horario
-			// ya que no hay más intervalo para asignar la sesión
+			// ya que no hay más items de la semana para asignar la sesión
 			
-			String errorString = "\n Este horario es incorrecto ya que no se pueden ampliar más los intervalos de tramo " +
-								 "horario para asignar esta sesión: \n" + 
-								 sesion ;
+			String errorString = "\n Este horario es incorrecto ya que no se pueden obtener más items de la semana para asignar esta sesión: \n" +  sesion ;
 			
 			log.error(errorString) ;
-			throw new SchoolManagerServerException(Constants.ERR_CODE_HORARIO_NO_MAS_AMPLIABLE, errorString) ;			
-		}
-		
-		// Como tenemos que ampliar por el índice inicial y el final, lo haremos de forma equitativa
-		
-		int cercaniaAlLimiteIndiceInicial = this.indiceTramoHorarioInicial ;
-		int cercaniaAlLimiteIndiceFinal   = (Constants.NUMERO_TRAMOS_HORARIOS - 1) - this.indiceTramoHorarioFinal ;
-		
-		// Si la cercania al límite del índice inicial es mayor, lo quito del inicial
-		if (cercaniaAlLimiteIndiceInicial > cercaniaAlLimiteIndiceFinal)
-		{
-			this.indiceTramoHorarioInicial -- ;
-		}
-		else
-		{
-			// Sino, lo quito del final
-			this.indiceTramoHorarioFinal ++ ;
-		}
-	}
+			throw new SchoolManagerServerException(Constants.ERR_CODE_HORARIO_NO_MAS_AMPLIABLE, errorString) ;		
+        }
+
+        // Mezclamos la lista para que tenga cierta aleatoriedad
+        Collections.shuffle(this.restriccionesHorarias) ;
+
+        // Eliminamos aleatoriamente un item de la restricción horaria
+        return this.restriccionesHorarias.remove(0) ;
+    }
+
+
+    /**
+     * Método que elimina un día concreto de la restricción horaria
+     * 
+     * @param dia día a eliminar
+     */
+    public void eliminarDiaConcreto(int dia)
+    {
+        Iterator<RestriccionHorariaItem> iterator = this.restriccionesHorarias.iterator() ;
+
+        while (iterator.hasNext())
+        {
+            RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+            if (restriccionHorariaItem.getIndiceDia() == dia)
+            {
+                iterator.remove() ;
+            }
+        }
+    }
 }

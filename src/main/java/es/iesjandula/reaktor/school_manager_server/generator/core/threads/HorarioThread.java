@@ -3,6 +3,8 @@ package es.iesjandula.reaktor.school_manager_server.generator.core.threads;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.generator.core.GestorDeSesiones;
+import es.iesjandula.reaktor.school_manager_server.generator.core.Horario;
+import es.iesjandula.reaktor.school_manager_server.generator.core.HorarioParams;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
 import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
@@ -94,6 +96,17 @@ public class HorarioThread extends Thread
 				// Decrementamos el número de threads pendientes
 				this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
 
+				// Creamos una instancia de HorarioParams
+				HorarioParams horarioParams = new HorarioParams.Builder()
+				.setGeneradorInstancia(this.horarioThreadParams.getGeneradorInstancia())
+				.setGeneradorService(this.horarioThreadParams.getGeneradorService())
+				.setFactorSesionesConsecutivasProfesor(1)
+				.setMatrizAsignacionesMatutinas(this.matrizAsignacionesMatutinas)
+				.setMatrizAsignacionesVespertinas(this.matrizAsignacionesVespertinas)
+				.setNumeroCursosMatutinos(this.horarioThreadParams.getNumeroCursosMatutinos())
+				.setNumeroCursosVespertinos(this.horarioThreadParams.getNumeroCursosVespertinos())
+				.build() ;
+
 				// Borramos la instancia del generador relacionada
 				this.horarioThreadParams.getGeneradorService()
 										.eliminarGeneradorInstancia(this.horarioThreadParams.getGeneradorInstancia()) ;
@@ -150,8 +163,8 @@ public class HorarioThread extends Thread
 															.get(sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getCursoEtapaGrupoString()) ;
 		}
 
-		// Encontramos el hueco para la sesión y devolvemos la última asignación
-		return gestorDeSesiones.encontrarHuecoParaSesion(sesion, esAsignaturaMatutina, numeroCursos, indiceCursoDiaInicial) ;					
+		// Asignamos la sesión y devolvemos la última asignación
+		return gestorDeSesiones.asignarSesion(sesion, esAsignaturaMatutina, numeroCursos, indiceCursoDiaInicial) ;					
 	}
 }
 

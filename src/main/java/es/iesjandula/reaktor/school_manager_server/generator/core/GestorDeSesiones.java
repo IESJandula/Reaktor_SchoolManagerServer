@@ -1,6 +1,8 @@
 package es.iesjandula.reaktor.school_manager_server.generator.core;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.generator.core.threads.IndicesAsignacionSesion;
@@ -8,10 +10,12 @@ import es.iesjandula.reaktor.school_manager_server.generator.core.threads.Ultima
 import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.models.ObservacionesAdicionales;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.generator.models.RestriccionHoraria;
+import es.iesjandula.reaktor.school_manager_server.generator.models.RestriccionHorariaItem;
 import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -218,7 +222,9 @@ public class GestorDeSesiones
 		{
 			Sesion temp = listaDeSesiones.get(i) ;
 
-			if (temp.getProfesor().getConciliacion() == Constants.CONCILIACION_SALIR_ANTES_QUINTA_HORA)
+			ObservacionesAdicionales observacionesAdicionales = temp.getProfesor().getObservacionesAdicionales() ;
+
+			if (observacionesAdicionales != null && observacionesAdicionales.getConciliacion() != null && observacionesAdicionales.getConciliacion())
 			{
 				indiceSesionEncontrada = i ;
 			}
@@ -318,113 +324,38 @@ public class GestorDeSesiones
 	 * @return ultima asignacion
      * @throws SchoolManagerServerException con un error
      */
-    public UltimaAsignacion encontrarHuecoParaSesion(Sesion sesion,
-                                                     boolean esAsignaturaMatutina,
-                                                     int numeroCursos,
-                                                     int indiceCursoDiaInicial) throws SchoolManagerServerException
+    public UltimaAsignacion asignarSesion(Sesion sesion,
+                                          boolean esAsignaturaMatutina,
+                                          int numeroCursos,
+                                          int indiceCursoDiaInicial) throws SchoolManagerServerException
     {
-        // Creamos una nueva instancia de ultimaAsignacion
-        UltimaAsignacion ultimaAsignacion = null ;
-
         // Obtener restricción horaria de esa sesion
-		RestriccionHoraria restriccionHoraria = this.obtenerRestriccionHorariaDeSesion(sesion, esAsignaturaMatutina, indiceCursoDiaInicial) ;
+		RestriccionHoraria restriccionHoraria = this.obtenerRestriccionHorariaDeSesion(sesion, esAsignaturaMatutina, numeroCursos, indiceCursoDiaInicial) ;
+
+		// Obtenemos el siguiente item de la restricción horaria
+		RestriccionHorariaItem restriccionHorariaItem = restriccionHoraria.obtenerRestriccionHorariaItem(sesion) ;
 		
-		IndicesAsignacionSesion indicesAsignacionSesion = null ;
-		
-		// Iteramos hasta que logremos asignar la sesión o que se lance una excepción
-		while (indicesAsignacionSesion == null)
-		{
-			// Llamamos al método interno
-			indicesAsignacionSesion = this.encontrarHuecoParaSesionInternal(sesion, numeroCursos, restriccionHoraria) ;
-			
-			// Si no se asignó ...
-			if (indicesAsignacionSesion == null)
-			{
-				// ... Ampliamos el intervalo
-				restriccionHoraria.ampliarIntervalo(sesion) ;
-			}
-			else
-			{
-				// Asignamos la sesión
-				Asignacion asignacion = this.asignarSesion(sesion, indicesAsignacionSesion) ;
+		// Creamos una nueva instancia de indicesAsignacionSesion
+		IndicesAsignacionSesion indicesAsignacionSesion = new IndicesAsignacionSesion(restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario()) ;
 
-				// Creamos una nueva instancia de ultimaAsignacion
-				ultimaAsignacion = new UltimaAsignacion(indicesAsignacionSesion, asignacion) ;
-			}
-		}
+		// Asignamos la sesión
+		Asignacion asignacion = this.asignarSesion(sesion, indicesAsignacionSesion) ;
 
-        return ultimaAsignacion ;
-    }
-
-    /**
-     * Método que va a tratar de asignar una clase al horario actual
-     * 
-     * @param sesion sesión a asignar
-     * @param numeroCursos número de cursos
-     * @param restriccionHoraria restriccion horaria
-	 * @return IndicesAsignacionSesion con los indices de la asignación de la sesión
-     * @throws SchoolManagerServerException con un error
-     */
-    private IndicesAsignacionSesion encontrarHuecoParaSesionInternal(Sesion sesion,
-                                                                     int numeroCursos,
-                                                                     RestriccionHoraria restriccionHoraria) throws SchoolManagerServerException
-    {
-        int indiceEncontradoCursoDia 	 = -1 ;
-        int indiceEncontradoTramoHorario = -1 ;
-        
-        // Vamos a intentar asignar esta sesión a un día y hora concreto
-        // Por ello, iteraremos los 5 días de la semana, teniendo en cuenta las restricciones para esta sesión
-        
-        // Obtenemos el índice del curso/día
-        int indiceCursoDia = restriccionHoraria.getIndiceCursoDiaInicial() ;
-        
-        while (indiceCursoDia < restriccionHoraria.getIndiceCursoDiaFinal() && indiceEncontradoCursoDia == -1)
-        {
-        	Asignatura asignatura = sesion.getAsignatura() ;
-        	
-        	// Validamos el curso día sobre esta asignatura
-        	if (this.validarCursoDia(indiceCursoDia, asignatura))
-        	{
-        		// Obtenemos el índice del tramo horario 
-            	int indiceTramoHorario = restriccionHoraria.getIndiceTramoHorarioInicial() ;
-            	
-            	// Iteramos en las 6 sesiones que hay por día
-            	// Siempre y cuando no haya restricciones para esta sesión
-            	while (indiceTramoHorario < restriccionHoraria.getIndiceTramoHorarioFinal() && indiceEncontradoTramoHorario == -1)
-            	{
-            		// Si la hora está disponible para impartirla ...
-                    if (this.validarCursoDiaTramo(numeroCursos, indiceCursoDia, indiceTramoHorario, sesion))
-                    {
-                    	indiceEncontradoCursoDia 	 = indiceCursoDia ;
-                    	indiceEncontradoTramoHorario = indiceTramoHorario ;
-                    }
-            		
-            		indiceTramoHorario++ ;
-            	}
-        	}
-        	
-        	indiceCursoDia++ ;
-        }
-        
-		IndicesAsignacionSesion indicesAsignacionSesion = null ;
-
-        if (indiceEncontradoCursoDia != -1 && indiceEncontradoTramoHorario != -1)
-        {
-			indicesAsignacionSesion = new IndicesAsignacionSesion(indiceEncontradoCursoDia, indiceEncontradoTramoHorario) ;
-        }
-
-        return indicesAsignacionSesion ;
+		// Devolvemos la última asignación
+        return new UltimaAsignacion(indicesAsignacionSesion, asignacion) ;
     }
     
     /**
      * @param sesion sesion
 	 * @param asignaturaMatutina asignatura matutina
+	 * @param numeroCursos número de cursos
      * @param indiceCursoDiaInicial índice del curso y día inicial
      * @return una nueva instancia que restringe los horarios (días y horas)
      * @throws SchoolManagerServerException con un error
      */
     private RestriccionHoraria obtenerRestriccionHorariaDeSesion(Sesion sesion,
 																 boolean esAsignaturaMatutina,
+																 int numeroCursos,
     															 int indiceCursoDiaInicial) throws SchoolManagerServerException
     {
 		// Obtenemos la posible restricción horaria impuesta sobre la sesión
@@ -437,7 +368,10 @@ public class GestorDeSesiones
 			// antes de devolver la instancia de Restriccion Horaria
 			RestriccionHoraria.Builder builder = new RestriccionHoraria.Builder(indiceCursoDiaInicial) ;
 
-			// Nos vamos a centrar primero en la conciliación de los profesores siempre que la asignatura sea matutina
+			// Obtenemos las restricciones relacionadas con el día y tramo horario
+			this.obtenerRestriccionHorariaDeSesionPorDiaTramo(sesion, numeroCursos, builder) ;
+
+			// Ahora en la conciliación de los profesores siempre que la asignatura sea matutina
 			if (esAsignaturaMatutina)
 			{
 				this.obtenerRestriccionHorariaDeSesionPorConciliacion(sesion, builder) ;
@@ -468,14 +402,17 @@ public class GestorDeSesiones
      */
 	private void obtenerRestriccionHorariaDeSesionPorConciliacion(Sesion sesion, RestriccionHoraria.Builder builder)
 	{
-    	if (sesion.getProfesor().getConciliacion() == Constants.CONCILIACION_ENTRAR_DESPUES_SEGUNDA_HORA)
-    	{
-    		builder = builder.docenteEntraDespuesSegundaHora() ;
-    	}
-    	else if (sesion.getProfesor().getConciliacion() == Constants.CONCILIACION_SALIR_ANTES_QUINTA_HORA)
-    	{
-    		builder = builder.docenteSaleAntesQuintaHora() ;
-    	}
+    	if (sesion.getProfesor().getObservacionesAdicionales().getConciliacion())
+		{
+			if (sesion.getProfesor().getObservacionesAdicionales().getSinClasePrimeraHora())
+			{
+				builder = builder.sinClasePrimeraHora() ;
+			}
+			else
+			{
+				builder = builder.conClasePrimerHora() ;
+			}
+		}
 	}
 
     /**
@@ -486,55 +423,36 @@ public class GestorDeSesiones
 	private void obtenerRestriccionHorariaDeSesionPorOptativas(Sesion sesion,
 															   RestriccionHoraria.Builder builder) throws SchoolManagerServerException
 	{
-		// Buscamos si ya se hizo una asignación de una de las optativas en la matriz
-		int indiceCursoDiaEncontrado = -1 ;
-		int indiceTramoEncontrado 	 = -1 ;
-		
-		// PODRÍA DARSE EL CASO QUE LOS PROFESORES FUERAN INCOMPATIBLES EN CUANTO A CONCILIACIÓN
-		
-		int i = builder.getIndiceCursoDiaInicial() ;
-		while (i < builder.getIndiceCursoDiaFinal() && indiceCursoDiaEncontrado == -1)
+		boolean encontrado = false ;
+
+		// Obtenemos la lista de restricciones horarias de esta sesión
+		List<RestriccionHorariaItem> restriccionesHorarias = new ArrayList<>(builder.getRestriccionesHorarias()) ;
+
+		// Iteramos y obtenemos las sesiones actualmente asociadas a cada día
+		Iterator<RestriccionHorariaItem> iterator = restriccionesHorarias.iterator() ;
+		while (iterator.hasNext() && !encontrado)
 		{
-			int j=0 ;
-			while (j < this.matrizAsignaciones[i].length && indiceTramoEncontrado == -1)
+			// Obtenemos el siguiente item de la restricción horaria
+			RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+			// Si:;
+				// justo en este día y tramo horario no hay una asignación o 
+				// si la hay es la misma asignatura o 
+				// si la asignatura no es optativa o
+				// si la asignatura no es del bloque de optativas
+			// Entonces: la borramos del builder
+			boolean restriccionHorariaInvalida = this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()] == null ||
+												 this.buscarAsignatura(this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()], sesion.getAsignatura()) ||
+												!this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()].isOptativas() || 
+												 this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()].getListaSesiones().get(0).getAsignatura().getBloqueId().getId() != sesion.getAsignatura().getBloqueId().getId() ;
+			if (restriccionHorariaInvalida)
 			{
-				Asignacion asignacionTemporal = this.matrizAsignaciones[i][j] ;
-				
-				// Si hay asignación es que al menos hay una sesión y el contenido son optativas
-				if (asignacionTemporal != null && asignacionTemporal.isOptativas())
-				{
-					// Iteramos sobre todas las sesiones para ver si son del bloque de optativas
-					boolean valido = true ;
-					int k = 0 ;
-					while (k < asignacionTemporal.getListaSesiones().size() && valido)
-					{					
-						// Obtenemos una de las sesiones
-						Sesion sesionTemp = asignacionTemporal.getListaSesiones().get(k) ;
-						
-						// Vemos si no se asignó previamente
-						valido = !sesionTemp.getAsignatura().equals(sesion.getAsignatura()) && this.cumpleConciliacion(sesion, j);
-												
-						k++ ;
-					}
-					
-					// Si no se asignó, es porque es válida la asignación
-					if (valido)
-					{
-						indiceCursoDiaEncontrado = i ;
-						indiceTramoEncontrado    = j ;
-					}
-				}	
-				
-				j++ ;
+				builder = builder.eliminarRestriccionHorariaItem(restriccionHorariaItem) ;
 			}
-			
-			i++ ;
-		}
-		
-		// Si encontramos la otra optativa, asignamos la restricción justo a ese día y hora
-		if (indiceCursoDiaEncontrado != -1 && indiceTramoEncontrado != -1)
-		{
-			builder = builder.hacerCoincidirConOptativaDelBloque(indiceCursoDiaEncontrado, indiceTramoEncontrado) ;
+			else
+			{
+				builder = builder.hacerCoincidirConOptativaDelBloque(restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario()) ;
+			}
 		}
 	}
 
@@ -546,116 +464,142 @@ public class GestorDeSesiones
     private void obtenerRestriccionHorariaDeSesionPorModuloFp(Sesion sesion,
                                                               RestriccionHoraria.Builder builder) throws SchoolManagerServerException
     {
-        // Buscamos si la asignatura ya está asignada en algún día
-        int indiceCursoDiaEncontrado = -1 ;
-        int indiceTramoEncontrado 	 = -1 ;
-        
-        int i = builder.getIndiceCursoDiaInicial();
-        while (i < builder.getIndiceCursoDiaFinal() && indiceCursoDiaEncontrado == -1)
+		boolean encontrado = false ;
+
+		// Obtenemos la lista de restricciones horarias de esta sesión
+		List<RestriccionHorariaItem> restriccionesHorarias = new ArrayList<>(builder.getRestriccionesHorarias()) ;
+
+		// Iteramos y obtenemos las sesiones actualmente asociadas a cada día
+		Iterator<RestriccionHorariaItem> iterator = restriccionesHorarias.iterator() ;
+		while (iterator.hasNext() && !encontrado)
 		{
-            int j = 0 ;
-            while (j < this.matrizAsignaciones[i].length && indiceTramoEncontrado == -1)
+			// Obtenemos el siguiente item de la restricción horaria
+			RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+			// Si justo en este día y tramo horario hay una asignación, la borramos del builder
+			if (this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()] != null)
 			{
-                Asignacion asignacionTemporal = this.matrizAsignaciones[i][j] ;
-                
-                if (asignacionTemporal != null && !asignacionTemporal.getListaSesiones().isEmpty())
-				{
-					int k = 0 ;
-                    
-					// Verificamos si alguna sesión corresponde a la misma asignatura
-                    while (k < asignacionTemporal.getListaSesiones().size() && indiceTramoEncontrado == -1)
-					{
-                        Sesion sesionTemp = asignacionTemporal.getListaSesiones().get(k) ;
-                        
-						boolean correcto = sesionTemp.getAsignatura().equals(sesion.getAsignatura()) && 
-										   this.cumpleConciliacion(sesionTemp, j) ;
-
-						// Si es la misma asignatura y cumple la conciliación, encontramos el día y hora
-						if (correcto)
-						{
-                            indiceCursoDiaEncontrado = i ;
-                            indiceTramoEncontrado 	 = j ;
-                        }
-
-                        k++ ;
-                    }
-                }
-
-                j++;
-            }
-
-            i++;
-        }
-
-        // Si encontramos la asignatura en algún día
-        if (indiceCursoDiaEncontrado != -1 && indiceTramoEncontrado != -1)
-		{            
-			// Verificamos si hay asignación anterior
-            if (indiceTramoEncontrado > 0 && this.matrizAsignaciones[indiceCursoDiaEncontrado][indiceTramoEncontrado - 1] == null)
-			{
-                builder.hacerCoincidirConModuloFp(indiceCursoDiaEncontrado, indiceTramoEncontrado - 1) ;
-            }
-			
-			// Verificamos si hay asignación posterior
-			else if (indiceTramoEncontrado < this.matrizAsignaciones[indiceCursoDiaEncontrado].length - 1 &&
-					 this.matrizAsignaciones[indiceCursoDiaEncontrado][indiceTramoEncontrado + 1] == null) 
-			{
-                builder.hacerCoincidirConModuloFp(indiceCursoDiaEncontrado, indiceTramoEncontrado + 1) ;
-            }
-			else if (builder.getIndiceCursoDiaInicial() < builder.getIndiceCursoDiaFinal())
-			{
-				// Incrementamos un día
-				builder.incrementarUnDia() ;
-				
-				// Llamamos de forma recursiva
-				this.obtenerRestriccionHorariaDeSesionPorModuloFp(sesion, builder) ;
+				builder = builder.eliminarRestriccionHorariaItem(restriccionHorariaItem) ;
 			}
 			else
 			{
-				String errorString = "Se ha llegado al tope para asignar la asignatura, no hay más días disponibles: " + sesion ;
-	
-				log.error(errorString) ;
-				throw new SchoolManagerServerException(Constants.ERR_CODE_SIN_DIAS_DISPONIBLES, errorString) ;
+				// Verificamos si hay un índice donde se pueda realizar la asignación
+				encontrado = this.obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndice(restriccionHorariaItem, sesion) ;
+
+				if (encontrado)
+				{
+					builder = builder.hacerCoincidirConModuloFp(restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario()) ;
+				}
 			}
-        }
+		}
     }
 
 	/**
 	 * @param sesion sesion
-	 * @param tramoHorario tramo horario
-	 * @return true si cumple la conciliación
+	 * @param numeroCursos número de cursos
+	 * @param builder restriccion horaria builder
 	 */
-	private boolean cumpleConciliacion(Sesion sesion, int tramoHorario)
-	{
-		// Las conciliaciones siempre son matutinas
-		boolean outcome = sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getHorarioMatutino() ;
+	private void obtenerRestriccionHorariaDeSesionPorDiaTramo(Sesion sesion, int numeroCursos, RestriccionHoraria.Builder builder)
+	{	
+		List<RestriccionHorariaItem> restriccionesHorarias = new ArrayList<>(builder.getRestriccionesHorarias()) ;
 
-		// Si no es vespertino, entonces seguimos mirando ya que es matutino
-		if (!outcome)
+		// Iteramos y quitamos todos aquellos items incompatibles
+		Iterator<RestriccionHorariaItem> iterator = restriccionesHorarias.iterator() ;
+		while (iterator.hasNext())
 		{
-			String conciliacion = sesion.getProfesor().getConciliacion() ;
+			RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
 			
-			// Si es nula la conciliación, entonces no hay problema
-			outcome = conciliacion == null ;
-
-			// Si no es nula la conciliación, tenemos que seguir mirando
-			if (!outcome)
+			if (!this.validarCursoDia(restriccionHorariaItem.getIndiceDia(), sesion.getAsignatura()) || 
+				!this.validarCursoDiaTramo(numeroCursos, restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario(), sesion))
 			{
-				// Si es entrar a segunda hora, ...
-				if (conciliacion == Constants.CONCILIACION_ENTRAR_DESPUES_SEGUNDA_HORA)
-				{
-					// ... entonces el tramo horario debe ser mayor o igual a la segunda hora
-					outcome = tramoHorario >= Constants.TRAMO_HORARIO_SEGUNDA_HORA ;
-				}
-				else // Conciliacion.SALIR_ANTES_QUINTA_HORA
-				{
-					// ... entonces el tramo horario debe ser menor o igual a la quinta hora
-					outcome = tramoHorario <= Constants.TRAMO_HORARIO_QUINTA_HORA ;
-				}
+				builder = builder.eliminarRestriccionHorariaItem(restriccionHorariaItem) ;
+			}
+		}
+	}
+
+	/**
+	 * @param restriccionHorariaItem restriccion horaria item
+	 * @param sesion sesion
+	 * @return true si se ha encontrado la misma asignatura
+	 */
+	private boolean obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndice(RestriccionHorariaItem restriccionHorariaItem, Sesion sesion)
+	{
+		boolean encontrado = false ;
+
+		// Obtenemos el índice del curso y día
+		int indiceCursoDia = restriccionHorariaItem.getIndiceDia() ;
+
+		// Si el tramo horario es 0, solo vemos lo que hay en el tramo 1
+		if (restriccionHorariaItem.getTramoHorario() == 0)
+		{
+			// Verificamos si hay una asignación con la misma asignatura
+			encontrado = this.obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndiceVerificarAsignacion(this.matrizAsignaciones[indiceCursoDia][1], sesion) ;
+		}
+		// Si el tramo horario es el último, solo vemos lo que hay en el tramo anterior
+		else if (restriccionHorariaItem.getTramoHorario() == Constants.NUMERO_TRAMOS_HORARIOS - 1)
+		{
+			// Verificamos si hay una asignación con la misma asignatura
+			encontrado = this.obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndiceVerificarAsignacion(this.matrizAsignaciones[indiceCursoDia][Constants.NUMERO_TRAMOS_HORARIOS - 2], 
+				                                                                                             sesion) ;
+		}
+		// Si no es el primero ni el último, vemos lo que hay en el tramo anterior y posterior
+		else
+		{
+			// Verificamos si hay una asignación con la misma asignatura
+			encontrado = this.obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndiceVerificarAsignacion(this.matrizAsignaciones[indiceCursoDia][restriccionHorariaItem.getTramoHorario() - 1], 
+				                                                                                             sesion) ;
+
+			// Si no hay una asignación con la misma asignatura, vemos lo que hay en el tramo posterior
+			if (!encontrado)
+			{
+				// Verificamos si hay una asignación con la misma asignatura
+				encontrado = this.obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndiceVerificarAsignacion(this.matrizAsignaciones[indiceCursoDia][restriccionHorariaItem.getTramoHorario() + 1], 
+				                                                                                                 sesion) ;
 			}
 		}
 
-		return outcome ;
+		return encontrado ;
+	}
+
+	
+	/**
+	 * @param asignacionTemporal asignacion temporal
+	 * @param sesion sesion
+	 * @return true si se ha encontrado la misma asignatura
+	 */
+	private boolean obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndiceVerificarAsignacion(Asignacion asignacionTemporal, Sesion sesion)
+	{
+		boolean encontrado = false ;
+		
+		// Si hay una asignación, verificamos
+		if (asignacionTemporal != null)
+		{
+			// Verificamos si hay una asignación con la misma asignatura
+			encontrado = this.obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndiceMismaAsignatura(asignacionTemporal, sesion) ;
+		}
+
+		return encontrado ;
+	}
+
+	/**
+	 * @param asignacionTemporal asignacion temporal
+	 * @param sesion sesion
+	 * @return true si se ha encontrado la misma asignatura
+	 */
+	private boolean obtenerRestriccionHorariaDeSesionPorModuloFpEncontrarIndiceMismaAsignatura(Asignacion asignacionTemporal, Sesion sesion)
+	{
+		boolean encontrado = false ;
+
+		// Iteramos y verificamos si alguna sesión corresponde a la misma asignatura
+		Iterator<Sesion> iterator = asignacionTemporal.getListaSesiones().iterator() ;
+		while (iterator.hasNext() && !encontrado)
+		{
+			Sesion sesionTemp = iterator.next() ;
+			
+			encontrado = sesionTemp.getAsignatura().equals(sesion.getAsignatura()) ;
+		}
+
+		return encontrado ;
 	}
 
     /**

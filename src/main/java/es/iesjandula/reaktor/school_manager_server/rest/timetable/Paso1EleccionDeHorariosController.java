@@ -641,14 +641,14 @@ public class Paso1EleccionDeHorariosController
         }
         else
         {
-            // Construimos el id de las observaciones adicionales
-            IdObservacionesAdicionales idObservacionesAdicionales = new IdObservacionesAdicionales(profesor);
-
             // Construimos las observaciones adicionales
             observacionesAdicionales = new ObservacionesAdicionales() ;
 
-            // Añadimos la información del id de las observaciones adicionales
-            observacionesAdicionales.setIdObservacionesAdicionales(idObservacionesAdicionales);
+            // Añadimos el email del profesor a las observaciones adicionales
+            observacionesAdicionales.setProfesorEmail(email) ;
+
+            // Añadimos el profesor a las observaciones adicionales
+            observacionesAdicionales.setProfesor(profesor) ;
         }
 
         return observacionesAdicionales ;

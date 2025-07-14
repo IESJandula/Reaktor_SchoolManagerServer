@@ -645,6 +645,7 @@ public class GeneradorService
         // Seteamos los valores de la instancia
         generadorInstanciaDto.setIdGeneradorInstancia(generadorInstancia.getId()) ;
         generadorInstanciaDto.setPuntuacion(generadorInstancia.getPuntuacion()) ;
+        generadorInstanciaDto.setSolucionElegida(generadorInstancia.getSolucionElegida()) ;
 
         // Obtenemos la información de las puntuaciones generales
         this.obtenerEstadoGeneradorInfoSolucionesInternalGeneral(generadorInstanciaDto, generadorInstancia) ;
