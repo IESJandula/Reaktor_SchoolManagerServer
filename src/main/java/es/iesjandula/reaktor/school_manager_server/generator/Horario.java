@@ -1,9 +1,9 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core;
+package es.iesjandula.reaktor.school_manager_server.generator;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
 import lombok.AllArgsConstructor;

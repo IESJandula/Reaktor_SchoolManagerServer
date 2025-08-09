@@ -507,8 +507,8 @@ public class Paso1EleccionDeHorariosController
 
             // Añadimos la información del id de las preferencias horarias
             idPreferenciasHorariasProfesor.setIdSeleccion(idSeleccion) ;
-            idPreferenciasHorariasProfesor.setProfesor(profesor) ;
-            idPreferenciasHorariasProfesor.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+            idPreferenciasHorariasProfesor.setProfesorEmail(profesor.getEmail()) ;
+            idPreferenciasHorariasProfesor.setDiaTramoTipoHorarioId(diaTramoTipoHorario.getId()) ;
 
             // Construimos las preferencias horarias
             preferenciasHorariasProfesor = new PreferenciasHorariasProfesor() ;
@@ -705,8 +705,8 @@ public class Paso1EleccionDeHorariosController
                     DiaTramoTipoHorarioDto diaTramoTipoHorarioDto = new DiaTramoTipoHorarioDto();
 
                     // Añadimos el dia y el tramo a la preferencia horaria
-                    diaTramoTipoHorarioDto.setDiaDesc(tramo.getIdPreferenciasHorariasProfesor().getDiaTramoTipoHorario().getDiaDesc());
-                    diaTramoTipoHorarioDto.setTramoDesc(tramo.getIdPreferenciasHorariasProfesor().getDiaTramoTipoHorario().getTramoDesc());
+                    diaTramoTipoHorarioDto.setDiaDesc(tramo.getDiaTramoTipoHorario().getDiaDesc());
+                    diaTramoTipoHorarioDto.setTramoDesc(tramo.getDiaTramoTipoHorario().getTramoDesc());
 
                     // Añadimos la preferencia horaria al dto
                     tramosDto.add(diaTramoTipoHorarioDto);

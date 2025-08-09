@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.generator.models;
+package es.iesjandula.reaktor.school_manager_server.models.no_jpa;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,7 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core;
+package es.iesjandula.reaktor.school_manager_server.generator;
 
-import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 
 public class HorarioParams

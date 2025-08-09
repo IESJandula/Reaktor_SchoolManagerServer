@@ -1,8 +1,8 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core.manejadores;
+package es.iesjandula.reaktor.school_manager_server.generator.manejadores;
 
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import es.iesjandula.reaktor.school_manager_server.generator.core.Horario;
+import es.iesjandula.reaktor.school_manager_server.generator.Horario;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;

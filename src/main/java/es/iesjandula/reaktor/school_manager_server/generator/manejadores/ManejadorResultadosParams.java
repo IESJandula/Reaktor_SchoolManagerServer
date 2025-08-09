@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core.manejadores;
+package es.iesjandula.reaktor.school_manager_server.generator.manejadores;
 
 import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 

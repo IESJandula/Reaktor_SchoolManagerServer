@@ -75,6 +75,12 @@ public class Profesor
 	@OneToOne(mappedBy = "profesor")
 	private ObservacionesAdicionales observacionesAdicionales;
 
+	/**
+	 * Preferencias horarias del profesor. Relación de uno a muchos con la entidad {@link PreferenciasHorariasProfesor}.
+	 */
+	@OneToMany(mappedBy = "profesor")
+	private List<PreferenciasHorariasProfesor> preferenciasHorariasProfesor;
+
 	@Override
     public String toString()
     {

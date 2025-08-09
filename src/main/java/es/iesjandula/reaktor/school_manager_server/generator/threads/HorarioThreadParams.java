@@ -1,8 +1,8 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core.threads;
+package es.iesjandula.reaktor.school_manager_server.generator.threads;
 
 import java.util.Map;
 
-import es.iesjandula.reaktor.school_manager_server.generator.core.manejadores.ManejadorThreads;
+import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreads;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;

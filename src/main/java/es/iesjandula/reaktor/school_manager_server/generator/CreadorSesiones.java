@@ -1,9 +1,9 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core;
+package es.iesjandula.reaktor.school_manager_server.generator;
 
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
-import es.iesjandula.reaktor.school_manager_server.generator.models.RestriccionHoraria;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -95,7 +95,7 @@ public class CreadorSesiones
      * @param tipoHorarioMatutino true si el tipo de horario es matutino, false en caso contrario
      * @param restriccionHoraria restricción horaria
      */
-    public void crearSesion(Asignatura asignatura, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
+    private void crearSesion(Asignatura asignatura, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
     {
         // Por defecto, la lista de sesiones elegida es la de sin restricciones
         List<Sesion> listaSesionesElegida = this.sesionesSinRestricciones ;

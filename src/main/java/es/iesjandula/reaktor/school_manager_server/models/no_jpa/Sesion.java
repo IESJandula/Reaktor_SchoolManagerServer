@@ -1,8 +1,9 @@
-package es.iesjandula.reaktor.school_manager_server.generator.models;
+package es.iesjandula.reaktor.school_manager_server.models.no_jpa;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 
 @Slf4j

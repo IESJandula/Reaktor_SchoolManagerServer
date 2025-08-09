@@ -90,4 +90,14 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
             "              i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = '" + Constants.GRUPO_OPTATIVAS + "') AND " +
             "              i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "') <> 30")
     Optional<List<CursoEtapaGrupo>> cursoConHorasAsignadasIncorrectas();
+
+    /**
+     * Método que devuelve todos los registros de Impartir con las preferencias horarias del profesor cargadas eagerly
+     * @return Lista de todos los registros de Impartir con las preferencias horarias del profesor
+     */
+    @Query("SELECT DISTINCT i " +
+            "FROM Impartir i " +
+            "LEFT JOIN FETCH i.idImpartir.profesor p " +
+            "LEFT JOIN FETCH p.preferenciasHorariasProfesor")
+    List<Impartir> findAllWithPreferenciasHorarias();
 }

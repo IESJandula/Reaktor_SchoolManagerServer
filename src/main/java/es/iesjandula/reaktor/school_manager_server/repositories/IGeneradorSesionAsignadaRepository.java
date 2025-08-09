@@ -17,6 +17,7 @@ import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionAsignada;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionAsignada;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 
 @Repository
 public interface IGeneradorSesionAsignadaRepository extends JpaRepository<GeneradorSesionAsignada, IdGeneradorSesionAsignada>
@@ -96,4 +97,34 @@ public interface IGeneradorSesionAsignadaRepository extends JpaRepository<Genera
            "WHERE gsa.generadorInstancia = :generadorInstancia " +
              "AND gsa.diaTramoTipoHorario.horarioMatutino = :esMatutino")
     List<Profesor> buscarProfesoresTipoHorario(GeneradorInstancia generadorInstancia, Boolean esMatutino);
+
+    /**
+     * Método que cuenta cuántas veces se ha asignado una sesión a un profesor en la instancia elegida como solución
+     * @param generadorInstancia - Generador instancia
+     * @param profesor - Profesor
+     * @param esMatutino - Indica si es matutino
+     * @return - Número de veces que se ha asignado una sesión a un profesor
+     */
+    @Query(value = "SELECT COUNT(*) " +
+                   "FROM GeneradorSesionAsignada gsa " +
+                   "WHERE gsa.profesor.email = :profesorEmail " + 
+                   "AND gsa.generadorInstancia.id = :generadorInstanciaId " +
+                   "AND gsa.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
+                   "AND gsa.diaTramoTipoHorario.tramo = " + Constants.TRAMO_HORARIO_PRIMERA_HORA)
+    Integer contarConcidenciasClasePrimeraHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
+
+    /**
+     * Método que cuenta cuántas veces se ha asignado una sesión a un profesor en la instancia elegida como solución
+     * @param generadorInstancia - Generador instancia
+     * @param profesor - Profesor
+     * @param esMatutino - Indica si es matutino o vespertino
+     * @return - Número de veces que se ha asignado una sesión a un profesor
+     */
+    @Query(value = "SELECT COUNT(*) " +
+                   "FROM GeneradorSesionAsignada gsa " +
+                   "WHERE gsa.profesor.email = :profesorEmail " + 
+                   "AND gsa.generadorInstancia.id = :generadorInstanciaId " +
+                   "AND gsa.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
+                   "AND gsa.diaTramoTipoHorario.tramo = " + Constants.TRAMO_HORARIO_SEXTA_HORA)
+    Integer contarConcidenciasClaseUltimaHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
 }

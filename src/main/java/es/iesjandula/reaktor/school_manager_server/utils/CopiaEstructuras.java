@@ -3,8 +3,8 @@ package es.iesjandula.reaktor.school_manager_server.utils;
 import java.util.ArrayList;
 import java.util.List;
 
-import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
 
 public class CopiaEstructuras
 {

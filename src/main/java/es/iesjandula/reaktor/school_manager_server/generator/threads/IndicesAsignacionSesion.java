@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core.threads;
+package es.iesjandula.reaktor.school_manager_server.generator.threads;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

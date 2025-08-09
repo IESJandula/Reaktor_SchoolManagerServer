@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core.manejadores;
+package es.iesjandula.reaktor.school_manager_server.generator.manejadores;
 
 import java.util.Iterator;
 import java.util.List;
@@ -6,14 +6,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import es.iesjandula.reaktor.school_manager_server.generator.core.Horario;
-import es.iesjandula.reaktor.school_manager_server.generator.core.HorarioParams;
-import es.iesjandula.reaktor.school_manager_server.generator.core.threads.HorarioThread;
-import es.iesjandula.reaktor.school_manager_server.generator.core.threads.HorarioThreadParams;
-import es.iesjandula.reaktor.school_manager_server.generator.core.threads.UltimaAsignacion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
-
+import es.iesjandula.reaktor.school_manager_server.generator.Horario;
+import es.iesjandula.reaktor.school_manager_server.generator.HorarioParams;
+import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThread;
+import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThreadParams;
+import es.iesjandula.reaktor.school_manager_server.generator.threads.UltimaAsignacion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 

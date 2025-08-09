@@ -1,10 +1,10 @@
-package es.iesjandula.reaktor.school_manager_server.generator.core.threads;
+package es.iesjandula.reaktor.school_manager_server.generator.threads;
 
 import java.util.List;
 
-import es.iesjandula.reaktor.school_manager_server.generator.core.GestorDeSesiones;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.generator.models.Sesion;
+import es.iesjandula.reaktor.school_manager_server.generator.GestorDeSesiones;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
 import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;

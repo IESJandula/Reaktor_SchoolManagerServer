@@ -590,7 +590,12 @@ public class Constants
 	/**
 	 * Solución - Horario con huecos entre sesiones
 	 */
-	public static final String SOL_INFO_HUECOS = "Huecos";
+	public static final String SOL_INFO_HUECOS    = "Huecos";
+
+	/**
+	 * Solución - Horario con preferencia de no tener clase a primera hora o no tener clase a última hora
+	 */
+	public static final String SOL_INFO_SIN_CLASE = "Sin clase";
 
 
 	/******************************************************/
