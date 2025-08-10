@@ -597,6 +597,16 @@ public class Constants
 	 */
 	public static final String SOL_INFO_SIN_CLASE = "Sin clase";
 
+	/**
+	 * Solución - Preferencias de no tener clase en unas horas determinadas
+	 */
+	public static final String SOL_INFO_HORAS_SIN_CLASE = "Horas sin clase";
+
+	/**
+	 * Número máximo de preferencias horarias a tener en cuenta
+	 */
+	public static final int NUMERO_MAXIMO_PREFERENCIAS_HORARIAS = 3 ;
+
 
 	/******************************************************/
 	/******************** Mensajes ************************/

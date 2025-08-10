@@ -415,10 +415,10 @@ public class RestriccionHoraria
 			// Logueamos y lanzamos una excepción para cortar esta generación de horario
 			// ya que no hay más items de la semana para asignar la sesión
 			
-			String errorString = "\n Este horario es incorrecto ya que no se pueden obtener más items de la semana para asignar esta sesión: \n" +  sesion ;
+			String warningString = "\n Este horario es incorrecto ya que no se pueden obtener más items de la semana para asignar esta sesión: \n" +  sesion ;
 			
-			log.error(errorString) ;
-			throw new SchoolManagerServerException(Constants.ERR_CODE_HORARIO_NO_MAS_AMPLIABLE, errorString) ;		
+			log.warn(warningString) ;
+			throw new SchoolManagerServerException(Constants.ERR_CODE_HORARIO_NO_MAS_AMPLIABLE, warningString) ;		
         }
 
         RestriccionHorariaItem restriccionHorariaItem = null ;

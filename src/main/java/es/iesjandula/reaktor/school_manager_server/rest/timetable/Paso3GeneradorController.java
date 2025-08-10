@@ -8,9 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +32,6 @@ import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
-import es.iesjandula.reaktor.school_manager_server.services.DiaTramoTipoHorarioService;
 import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
 import es.iesjandula.reaktor.school_manager_server.services.ValidadorDatosService;
 import lombok.extern.slf4j.Slf4j;
@@ -44,9 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/schoolManager/generador")
 public class Paso3GeneradorController
 {
-    @Autowired
-    private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
-
     @Autowired
     private ValidadorDatosService validadorDatosService ;
 

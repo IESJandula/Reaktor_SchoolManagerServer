@@ -32,6 +32,7 @@ import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolu
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionAsignada;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
+import es.iesjandula.reaktor.school_manager_server.models.PreferenciasHorariasProfesor;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorInstanciaSolucionInfoGeneral;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorInstanciaSolucionInfoProfesor;
@@ -45,7 +46,6 @@ import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstan
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaSolucionInfoProfesor;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionAsignadaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionBaseRepository;
@@ -79,9 +79,6 @@ public class GeneradorService
 
     @Autowired
     private IGeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesorRepository ;
-
-    @Autowired
-    private IProfesorRepository profesorRepository ;
 
     @Autowired
     private IConstantesRepository constantesRepository ;
@@ -789,6 +786,9 @@ public class GeneradorService
         // Aciertos en las preferencias de no tener clase a primera hora o no tener clase a última hora
         Integer generalHitsSinClasePreferencias = 0 ;
 
+        // Aciertos en las preferencias de no tener clase en unas horas determinadas
+        Integer generalHitsHorasSinClase = 0 ;
+
         // Obtenemos todos los profesores que según el tipo de horario
         List<Profesor> profesores = this.generadorSesionAsignadaRepository.buscarProfesoresTipoHorario(generadorInstancia, esMatutino) ;
 
@@ -807,9 +807,13 @@ public class GeneradorService
                 // Calculamos la preferencia de no tener clase a primera hora o no tener clase a última hora de un profesor
                 Integer profesorHitsSinClasePreferencias = this.calcularHitsSinClasePreferenciasProfesor(generadorInstancia, profesor, esMatutino) ;
 
+                // Calculamos la preferencia de no tener clase en unas horas determinadas de un profesor
+                Integer profesorHitsHorasSinClase        = this.calcularHitsHorasSinClaseProfesor(generadorInstancia, profesor, esMatutino) ;
+
                 // Incrementamos la puntuación total de cada tipo
                 generalHuecosEntreSesiones      = generalHuecosEntreSesiones      + profesorHuecosEntreSesiones ;
                 generalHitsSinClasePreferencias = generalHitsSinClasePreferencias + profesorHitsSinClasePreferencias ;
+                generalHitsHorasSinClase        = generalHitsHorasSinClase        + profesorHitsHorasSinClase ;
             }
 
             // Calculamos la puntuación total basada en los huecos entre sesiones
@@ -818,8 +822,11 @@ public class GeneradorService
             // Calculamos la puntuación total basada en la preferencia de no tener clase a primera hora o no tener clase a última hora
             Integer puntuacionTotalHitsSinClasePreferencias = this.calcularPuntuacionTipoHorarioHitsSinClasePreferenciasGeneral(generadorInstancia, esMatutino, numeroProfesores, generalHitsSinClasePreferencias) ;
 
+            // Calculamos la puntuación total basada en la preferencia de no tener clase en unas horas determinadas
+            Integer puntuacionTotalHitsHorasSinClase        = this.calcularPuntuacionTipoHorarioHitsHorasSinClaseGeneral(generadorInstancia, esMatutino, numeroProfesores, generalHitsHorasSinClase) ;
+
             // La puntuación total es la suma de las puntuaciones totales de los huecos entre sesiones y la preferencia de no tener clase a primera hora o no tener clase a última hora
-            puntuacionTotal = puntuacionTotalHuecosEntreSesiones + puntuacionTotalHitsSinClasePreferencias ;
+            puntuacionTotal = puntuacionTotalHuecosEntreSesiones + puntuacionTotalHitsSinClasePreferencias + puntuacionTotalHitsHorasSinClase ;
         }
 
         return puntuacionTotal ;
@@ -838,10 +845,10 @@ public class GeneradorService
         Integer huecosEntreSesionesProfesor = this.generadorSesionAsignadaRepository.contarHuecosEntreSesiones(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
 
         // Obtenemos el numerador de la operación
-        double numeradorOperacionProfesor = (double) (huecosEntreSesionesProfesor / Constants.FACTOR_HUECOS) ;
+        double numeradorOperacionProfesor = (double) huecosEntreSesionesProfesor / Constants.FACTOR_HUECOS ;
 
         // Calculamos el factor de puntuación
-        double porcentajeHuecosEntreSesionesProfesor = (double) 100.00d * ((double) (numeradorOperacionProfesor / Constants.FACTOR_DIVISOR_HUECOS)) ;
+        double porcentajeHuecosEntreSesionesProfesor = (double) 100.00d * ((double) numeradorOperacionProfesor / Constants.FACTOR_DIVISOR_HUECOS) ;
 
         // Guardamos la puntuación en la BBDD
         this.guardarGeneradorInstanciaSolucionInfoProfesor(generadorInstancia, profesor, Constants.SOL_INFO_HUECOS, huecosEntreSesionesProfesor, porcentajeHuecosEntreSesionesProfesor, esMatutino) ;
@@ -889,6 +896,48 @@ public class GeneradorService
     }
 
     /**
+     * Método que calcula la puntuación de la preferencia de no tener clase en unas horas determinadas
+     * @param generadorInstancia - Generador instancia
+     * @param profesor - Profesor
+     * @param esMatutino - Indica si es matutino
+     * @return Puntuación de la preferencia de no tener clase en unas horas determinadas
+     */
+    private int calcularHitsHorasSinClaseProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, boolean esMatutino)
+    {
+        int hitsHorasSinClaseProfesor = 0 ;
+
+        // Obtenemos las preferencias de no tener clase en unas horas determinadas de un profesor
+        List<PreferenciasHorariasProfesor> preferenciasHorariasProfesor = profesor.getPreferenciasHorariasProfesor() ;
+
+        if (!preferenciasHorariasProfesor.isEmpty())
+        {
+            // Iteramos por cada una de ellas para saber cuál se cumple
+            for (PreferenciasHorariasProfesor preferenciaHorariaProfesor : preferenciasHorariasProfesor)
+            {
+                // Si no la encuentra es cuando cuenta como hit
+                hitsHorasSinClaseProfesor = hitsHorasSinClaseProfesor + 
+                                            this.generadorSesionAsignadaRepository.contarConcidenciasHorasSinClase(generadorInstancia.getId(), 
+                                                                                                                   profesor.getEmail(),
+                                                                                                                   esMatutino,
+                                                                                                                   preferenciaHorariaProfesor.getDiaTramoTipoHorario().getDia(),
+                                                                                                                   preferenciaHorariaProfesor.getDiaTramoTipoHorario().getTramo());
+            }
+        }
+
+        // Obtenemos la operación
+        double operacionProfesor = (double) hitsHorasSinClaseProfesor / Constants.NUMERO_MAXIMO_PREFERENCIAS_HORARIAS ;
+
+        // Calculamos el factor de puntuación
+        double porcentajePreferenciaHorasSinClaseProfesor = (double) 100.00d * operacionProfesor ;
+
+        // Guardamos la puntuación en la BBDD
+        this.guardarGeneradorInstanciaSolucionInfoProfesor(generadorInstancia, profesor, Constants.SOL_INFO_HORAS_SIN_CLASE, hitsHorasSinClaseProfesor, porcentajePreferenciaHorasSinClaseProfesor, esMatutino) ;
+
+        // Devolvemos la puntuación
+        return hitsHorasSinClaseProfesor ;
+    }
+
+    /**
      * Método que calcula la puntuación general basada en los huecos entre sesiones
      * @param generadorInstancia - Generador instancia
      * @param esMatutino - Indica si es matutino
@@ -905,7 +954,7 @@ public class GeneradorService
         double denominadorOperacion = Constants.FACTOR_DIVISOR_HUECOS * numeroProfesores ;
 
         // Calculamos el porcentaje de huecos entre sesiones de entre todos los profesores  
-        double porcentajeHuecosEntreSesionesGeneral = (double) 100.00d * ((double) (numeradorOperacion / denominadorOperacion)) ;
+        double porcentajeHuecosEntreSesionesGeneral = (double) 100.00d * ((double) numeradorOperacion / denominadorOperacion) ;
 
         // Guardamos la puntuación en la BBDD
         this.guardarGeneradorInstanciaSolucionInfoGeneral(generadorInstancia, Constants.SOL_INFO_HUECOS, generalHuecosEntreSesiones, porcentajeHuecosEntreSesionesGeneral, esMatutino) ;
@@ -928,13 +977,33 @@ public class GeneradorService
         double numeradorOperacion = (double) (generalHitsSinClasePreferencias / Constants.NUMERO_DIAS_SEMANA) ;
 
         // Calculamos el porcentaje de preferencia de no tener clase a primera hora o no tener clase a última hora
-        double porcentajePreferenciaNoClasePrimeraUltimaHoraGeneral = 100.00d * ((double) (numeradorOperacion / numeroProfesores)) ;
+        double porcentajePreferenciaNoClasePrimeraUltimaHoraGeneral = 100.00d * ((double) numeradorOperacion / numeroProfesores) ;
 
         // Guardamos la puntuación en la BBDD
         this.guardarGeneradorInstanciaSolucionInfoGeneral(generadorInstancia, Constants.SOL_INFO_SIN_CLASE, generalHitsSinClasePreferencias, porcentajePreferenciaNoClasePrimeraUltimaHoraGeneral, esMatutino) ;
 
         // Devolvemos la puntuación
         return generalHitsSinClasePreferencias ;
+    }
+
+    /**
+     * Método que calcula la puntuación general basada en la preferencia de no tener clase en unas horas determinadas
+     * @param generadorInstancia - Generador instancia
+     * @param esMatutino - Indica si es matutino
+     * @param numeroProfesores - Número de profesores
+     * @param generalHitsHorasSinClase - Puntuación general de la preferencia de no tener clase en unas horas determinadas
+     * @return Puntuación general basada en la preferencia de no tener clase en unas horas determinadas 
+     */
+    private int calcularPuntuacionTipoHorarioHitsHorasSinClaseGeneral(GeneradorInstancia generadorInstancia, boolean esMatutino, int numeroProfesores, int generalHitsHorasSinClase)
+    {
+        // Calculamos el porcentaje de preferencia de no tener clase en unas horas determinadas
+        double porcentajePreferenciaHorasSinClaseGeneral = (double) 100.00d * ((double) generalHitsHorasSinClase / (Constants.NUMERO_MAXIMO_PREFERENCIAS_HORARIAS * numeroProfesores)) ;
+
+        // Guardamos la puntuación en la BBDD
+        this.guardarGeneradorInstanciaSolucionInfoGeneral(generadorInstancia, Constants.SOL_INFO_HORAS_SIN_CLASE, generalHitsHorasSinClase, porcentajePreferenciaHorasSinClaseGeneral, esMatutino) ;
+
+        // Devolvemos la puntuación
+        return generalHitsHorasSinClase ;
     }
 
     /**
