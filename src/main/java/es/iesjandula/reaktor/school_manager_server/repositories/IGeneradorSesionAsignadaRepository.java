@@ -114,7 +114,7 @@ public interface IGeneradorSesionAsignadaRepository extends JpaRepository<Genera
                    "AND gsa.generadorInstancia.id = :generadorInstanciaId " +
                    "AND gsa.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                    "AND gsa.diaTramoTipoHorario.tramo = " + Constants.TRAMO_HORARIO_PRIMERA_HORA)
-    Integer contarConcidenciasClasePrimeraHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
+    Integer contarPreferenciasDiariasPrimeraHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
 
     /**
      * Método que cuenta cuántas veces se ha asignado una sesión a un profesor en la instancia elegida como solución
@@ -129,7 +129,7 @@ public interface IGeneradorSesionAsignadaRepository extends JpaRepository<Genera
                    "AND gsa.generadorInstancia.id = :generadorInstanciaId " +
                    "AND gsa.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                    "AND gsa.diaTramoTipoHorario.tramo = " + Constants.TRAMO_HORARIO_SEXTA_HORA)
-    Integer contarConcidenciasClaseUltimaHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
+    Integer contarPreferenciasDiariasUltimaHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
 
     /**
      * Método que cuenta cuántas veces se ha asignado una sesión a un profesor en la instancia elegida como solución
@@ -147,5 +147,5 @@ public interface IGeneradorSesionAsignadaRepository extends JpaRepository<Genera
                      "AND gsa.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                      "AND gsa.diaTramoTipoHorario.tramo = :tramo " +
                      "AND gsa.diaTramoTipoHorario.dia = :dia")
-    Integer contarConcidenciasHorasSinClase(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino, @Param("tramo") Integer tramo, @Param("dia") Integer dia);
+    Integer contarPreferenciasConcretas(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino, @Param("dia") Integer dia, @Param("tramo") Integer tramo);
 }

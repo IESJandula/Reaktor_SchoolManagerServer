@@ -593,19 +593,19 @@ public class Constants
 	public static final String SOL_INFO_HUECOS    = "Huecos";
 
 	/**
-	 * Solución - Horario con preferencia de no tener clase a primera hora o no tener clase a última hora
+	 * Solución - Horario con preferencias diarias de no tener clase a primera hora o no tener clase a última hora
 	 */
-	public static final String SOL_INFO_SIN_CLASE = "Sin clase";
+	public static final String SOL_INFO_PREFERENCIAS_DIARIAS = "Preferencias diarias";
 
 	/**
-	 * Solución - Preferencias de no tener clase en unas horas determinadas
+	 * Solución - Preferencias concretas de no tener clase en unas horas determinadas
 	 */
-	public static final String SOL_INFO_HORAS_SIN_CLASE = "Horas sin clase";
+	public static final String SOL_INFO_PREFERENCIAS_CONCRETAS = "Preferencias concretas";
 
 	/**
-	 * Número máximo de preferencias horarias a tener en cuenta
+	 * Número máximo de preferencias concretas a tener en cuenta
 	 */
-	public static final int NUMERO_MAXIMO_PREFERENCIAS_HORARIAS = 3 ;
+	public static final int NUMERO_MAXIMO_PREFERENCIAS_CONCRETAS = 3 ;
 
 
 	/******************************************************/

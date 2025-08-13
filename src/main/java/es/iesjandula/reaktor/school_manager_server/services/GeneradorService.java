@@ -783,11 +783,11 @@ public class GeneradorService
         // Huecos entre sesiones generales
         Integer generalHuecosEntreSesiones      = 0 ;
 
-        // Aciertos en las preferencias de no tener clase a primera hora o no tener clase a última hora
-        Integer generalHitsSinClasePreferencias = 0 ;
+        // Aciertos en las preferencias diarias de no tener clase a primera hora o no tener clase a última hora
+        Integer generalHitsPreferenciasDiarias = 0 ;
 
-        // Aciertos en las preferencias de no tener clase en unas horas determinadas
-        Integer generalHitsHorasSinClase = 0 ;
+        // Aciertos en las preferencias concretas de no tener clase en unas horas determinadas
+        Integer generalHitsPreferenciasConcretas = 0 ;
 
         // Obtenemos todos los profesores que según el tipo de horario
         List<Profesor> profesores = this.generadorSesionAsignadaRepository.buscarProfesoresTipoHorario(generadorInstancia, esMatutino) ;
@@ -802,31 +802,31 @@ public class GeneradorService
             for (Profesor profesor : profesores)
             {
                 // Calculamos los huecos entre sesiones de un profesor
-                Integer profesorHuecosEntreSesiones      = this.calcularHuecosEntreSesionesProfesor(generadorInstancia, profesor, esMatutino) ;
+                Integer profesorHuecosEntreSesiones       = this.calcularHuecosEntreSesionesProfesor(generadorInstancia, profesor, esMatutino) ;
 
-                // Calculamos la preferencia de no tener clase a primera hora o no tener clase a última hora de un profesor
-                Integer profesorHitsSinClasePreferencias = this.calcularHitsSinClasePreferenciasProfesor(generadorInstancia, profesor, esMatutino) ;
+                // Calculamos la preferencias diarias de no tener clase a primera hora o no tener clase a última hora de un profesor
+                Integer profesorHitsPreferenciasDiarias   = this.calcularHitsPreferenciasDiariasProfesor(generadorInstancia, profesor, esMatutino) ;
 
-                // Calculamos la preferencia de no tener clase en unas horas determinadas de un profesor
-                Integer profesorHitsHorasSinClase        = this.calcularHitsHorasSinClaseProfesor(generadorInstancia, profesor, esMatutino) ;
+                // Calculamos la preferencias concreta de no tener clase en unas horas determinadas de un profesor
+                Integer profesorHitsPreferenciasConcretas = this.calcularHitsPreferenciasConcretasProfesor(generadorInstancia, profesor, esMatutino) ;
 
                 // Incrementamos la puntuación total de cada tipo
-                generalHuecosEntreSesiones      = generalHuecosEntreSesiones      + profesorHuecosEntreSesiones ;
-                generalHitsSinClasePreferencias = generalHitsSinClasePreferencias + profesorHitsSinClasePreferencias ;
-                generalHitsHorasSinClase        = generalHitsHorasSinClase        + profesorHitsHorasSinClase ;
+                generalHuecosEntreSesiones       = generalHuecosEntreSesiones       + profesorHuecosEntreSesiones ;
+                generalHitsPreferenciasDiarias   = generalHitsPreferenciasDiarias   + profesorHitsPreferenciasDiarias ;
+                generalHitsPreferenciasConcretas = generalHitsPreferenciasConcretas + profesorHitsPreferenciasConcretas ;
             }
 
             // Calculamos la puntuación total basada en los huecos entre sesiones
             Integer puntuacionTotalHuecosEntreSesiones      = this.calcularPuntuacionTipoHorarioHuecosEntreSesionesGeneral(generadorInstancia, esMatutino, numeroProfesores, generalHuecosEntreSesiones) ;
 
             // Calculamos la puntuación total basada en la preferencia de no tener clase a primera hora o no tener clase a última hora
-            Integer puntuacionTotalHitsSinClasePreferencias = this.calcularPuntuacionTipoHorarioHitsSinClasePreferenciasGeneral(generadorInstancia, esMatutino, numeroProfesores, generalHitsSinClasePreferencias) ;
+            Integer puntuacionTotalHitsPreferenciasDiarias = this.calcularPuntuacionTipoHorarioHitsPreferenciasDiariasGeneral(generadorInstancia, esMatutino, numeroProfesores, generalHitsPreferenciasDiarias) ;
 
             // Calculamos la puntuación total basada en la preferencia de no tener clase en unas horas determinadas
-            Integer puntuacionTotalHitsHorasSinClase        = this.calcularPuntuacionTipoHorarioHitsHorasSinClaseGeneral(generadorInstancia, esMatutino, numeroProfesores, generalHitsHorasSinClase) ;
+            Integer puntuacionTotalHitsPreferenciasConcretas = this.calcularPuntuacionTipoHorarioHitsPreferenciasConcretasGeneral(generadorInstancia, esMatutino, numeroProfesores, generalHitsPreferenciasConcretas) ;
 
             // La puntuación total es la suma de las puntuaciones totales de los huecos entre sesiones y la preferencia de no tener clase a primera hora o no tener clase a última hora
-            puntuacionTotal = puntuacionTotalHuecosEntreSesiones + puntuacionTotalHitsSinClasePreferencias + puntuacionTotalHitsHorasSinClase ;
+            puntuacionTotal = puntuacionTotalHuecosEntreSesiones + puntuacionTotalHitsPreferenciasDiarias + puntuacionTotalHitsPreferenciasConcretas ;
         }
 
         return puntuacionTotal ;
@@ -858,53 +858,53 @@ public class GeneradorService
     }
 
     /**
-     * Método que calcula la puntuación de la preferencia de no tener clase a primera hora o no tener clase a última hora
+     * Método que calcula la puntuación de la preferencia diaria de no tener clase a primera hora o no tener clase a última hora
      * @param generadorInstancia - Generador instancia
      * @param profesor - Profesor
      * @param esMatutino - Indica si es matutino
      * @return Puntuación de la preferencia de no tener clase a primera hora o no tener clase a última hora
      */
-    private int calcularHitsSinClasePreferenciasProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, boolean esMatutino)
+    private int calcularHitsPreferenciasDiariasProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, boolean esMatutino)
     {
-        int preferenciaNoClasePrimeraUltimaHoraProfesor = 0 ;
+        int preferenciasDiariasProfesor = 0 ;
 
         if (profesor.getObservacionesAdicionales().getSinClasePrimeraHora())
         {
             // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
-            preferenciaNoClasePrimeraUltimaHoraProfesor = this.generadorSesionAsignadaRepository.contarConcidenciasClasePrimeraHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+            preferenciasDiariasProfesor = this.generadorSesionAsignadaRepository.contarPreferenciasDiariasPrimeraHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
         }
         else
         {
             // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
-            preferenciaNoClasePrimeraUltimaHoraProfesor = this.generadorSesionAsignadaRepository.contarConcidenciasClaseUltimaHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+            preferenciasDiariasProfesor = this.generadorSesionAsignadaRepository.contarPreferenciasDiariasUltimaHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
         }
 
         // Invertimos el valor ya que lo que encuentra es lo que no quería
-        preferenciaNoClasePrimeraUltimaHoraProfesor = Constants.NUMERO_DIAS_SEMANA - preferenciaNoClasePrimeraUltimaHoraProfesor ;
+        preferenciasDiariasProfesor = Constants.NUMERO_DIAS_SEMANA - preferenciasDiariasProfesor ;
 
         // Obtenemos la operación
-        double operacionProfesor = (double) preferenciaNoClasePrimeraUltimaHoraProfesor / Constants.NUMERO_DIAS_SEMANA ;
+        double operacionProfesor = (double) preferenciasDiariasProfesor / Constants.NUMERO_DIAS_SEMANA ;
 
         // Calculamos el factor de puntuación
-        double porcentajePreferenciaNoClasePrimeraUltimaHoraProfesor = (double) 100.00d * operacionProfesor ;
+        double porcentajePreferenciasDiariasProfesor = (double) 100.00d * operacionProfesor ;
 
         // Guardamos la puntuación en la BBDD
-        this.guardarGeneradorInstanciaSolucionInfoProfesor(generadorInstancia, profesor, Constants.SOL_INFO_SIN_CLASE, preferenciaNoClasePrimeraUltimaHoraProfesor, porcentajePreferenciaNoClasePrimeraUltimaHoraProfesor, esMatutino) ;
+        this.guardarGeneradorInstanciaSolucionInfoProfesor(generadorInstancia, profesor, Constants.SOL_INFO_PREFERENCIAS_DIARIAS, preferenciasDiariasProfesor, porcentajePreferenciasDiariasProfesor, esMatutino) ;
 
         // Devolvemos la puntuación
-        return preferenciaNoClasePrimeraUltimaHoraProfesor ;
+        return preferenciasDiariasProfesor ;
     }
 
     /**
-     * Método que calcula la puntuación de la preferencia de no tener clase en unas horas determinadas
+     * Método que calcula la puntuación de la preferencia concreta de no tener clase en unas horas determinadas
      * @param generadorInstancia - Generador instancia
      * @param profesor - Profesor
      * @param esMatutino - Indica si es matutino
      * @return Puntuación de la preferencia de no tener clase en unas horas determinadas
      */
-    private int calcularHitsHorasSinClaseProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, boolean esMatutino)
+    private int calcularHitsPreferenciasConcretasProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, boolean esMatutino)
     {
-        int hitsHorasSinClaseProfesor = 0 ;
+        int hitsPreferenciasConcretasProfesor = 0 ;
 
         // Obtenemos las preferencias de no tener clase en unas horas determinadas de un profesor
         List<PreferenciasHorariasProfesor> preferenciasHorariasProfesor = profesor.getPreferenciasHorariasProfesor() ;
@@ -915,26 +915,26 @@ public class GeneradorService
             for (PreferenciasHorariasProfesor preferenciaHorariaProfesor : preferenciasHorariasProfesor)
             {
                 // Si no la encuentra es cuando cuenta como hit
-                hitsHorasSinClaseProfesor = hitsHorasSinClaseProfesor + 
-                                            this.generadorSesionAsignadaRepository.contarConcidenciasHorasSinClase(generadorInstancia.getId(), 
-                                                                                                                   profesor.getEmail(),
-                                                                                                                   esMatutino,
-                                                                                                                   preferenciaHorariaProfesor.getDiaTramoTipoHorario().getDia(),
-                                                                                                                   preferenciaHorariaProfesor.getDiaTramoTipoHorario().getTramo());
+                hitsPreferenciasConcretasProfesor = hitsPreferenciasConcretasProfesor + 
+                                                    this.generadorSesionAsignadaRepository.contarPreferenciasConcretas(generadorInstancia.getId(), 
+                                                                                                                       profesor.getEmail(),
+                                                                                                                       esMatutino,
+                                                                                                                       preferenciaHorariaProfesor.getDiaTramoTipoHorario().getDia(),
+                                                                                                                       preferenciaHorariaProfesor.getDiaTramoTipoHorario().getTramo());
             }
         }
 
         // Obtenemos la operación
-        double operacionProfesor = (double) hitsHorasSinClaseProfesor / Constants.NUMERO_MAXIMO_PREFERENCIAS_HORARIAS ;
+        double operacionProfesor = (double) hitsPreferenciasConcretasProfesor / Constants.NUMERO_MAXIMO_PREFERENCIAS_CONCRETAS ;
 
         // Calculamos el factor de puntuación
-        double porcentajePreferenciaHorasSinClaseProfesor = (double) 100.00d * operacionProfesor ;
+        double porcentajePreferenciasConcretasProfesor = (double) 100.00d * operacionProfesor ;
 
         // Guardamos la puntuación en la BBDD
-        this.guardarGeneradorInstanciaSolucionInfoProfesor(generadorInstancia, profesor, Constants.SOL_INFO_HORAS_SIN_CLASE, hitsHorasSinClaseProfesor, porcentajePreferenciaHorasSinClaseProfesor, esMatutino) ;
+        this.guardarGeneradorInstanciaSolucionInfoProfesor(generadorInstancia, profesor, Constants.SOL_INFO_PREFERENCIAS_CONCRETAS, hitsPreferenciasConcretasProfesor, porcentajePreferenciasConcretasProfesor, esMatutino) ;
 
         // Devolvemos la puntuación
-        return hitsHorasSinClaseProfesor ;
+        return hitsPreferenciasConcretasProfesor ;
     }
 
     /**
@@ -968,22 +968,22 @@ public class GeneradorService
      * @param generadorInstancia - Generador instancia
      * @param esMatutino - Indica si es matutino
      * @param numeroProfesores - Número de profesores
-     * @param generalHitsSinClasePreferencias - Puntuación general de la preferencia de no tener clase a primera hora o no tener clase a última hora
+     * @param generalHitsPreferenciasDiarias - Puntuación general de la preferencia de no tener clase a primera hora o no tener clase a última hora
      * @return Puntuación general basada en la preferencia de no tener clase a primera hora o no tener clase a última hora
      */
-    private int calcularPuntuacionTipoHorarioHitsSinClasePreferenciasGeneral(GeneradorInstancia generadorInstancia, boolean esMatutino, int numeroProfesores, int generalHitsSinClasePreferencias)
+    private int calcularPuntuacionTipoHorarioHitsPreferenciasDiariasGeneral(GeneradorInstancia generadorInstancia, boolean esMatutino, int numeroProfesores, int generalHitsPreferenciasDiarias)
     {
         // Calculamos el numerador
-        double numeradorOperacion = (double) (generalHitsSinClasePreferencias / Constants.NUMERO_DIAS_SEMANA) ;
+        double numeradorOperacion = (double) (generalHitsPreferenciasDiarias / Constants.NUMERO_DIAS_SEMANA) ;
 
         // Calculamos el porcentaje de preferencia de no tener clase a primera hora o no tener clase a última hora
         double porcentajePreferenciaNoClasePrimeraUltimaHoraGeneral = 100.00d * ((double) numeradorOperacion / numeroProfesores) ;
 
         // Guardamos la puntuación en la BBDD
-        this.guardarGeneradorInstanciaSolucionInfoGeneral(generadorInstancia, Constants.SOL_INFO_SIN_CLASE, generalHitsSinClasePreferencias, porcentajePreferenciaNoClasePrimeraUltimaHoraGeneral, esMatutino) ;
+        this.guardarGeneradorInstanciaSolucionInfoGeneral(generadorInstancia, Constants.SOL_INFO_PREFERENCIAS_DIARIAS, generalHitsPreferenciasDiarias, porcentajePreferenciaNoClasePrimeraUltimaHoraGeneral, esMatutino) ;
 
         // Devolvemos la puntuación
-        return generalHitsSinClasePreferencias ;
+        return generalHitsPreferenciasDiarias ;
     }
 
     /**
@@ -991,19 +991,19 @@ public class GeneradorService
      * @param generadorInstancia - Generador instancia
      * @param esMatutino - Indica si es matutino
      * @param numeroProfesores - Número de profesores
-     * @param generalHitsHorasSinClase - Puntuación general de la preferencia de no tener clase en unas horas determinadas
+     * @param generalHitsPreferenciasConcretas - Puntuación general de la preferencia de no tener clase en unas horas determinadas
      * @return Puntuación general basada en la preferencia de no tener clase en unas horas determinadas 
      */
-    private int calcularPuntuacionTipoHorarioHitsHorasSinClaseGeneral(GeneradorInstancia generadorInstancia, boolean esMatutino, int numeroProfesores, int generalHitsHorasSinClase)
+    private int calcularPuntuacionTipoHorarioHitsPreferenciasConcretasGeneral(GeneradorInstancia generadorInstancia, boolean esMatutino, int numeroProfesores, int generalHitsPreferenciasConcretas)
     {
         // Calculamos el porcentaje de preferencia de no tener clase en unas horas determinadas
-        double porcentajePreferenciaHorasSinClaseGeneral = (double) 100.00d * ((double) generalHitsHorasSinClase / (Constants.NUMERO_MAXIMO_PREFERENCIAS_HORARIAS * numeroProfesores)) ;
+        double porcentajePreferenciasConcretasGeneral = (double) 100.00d * ((double) generalHitsPreferenciasConcretas / (Constants.NUMERO_MAXIMO_PREFERENCIAS_CONCRETAS * numeroProfesores)) ;
 
         // Guardamos la puntuación en la BBDD
-        this.guardarGeneradorInstanciaSolucionInfoGeneral(generadorInstancia, Constants.SOL_INFO_HORAS_SIN_CLASE, generalHitsHorasSinClase, porcentajePreferenciaHorasSinClaseGeneral, esMatutino) ;
+        this.guardarGeneradorInstanciaSolucionInfoGeneral(generadorInstancia, Constants.SOL_INFO_PREFERENCIAS_CONCRETAS, generalHitsPreferenciasConcretas, porcentajePreferenciasConcretasGeneral, esMatutino) ;
 
         // Devolvemos la puntuación
-        return generalHitsHorasSinClase ;
+        return generalHitsPreferenciasConcretas ;
     }
 
     /**
