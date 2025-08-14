@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import es.iesjandula.reaktor.school_manager_server.generator.Horario;
-import es.iesjandula.reaktor.school_manager_server.generator.HorarioParams;
 import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThread;
 import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThreadParams;
 import es.iesjandula.reaktor.school_manager_server.generator.threads.UltimaAsignacion;
@@ -62,7 +61,7 @@ public class ManejadorThreads
     	if (this.todasLasSesionesAsignadas(sesionesPendientes))
     	{
     		// Creamos la nueva instancia de horario
-    		Horario horario = this.crearInstanciaHorario(matrizAsignacionesMatutinas, matrizAsignacionesVespertinas) ;
+    		Horario horario = new Horario(matrizAsignacionesMatutinas, matrizAsignacionesVespertinas) ;
     		
     		// Añadimos a las soluciones esta nueva encontrada
     		boolean solucionSuperaUmbral = 
@@ -175,26 +174,6 @@ public class ManejadorThreads
 			// Si se ha encontrado una solución, finalizamos el pool de threads
 			this.finalizarThreadPool() ;				
 		}
-	}
-	
-    /**
-     * @param matrizAsignacionesMatutinas matriz con las asignaciones matutinas
-     * @param matrizAsignacionesVespertinas matriz con las asignaciones vespertinas
-     * @return una nueva instancia de horario
-     */
-	private Horario crearInstanciaHorario(Asignacion[][] matrizAsignacionesMatutinas, Asignacion[][] matrizAsignacionesVespertinas)
-	{
-		HorarioParams horarioParams = 
-			new HorarioParams.Builder()
-				 .setNumeroCursosMatutinos(this.manejadorThreadsParams.getNumeroCursosMatutinos())
-				 .setNumeroCursosVespertinos(this.manejadorThreadsParams.getNumeroCursosVespertinos())
-			     .setMatrizAsignacionesMatutinas(matrizAsignacionesMatutinas)
-				 .setMatrizAsignacionesVespertinas(matrizAsignacionesVespertinas)
-				 .setGeneradorInstancia(this.manejadorThreadsParams.getGeneradorInstancia())
-				 .setGeneradorService(this.manejadorThreadsParams.getGeneradorService())
-			     .build() ;
-		
-		return new Horario(horarioParams) ;
 	}
 	
 	/**

@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.PreferenciasHorariasProfesor;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -207,7 +206,7 @@ public class RestriccionHoraria
          * 
          * @return this
          */
-        public Builder conClasePrimerHora()
+        public Builder sinClaseUltimaHora()
         {
             // Primero eliminamos de las no evitables
             Iterator<RestriccionHorariaItem> iterator = this.restriccionesHorariasNoEvitables.iterator() ;
@@ -295,7 +294,7 @@ public class RestriccionHoraria
             {
                 RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
 
-                if (restriccionHorariaItem.getIndiceDia() == diaDeLaSemana)
+                if (restriccionHorariaItem.getIndiceDia() != diaDeLaSemana)
                 {
                     // La eliminamos de la lista de evitables
                     iterator.remove() ;
@@ -346,7 +345,7 @@ public class RestriccionHoraria
             {
                 RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
 
-                if (restriccionHorariaItem.getIndiceDia() == indiceCursoDia && restriccionHorariaItem.getTramoHorario() == indiceTramoHorario)
+                if (restriccionHorariaItem.getIndiceDia() != indiceCursoDia || restriccionHorariaItem.getTramoHorario() != indiceTramoHorario)
                 {
                     // La eliminamos de la lista de evitables
                     iterator.remove() ;
@@ -375,6 +374,77 @@ public class RestriccionHoraria
             }
 
             return this ;
+        }
+
+        /**
+         * Elimina un día concreto de la restricción horaria de las no evitables y las evitables
+         * 
+         * @param indiceCursoDia índice del curso y día
+         * @return this
+         */
+        public Builder eliminarDiaConcreto(int indiceCursoDia)
+        {
+            Iterator<RestriccionHorariaItem> iterator = this.restriccionesHorariasNoEvitables.iterator() ;
+            while (iterator.hasNext())
+            {
+                RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+                if (restriccionHorariaItem.getIndiceDia() == indiceCursoDia)
+                {
+                    // La eliminamos de la lista de no evitables
+                    iterator.remove() ;
+                }
+            }
+
+            iterator = this.restriccionesHorariasEvitables.iterator() ;
+            while (iterator.hasNext())
+            {
+                RestriccionHorariaItem restriccionHorariaItem = iterator.next() ;
+
+                if (restriccionHorariaItem.getIndiceDia() == indiceCursoDia)
+                {
+                    // La eliminamos de la lista de evitables
+                    iterator.remove() ;
+                }
+            }
+
+            return this ;
+        }
+
+        /**
+         * Busca una restricción horaria por día y tramo
+         * 
+         * @param indiceDia índice del día
+         * @param indiceTramoHorario índice del tramo horario
+         * @return la restricción horaria encontrada
+         */
+        public RestriccionHorariaItem buscarRestriccionHorariaPorDiaTramo(int indiceDia, int indiceTramoHorario)
+        {
+            RestriccionHorariaItem restriccionHorariaItem = null ;
+
+            Iterator<RestriccionHorariaItem> iterator = this.restriccionesHorariasNoEvitables.iterator() ;
+            while (iterator.hasNext() && restriccionHorariaItem == null)
+            {
+                RestriccionHorariaItem restriccionHorariaItemNoEvitable = iterator.next() ;
+
+                if (restriccionHorariaItemNoEvitable.getIndiceDia() == indiceDia && restriccionHorariaItemNoEvitable.getTramoHorario() == indiceTramoHorario)
+                {
+                    restriccionHorariaItem = restriccionHorariaItemNoEvitable ;
+                }
+            }
+
+            iterator = this.restriccionesHorariasEvitables.iterator() ;
+            while (iterator.hasNext() && restriccionHorariaItem == null)
+            {
+                RestriccionHorariaItem restriccionHorariaItemEvitable = iterator.next() ;
+
+                if (restriccionHorariaItemEvitable.getIndiceDia() == indiceDia && restriccionHorariaItemEvitable.getTramoHorario() == indiceTramoHorario)
+                {
+                    restriccionHorariaItem = restriccionHorariaItemEvitable ;
+                }
+            }
+
+            return restriccionHorariaItem ;
         }
 
         /**

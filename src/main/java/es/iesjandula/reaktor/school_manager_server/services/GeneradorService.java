@@ -381,30 +381,30 @@ public class GeneradorService
     public void guardarHorariosEnGeneradorSesionAsignada(GeneradorInstancia generadorInstancia, Horario horario) throws SchoolManagerServerException  
     {
         // Si hay horario matutino, recorremos la matriz de asignaciones matutinas para insertar las sesiones asignadas
-        if (horario.getHorarioParams().getMatrizAsignacionesMatutinas() != null)
+        if (horario.getMatrizAsignacionesMatutinas() != null)
         {
-            for (int i = 0; i < horario.getHorarioParams().getMatrizAsignacionesMatutinas().length; i++)
+            for (int i = 0; i < horario.getMatrizAsignacionesMatutinas().length; i++)
             {
-                for (int j = 0; j < horario.getHorarioParams().getMatrizAsignacionesMatutinas()[i].length; j++)
+                for (int j = 0; j < horario.getMatrizAsignacionesMatutinas()[i].length; j++)
                 {
-                    if (horario.getHorarioParams().getMatrizAsignacionesMatutinas()[i][j] != null)
+                    if (horario.getMatrizAsignacionesMatutinas()[i][j] != null)
                     {
-                        this.actualizarGeneradorSesionAsignadaInternal(horario, i, j, true, generadorInstancia) ;
+                        this.actualizarGeneradorSesionAsignadaInternal(horario.getMatrizAsignacionesMatutinas()[i][j], i, j, true, generadorInstancia) ;
                     }
                 }
             }   
         }
 
         // Si hay horario vespertino, recorremos la matriz de asignaciones vespertinas para insertar las sesiones asignadas
-        if (horario.getHorarioParams().getMatrizAsignacionesVespertinas() != null)
+        if (horario.getMatrizAsignacionesVespertinas() != null)
         {
-            for (int i = 0; i < horario.getHorarioParams().getMatrizAsignacionesVespertinas().length; i++)
+            for (int i = 0; i < horario.getMatrizAsignacionesVespertinas().length; i++)
             {
-                for (int j = 0; j < horario.getHorarioParams().getMatrizAsignacionesVespertinas()[i].length; j++)
+                for (int j = 0; j < horario.getMatrizAsignacionesVespertinas()[i].length; j++)
                 {
-                    if (horario.getHorarioParams().getMatrizAsignacionesVespertinas()[i][j] != null)
+                    if (horario.getMatrizAsignacionesVespertinas()[i][j] != null)
                     {
-                        this.actualizarGeneradorSesionAsignadaInternal(horario, i, j, false, generadorInstancia) ;
+                        this.actualizarGeneradorSesionAsignadaInternal(horario.getMatrizAsignacionesVespertinas()[i][j], i, j, false, generadorInstancia) ;
                     }
                 }
             }
@@ -413,22 +413,19 @@ public class GeneradorService
 
     /**
      * Método que guarda un horario
-     * @param horario - Horario
+     * @param asignacion - Asignación
      * @param i - Día
-     * @param j - Tramo
+     * @param tramo - Tramo
      * @param horarioMatutino - True si es horario matutino, false si es horario vespertino
      * @param generadorInstancia - Generador instancia
      */
-    private void actualizarGeneradorSesionAsignadaInternal(Horario horario, int i, int j, boolean horarioMatutino, GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
+    private void actualizarGeneradorSesionAsignadaInternal(Asignacion asignacion, int i, int tramo, boolean horarioMatutino, GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
     {
-        // Obtenemos la asignación de la matriz de asignaciones matutinas
-        Asignacion asignacion = horario.getHorarioParams().getMatrizAsignacionesMatutinas()[i][j] ;
-
         // Aplicamos el módulo 5 al día
         int dia = i % Constants.NUMERO_DIAS_SEMANA ;
 
         // Obtenemos el día y tramo de tipo horario
-        DiaTramoTipoHorario diaTramoTipoHorario = this.diaTramoTipoHorarioService.obtenerDiaTramoTipoHorario(dia, j, horarioMatutino) ;
+        DiaTramoTipoHorario diaTramoTipoHorario = this.diaTramoTipoHorarioService.obtenerDiaTramoTipoHorario(dia, tramo, horarioMatutino) ;
 
         // Iteramos por cada sesión de la asignación
         for (Sesion sesion : asignacion.getListaSesiones())

@@ -17,9 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Horario implements Comparable<Horario>
 {
-    /** Parámetros para el horario */
-	private HorarioParams horarioParams ;
-	
 	/** Matriz de asignaciones matutinas */
     private Asignacion[][] matrizAsignacionesMatutinas ;
 
@@ -30,22 +27,21 @@ public class Horario implements Comparable<Horario>
     private int puntuacion ;
 
     /**
-     * @param horarioParams parámetros para el horario
+     * @param matrizAsignacionesMatutinas matriz de asignaciones matutinas
+     * @param matrizAsignacionesVespertinas matriz de asignaciones vespertinas
      */
-    public Horario(HorarioParams horarioParams)
+    public Horario(Asignacion[][] matrizAsignacionesMatutinas, Asignacion[][] matrizAsignacionesVespertinas)
     {
-    	this.horarioParams = horarioParams ;
-    	
     	// Creamos una copia del estado actual del horario matutino
-        if (horarioParams.getMatrizAsignacionesMatutinas() != null)
+        if (matrizAsignacionesMatutinas != null)
         {
-            this.matrizAsignacionesMatutinas = CopiaEstructuras.copiarMatriz(horarioParams.getMatrizAsignacionesMatutinas()) ;
+            this.matrizAsignacionesMatutinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesMatutinas) ;
         }
 
         // Creamos una copia del estado actual del horario vespertino
-        if (horarioParams.getMatrizAsignacionesVespertinas() != null)   
+        if (matrizAsignacionesVespertinas != null)   
         {
-            this.matrizAsignacionesVespertinas = CopiaEstructuras.copiarMatriz(horarioParams.getMatrizAsignacionesVespertinas()) ;
+            this.matrizAsignacionesVespertinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesVespertinas) ;
         }
     }
 

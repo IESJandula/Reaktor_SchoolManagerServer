@@ -3,6 +3,7 @@ package es.iesjandula.reaktor.school_manager_server.generator.threads;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.generator.GestorDeSesiones;
+import es.iesjandula.reaktor.school_manager_server.generator.Horario;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
 import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
@@ -91,6 +92,12 @@ public class HorarioThread extends Thread
     	{
 			try
 			{
+				if (log.isDebugEnabled())
+				{
+					Horario horario = new Horario(this.matrizAsignacionesMatutinas, this.matrizAsignacionesVespertinas) ;
+					log.debug("Horario actual: \n" + horario) ;
+				}
+
 				// Decrementamos el número de threads pendientes
 				this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
 
