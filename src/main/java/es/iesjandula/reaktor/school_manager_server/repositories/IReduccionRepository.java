@@ -25,8 +25,8 @@ import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto;
 @Repository
 public interface IReduccionRepository extends JpaRepository<Reduccion, IdReduccion>
 {
-	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto(r.idReduccion.nombre, r.idReduccion.horas, r.decideDireccion) "
-			+ "FROM Reduccion r")
+	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto(r.idReduccion.nombre, r.idReduccion.horas, r.decideDireccion, r.cursoEtapaGrupo) "
+			+ "FROM Reduccion r LEFT JOIN r.cursoEtapaGrupo")
 	List<ReduccionDto> encontrarTodasReducciones();
 
 	@Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto(r.idReduccion.nombre, r.idReduccion.horas) " +

@@ -7,6 +7,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.JoinColumns;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +38,18 @@ public class Reduccion
 	 */
 	@Column(nullable = true)
 	private boolean decideDireccion;
+
+
+	/**
+	 * Relación con CursoEtapaGrupo cuando una reducción tenga docencia
+	 */
+    @OneToOne
+    @JoinColumns({
+        @JoinColumn(name = "curso", referencedColumnName = "curso"),
+        @JoinColumn(name = "etapa", referencedColumnName = "etapa"),
+        @JoinColumn(name = "grupo", referencedColumnName = "grupo")
+    })
+	private CursoEtapaGrupo cursoEtapaGrupo ;
 	
 	/**
 	 * Relación uno a muchos con la entidad {@link ProfesorReduccion}, que representa los profesores que han sido 

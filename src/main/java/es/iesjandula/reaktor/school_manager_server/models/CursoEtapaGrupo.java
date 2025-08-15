@@ -6,6 +6,7 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapaGrupo;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -48,6 +49,12 @@ public class CursoEtapaGrupo
      */
     @Column(length = 1)
     private Boolean esoBachillerato;
+
+    /**
+     * Relación con Reduccion cuando una reducción tenga docencia
+     */
+    @OneToOne(mappedBy = "cursoEtapaGrupo")
+    private Reduccion reduccion;
     
     
     /**

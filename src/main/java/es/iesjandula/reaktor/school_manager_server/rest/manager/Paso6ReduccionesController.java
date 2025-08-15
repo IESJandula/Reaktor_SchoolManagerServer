@@ -41,7 +41,9 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -51,6 +53,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Paso6ReduccionesController
 {
+    @Autowired
+    private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
 
     @Autowired
     private IReduccionRepository iReduccionRepository;
@@ -87,7 +91,10 @@ public class Paso6ReduccionesController
     @RequestMapping(method = RequestMethod.POST, value = "/reducciones")
     public ResponseEntity<?> crearReduccion(@RequestHeader(value = "nombre", required = true) String nombre,
                                             @RequestHeader(value = "horas", required = true) Integer horas,
-                                            @RequestHeader(value = "decideDireccion", required = true) Boolean decideDireccion)
+                                            @RequestHeader(value = "decideDireccion", required = true) Boolean decideDireccion,
+                                            @RequestHeader(value = "curso", required = false) Integer curso,
+                                            @RequestHeader(value = "etapa", required = false) String etapa,
+                                            @RequestHeader(value = "grupo", required = false) String grupo)
     {
         try
         {
@@ -108,6 +115,22 @@ public class Paso6ReduccionesController
             Reduccion nuevaReduccion = new Reduccion();
             nuevaReduccion.setIdReduccion(idReduccion);
             nuevaReduccion.setDecideDireccion(decideDireccion);
+            
+            // Si el curso, etapa y grupo no son nulos, se busca la relación con el cursoEtapaGrupo
+            if (curso != null && etapa != null && grupo != null)
+            {
+                CursoEtapaGrupo cursoEtapaGrupo = this.iCursoEtapaGrupoRepository.buscarCursoEtapaGrupo(curso, etapa, grupo);
+
+                if (cursoEtapaGrupo == null)
+                {
+                    String mensajeError = "No existe un curso etapa grupo con el curso " + curso + " etapa " + etapa + " y grupo " + grupo;
+                    
+                    log.error(mensajeError);
+                    throw new SchoolManagerServerException(Constants.CURSO_ETAPA_GRUPO_NO_ENCONTRADO, mensajeError);
+                }
+
+                nuevaReduccion.setCursoEtapaGrupo(cursoEtapaGrupo);
+            }
 
             this.iReduccionRepository.saveAndFlush(nuevaReduccion);
 
