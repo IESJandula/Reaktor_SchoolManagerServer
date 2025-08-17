@@ -2,8 +2,10 @@ package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.List;
 import java.util.Objects;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -72,7 +74,7 @@ public class Profesor
 	/**
 	 * Observaciones adicionales del profesor. Relación de uno a uno con la entidad {@link ObservacionesAdicionales}.
 	 */
-	@OneToOne(mappedBy = "profesor")
+	@OneToOne(mappedBy = "profesor", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
 	private ObservacionesAdicionales observacionesAdicionales;
 
 	/**

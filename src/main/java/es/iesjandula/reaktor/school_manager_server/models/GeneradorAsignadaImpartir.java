@@ -1,6 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionBase;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorAsignadaImpartir;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -12,11 +12,19 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "GeneradorSesionBase")
-public class GeneradorSesionBase
+@Table(name = "GeneradorAsignadaImpartir")
+public class GeneradorAsignadaImpartir
 {
     @EmbeddedId
-    private IdGeneradorSesionBase idGeneradorSesionBase;
+    private IdGeneradorAsignadaImpartir idGeneradorAsignadaImpartir;
+
+    /**
+     * Identificador de la instancia del generador a la que pertenece esta asignación.
+     * Relación de muchos a uno con la entidad {@link GeneradorInstancia}.
+     */
+    @MapsId(value = "idGeneradorInstancia")
+    @ManyToOne
+    private GeneradorInstancia generadorInstancia;
 
     /**
      * Asignatura que está siendo impartida por el profesor.
@@ -41,5 +49,4 @@ public class GeneradorSesionBase
     @MapsId(value = "diaTramoTipoHorario")
     @ManyToOne
     private DiaTramoTipoHorario diaTramoTipoHorario;
-
 }

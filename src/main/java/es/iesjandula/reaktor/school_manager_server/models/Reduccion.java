@@ -57,4 +57,10 @@ public class Reduccion
 	 */
 	@OneToMany(mappedBy = "reduccion")
 	private List<ProfesorReduccion> profesorReducciones;
+
+	@Override
+    public String toString()
+    {
+    	return this.idReduccion.getNombre() ;
+    }
 }

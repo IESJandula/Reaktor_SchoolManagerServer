@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.repositories;
+package es.iesjandula.reaktor.school_manager_server.repositories.generador;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
@@ -28,6 +29,9 @@ public class ValidadorDatosService
 {
     @Autowired
     private ICursoEtapaRepository cursoEtapaRepository ;
+
+    @Autowired
+    private ICursoEtapaGrupoRepository cursoEtapaGrupoRepository ;
 
     @Autowired
     private IDepartamentoRepository departamentoRepository ;
@@ -221,7 +225,7 @@ public class ValidadorDatosService
     private void validacionDatosImpartir(ValidadorDatosDto validadorDatosDto)
     {
         // Validamos que todos los cursos tienen 30 horas a la semana asignadas de clase
-        Optional<List<CursoEtapaGrupo>> cursosEtapasGrupos = this.impartirRepository.cursoConHorasAsignadasIncorrectas() ;
+        Optional<List<CursoEtapaGrupo>> cursosEtapasGrupos = this.cursoEtapaGrupoRepository.cursoConHorasAsignadasIncorrectas() ;
 
         if (!cursosEtapasGrupos.isEmpty() && cursosEtapasGrupos.get().size() > 0)
         {
@@ -230,7 +234,9 @@ public class ValidadorDatosService
             // Recorremos la lista de cursos para avisarlas al usuario
             for (CursoEtapaGrupo cursoEtapaGrupo : cursosEtapasGrupos.get())
             {
-                erroresDatosDto.agregarValorImplicado(cursoEtapaGrupo.getCursoEtapaGrupoString()) ;
+                Long totalHorasAsignadas = this.cursoEtapaGrupoRepository.obtenerTotalHorasAsignadas(cursoEtapaGrupo.getIdCursoEtapaGrupo().getCurso(), cursoEtapaGrupo.getIdCursoEtapaGrupo().getEtapa(), cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo()) ;
+
+                erroresDatosDto.agregarValorImplicado(cursoEtapaGrupo.getCursoEtapaGrupoString() + " - " + totalHorasAsignadas) ;
             }
 
             // Añadimos a la instancia del DTO el mensaje de error

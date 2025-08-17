@@ -1,6 +1,7 @@
 package es.iesjandula.reaktor.school_manager_server.models.no_jpa;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
@@ -8,19 +9,12 @@ import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 
 @Slf4j
 @Data
-public class Sesion
+@EqualsAndHashCode(callSuper = true)
+public class SesionAsignatura extends SesionBase
 {
 	/** Asignatura impartida en la sesion */
     private final Asignatura asignatura ;
     
-    /** Profesor que imparte la asignatura impartida en la sesion */
-    private final Profesor profesor ;
-    
-    /** Tipo de horario matutino o vespertino */
-    private final boolean tipoHorarioMatutino ;
-
-    /** Propuesta de dia y/o tramo a forzar */
-    private RestriccionHoraria restriccionHoraria ;
 
     /**
      * Constructor que inicializa la lista de restricciones horarias
@@ -30,18 +24,23 @@ public class Sesion
      * @param tipoHorario tipo de horario
      * @param restriccionHoraria restricción horaria
      */
-    public Sesion(Asignatura asignatura, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
+    public SesionAsignatura(Asignatura asignatura, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
     {      
-        this.asignatura          = asignatura ;
-        this.profesor            = profesor ;
-        this.tipoHorarioMatutino = tipoHorarioMatutino ;
-        this.restriccionHoraria  = restriccionHoraria ;
+        super(profesor, tipoHorarioMatutino, asignatura.getIdAsignatura().getCursoEtapaGrupo().getEsoBachillerato(), restriccionHoraria) ;
+
+        this.asignatura = asignatura ;
     }
     
     @Override
     public String toString()
     {
     	return this.asignatura.toString() ;
+    }
+
+    @Override
+    public String getCursoEtapaGrupoString()
+    {
+        return this.asignatura.getIdAsignatura().getCursoEtapaGrupo().getCursoEtapaGrupoString() ;
     }
 }
 

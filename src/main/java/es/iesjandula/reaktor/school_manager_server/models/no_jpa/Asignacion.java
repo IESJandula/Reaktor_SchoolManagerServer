@@ -9,7 +9,7 @@ import lombok.Data;
 public class Asignacion
 {
 	/** Lista de sesiones - Normalmente será un único item, pero si hay más es que es una optativa */
-	private List<Sesion> listaSesiones ;
+	private List<SesionBase> listaSesiones ;
 	
 	/** True si la asignación es de optativas */
 	private boolean optativas ;
@@ -19,7 +19,7 @@ public class Asignacion
 	 */
 	public Asignacion()
 	{
-		this.listaSesiones = new ArrayList<Sesion>() ;
+		this.listaSesiones = new ArrayList<SesionBase>() ;
 		this.optativas  = false ;
 	}
 
@@ -34,7 +34,7 @@ public class Asignacion
 			
 			for (int i = 0 ; i < this.listaSesiones.size() ; i++)
 			{
-				Sesion sesion = this.listaSesiones.get(i) ;
+				SesionBase sesion = this.listaSesiones.get(i) ;
 				
 				builder.append(sesion) ;
 				

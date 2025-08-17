@@ -1,11 +1,13 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import java.util.List;
+import java.util.Optional;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
@@ -33,5 +35,13 @@ public interface IReduccionRepository extends JpaRepository<Reduccion, IdReducci
 			"FROM Reduccion r " +
 			"WHERE r.decideDireccion = false ")
 	List<ReduccionProfesoresDto> encontrarReduccionesParaProfesores();
+
+	@Query("SELECT r " +
+			"FROM Reduccion r " +
+			"WHERE r.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso " +
+			  "AND r.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa " +
+			  "AND r.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo " +
+			  "AND r.idReduccion.nombre = :nombreReduccion")
+    Optional<Reduccion> findReduccionesByCursoEtapaGrupoAndNombre(@Param("curso") int curso, @Param("etapa") String etapa, @Param("grupo") String grupo, @Param("nombreReduccion") String nombreReduccion);
 
 }

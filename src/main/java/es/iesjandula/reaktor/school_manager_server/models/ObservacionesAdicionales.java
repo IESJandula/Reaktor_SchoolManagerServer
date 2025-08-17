@@ -9,14 +9,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "ObservacionesAdicionales")
 public class ObservacionesAdicionales
 {
     @Id
     @Column(name = "profesor_email")
     private String profesorEmail;
 
-    @OneToOne
-    @JoinColumn(name = "profesor_email", referencedColumnName = "email")
+    @OneToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "profesor_email", referencedColumnName = "email", insertable = false, updatable = false)
     private Profesor profesor;
 
     @Column

@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorAsignadaImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionAsignadaRepository;
-import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorSesionAsignadaCursoEtapaGrupoDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorSesionAsignadaProfesorDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorAsignadaImpartirCursoEtapaGrupoDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorAsignadaImpartirProfesorDto;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +36,7 @@ public class Paso4HorariosController
     private ICursoEtapaGrupoRepository iCursoEtapaGrupoRepository;
 
     @Autowired
-    private IGeneradorSesionAsignadaRepository iGeneradorSesionAsignadaRepository;
+    private IGeneradorAsignadaImpartirRepository iGeneradorAsignadaImpartirRepository;
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/individual")
@@ -56,8 +56,8 @@ public class Paso4HorariosController
                 throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError) ;
             }
 
-            // Buscamos en la tabla GeneradorSesionAsignada todas las sesiones del profesor en la solución elegida
-            Optional<List<GeneradorSesionAsignadaProfesorDto>> listaSesionesAsignadas = this.iGeneradorSesionAsignadaRepository.buscarHorarioProfesorSolucionElegida(profesor);
+            // Buscamos en la tabla GeneradorAsignadaImpartir todas las sesiones del profesor en la solución elegida
+            Optional<List<GeneradorAsignadaImpartirProfesorDto>> listaSesionesAsignadas = this.iGeneradorAsignadaImpartirRepository.buscarHorarioProfesorSolucionElegida(profesor);
 
             if (!listaSesionesAsignadas.isPresent())
             {
@@ -107,8 +107,8 @@ public class Paso4HorariosController
                 throw new SchoolManagerServerException(Constants.CURSO_ETAPA_GRUPO_NO_ENCONTRADO, mensajeError) ;
             }
 
-            // Buscamos en la tabla GeneradorSesionAsignada todas las sesiones del curso etapa grupo en la solución elegida
-            Optional<List<GeneradorSesionAsignadaCursoEtapaGrupoDto>> listaSesionesAsignadas = this.iGeneradorSesionAsignadaRepository.buscarHorarioCursoEtapaGrupoSolucionElegida(cursoEtapaGrupo);
+            // Buscamos en la tabla GeneradorAsignadaImpartir todas las sesiones del curso etapa grupo en la solución elegida
+            Optional<List<GeneradorAsignadaImpartirCursoEtapaGrupoDto>> listaSesionesAsignadas = this.iGeneradorAsignadaImpartirRepository.buscarHorarioCursoEtapaGrupoSolucionElegida(cursoEtapaGrupo);
 
             if (!listaSesionesAsignadas.isPresent())
             {

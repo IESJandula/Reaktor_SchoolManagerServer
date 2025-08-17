@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.models.PreferenciasHorariasProfesor;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -475,17 +475,18 @@ public class RestriccionHoraria
     /**
      * Método que comprueba si existe hueco para una sesión
      * 
+     * @param sesionBase sesión base
      * @return true si existe hueco, false en caso contrario
      * @throws SchoolManagerServerException si no hay más intervalo para asignar la sesión  
      */
-    public RestriccionHorariaItem obtenerRestriccionHorariaItem(Sesion sesion) throws SchoolManagerServerException
+    public RestriccionHorariaItem obtenerRestriccionHorariaItem(SesionBase sesionBase) throws SchoolManagerServerException
     {
         if (this.restriccionesHorariasNoEvitables.isEmpty() && this.restriccionesHorariasEvitables.isEmpty())
         {
 			// Logueamos y lanzamos una excepción para cortar esta generación de horario
 			// ya que no hay más items de la semana para asignar la sesión
 			
-			String warningString = "\n Este horario es incorrecto ya que no se pueden obtener más items de la semana para asignar esta sesión: \n" +  sesion ;
+			String warningString = "\n Este horario es incorrecto ya que no se pueden obtener más items de la semana para asignar esta sesión: \n" +  sesionBase ;
 			
 			log.warn(warningString) ;
 			throw new SchoolManagerServerException(Constants.ERR_CODE_HORARIO_NO_MAS_AMPLIABLE, warningString) ;		

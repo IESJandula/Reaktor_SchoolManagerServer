@@ -5,35 +5,37 @@ import java.io.Serializable;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
+import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
 
 /**
- * Clase que representa la clave primaria compuesta para la entidad GeneradorSesionBase (o la entidad que la use).
+ * Clase que representa la clave primaria compuesta para la entidad GeneradorRestriccionesReduccion (o la entidad que la use).
  * -----------------------------------------------------------------------------------------------------------------
  * Esta clave primaria está compuesta por las claves primarias de las entidades
- * Impartir ({@link IdImpartir}) y DiaTramoTipoHorario ({@link Long}),
- * identificando de manera única la asignación de una clase impartida en un tramo horario específico.
+ * GeneradorInstancia ({@link Integer}), Asignatura ({@link Asignatura}), Profesor ({@link Profesor}) y
+ * DiaTramoTipoHorario ({@link DiaTramoTipoHorario}), identificando de manera única la asignación
+ * de una reducción aplicada en un tramo horario específico dentro de una instancia de generador de horario.
  * -----------------------------------------------------------------------------------------------------------------
  */
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode
-public class IdGeneradorSesionBase implements Serializable
+public class IdGeneradorRestriccionesReduccion implements Serializable
 {
     /** Serialización de la clase para persistencia */
     private static final long serialVersionUID = 1L ;
 
-    /** Id de la sesión base */
-    private int numeroSesion ;
+    /** Id de la restricción de reducción */
+    private int numeroRestriccion ;
 
-	/** Asignatura que está siendo impartida por un profesor */
+	/** Reducción que está siendo aplicada al profesor */
 	@ManyToOne
-	private Asignatura asignatura;
+	private Reduccion reduccion;
 
-	/** Profesor que imparte la asignatura */
+	/** Profesor que aplica la reducción */
 	@ManyToOne
 	private Profesor profesor;
 

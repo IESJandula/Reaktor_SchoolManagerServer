@@ -1,6 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionAsignada;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesReduccion;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -12,30 +12,22 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @Entity
-@Table(name = "GeneradorSesionAsignada")
-public class GeneradorSesionAsignada
+@Table(name = "GeneradorRestriccionesReduccion")
+public class GeneradorRestriccionesReduccion
 {
     @EmbeddedId
-    private IdGeneradorSesionAsignada idGeneradorSesionAsignada;
+    private IdGeneradorRestriccionesReduccion idGeneradorRestriccionesReduccion;
 
     /**
-     * Identificador de la instancia del generador a la que pertenece esta asignación.
-     * Relación de muchos a uno con la entidad {@link GeneradorInstancia}.
+     * Reducción que está siendo aplicada al profesor.
+     * Relación de muchos a uno con la entidad {@link Reduccion}.
      */
-    @MapsId(value = "idGeneradorInstancia")
+    @MapsId(value = "reduccion")
     @ManyToOne
-    private GeneradorInstancia generadorInstancia;
-
-    /**
-     * Asignatura que está siendo impartida por el profesor.
-     * Relación de muchos a uno con la entidad {@link Asignatura}.
-     */
-    @MapsId(value = "asignatura")
-    @ManyToOne
-    private Asignatura asignatura;
+    private Reduccion reduccion;
     
     /**
-     * Profesor que está asignado para impartir la asignatura.
+     * Profesor que está asignado para aplicar la reducción.
      * Relación de muchos a uno con la entidad {@link Profesor}.
      */
     @MapsId(value = "profesor")
@@ -49,5 +41,4 @@ public class GeneradorSesionAsignada
     @MapsId(value = "diaTramoTipoHorario")
     @ManyToOne
     private DiaTramoTipoHorario diaTramoTipoHorario;
-
 }

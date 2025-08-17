@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.dtos;
+package es.iesjandula.reaktor.school_manager_server.dtos.generador;
 
 import java.util.ArrayList;
 import java.util.List;

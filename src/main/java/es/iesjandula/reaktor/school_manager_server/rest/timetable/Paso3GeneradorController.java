@@ -14,20 +14,25 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInfoDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.SesionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInfoDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorRestriccionBaseDto;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
-import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionBase;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestriccionesImpartir;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestriccionesReduccion;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesImpartir;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionBase;
+import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionBaseRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesImpartirRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
@@ -54,10 +59,16 @@ public class Paso3GeneradorController
     private IAsignaturaRepository asignaturaRepository ;
 
     @Autowired
+    private IReduccionRepository reduccionRepository ;
+
+    @Autowired
     private IDiaTramoTipoHorarioRepository diaTramoTipoHorarioRepository ;
     
     @Autowired
-    private IGeneradorSesionBaseRepository generadorSesionBaseRepository ;
+    private IGeneradorRestriccionesImpartirRepository generadorRestriccionesImpartirRepository ;
+
+    @Autowired
+    private IGeneradorRestriccionesReduccionRepository generadorRestriccionesReduccionRepository ;
 
     @Autowired
     private IGeneradorInstanciaRepository generadorInstanciaRepository ;
@@ -91,15 +102,15 @@ public class Paso3GeneradorController
     }
     
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.POST, value = "/sesionesBase")
-    public ResponseEntity<?> actualizarSesionesBase(@RequestHeader(value = "email") String email,
-                                                    @RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
-                                                    @RequestHeader(value = "curso") int curso,
-                                                    @RequestHeader(value = "etapa") String etapa,
-                                                    @RequestHeader(value = "grupo") String grupo,
-                                                    @RequestHeader(value = "numeroSesion") int numeroSesion,
-                                                    @RequestHeader(value = "diaDesc") String diaDesc,
-                                                    @RequestHeader(value = "tramoDesc") String tramoDesc)
+    @RequestMapping(method = RequestMethod.POST, value = "/restricciones_impartir")
+    public ResponseEntity<?> actualizarRestriccionesImpartir(@RequestHeader(value = "email") String email,
+                                                             @RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
+                                                             @RequestHeader(value = "curso") int curso,
+                                                             @RequestHeader(value = "etapa") String etapa,
+                                                             @RequestHeader(value = "grupo") String grupo,
+                                                             @RequestHeader(value = "numeroRestriccion") int numeroRestriccion,
+                                                             @RequestHeader(value = "diaDesc") String diaDesc,
+                                                             @RequestHeader(value = "tramoDesc") String tramoDesc)
     {
         try
         {
@@ -109,15 +120,15 @@ public class Paso3GeneradorController
             // Buscamos la asignatura
             Asignatura asignatura = this.buscarAsignatura(nombreAsignatura, curso, etapa, grupo) ;
 
-            // Buscamos la sesión base por número de sesión, profesor y asignatura
-            Optional<GeneradorSesionBase> generadorSesionBaseOptional = this.generadorSesionBaseRepository.buscarSesionBasePorNumeroSesionProfesorAsignatura(numeroSesion, profesor, asignatura) ;
+            // Buscamos la restricción de tipo de horario por número de sesión, profesor y asignatura
+            Optional<GeneradorRestriccionesImpartir> generadorRestriccionesImpartirOptional = this.generadorRestriccionesImpartirRepository.buscarRestriccionesPorNumeroRestriccionProfesorAsignatura(numeroRestriccion, profesor, asignatura) ;
 
             // Si existe, la borramos
-            if (generadorSesionBaseOptional.isPresent())
+            if (generadorRestriccionesImpartirOptional.isPresent())
             {
                 // La borramos
-                this.generadorSesionBaseRepository.delete(generadorSesionBaseOptional.get()) ;
-                this.generadorSesionBaseRepository.flush() ;
+                this.generadorRestriccionesImpartirRepository.delete(generadorRestriccionesImpartirOptional.get()) ;
+                this.generadorRestriccionesImpartirRepository.flush() ;
             }
 
             // Obtenemos las restricciones de tipo de horario de la asignatura
@@ -125,8 +136,8 @@ public class Paso3GeneradorController
 
             if (!Constants.SIN_SELECCIONAR.equals(diaDesc) && !Constants.SIN_SELECCIONAR.equals(tramoDesc))
             {
-                // Actualizamos la sesión base
-                this.actualizarSesionesBaseInternal(numeroSesion, asignatura, profesor, diaTramoTipoHorario) ;
+                // Actualizamos la restricción de tipo de horario
+                this.actualizarRestriccionesImpartirInternal(numeroRestriccion, asignatura, profesor, diaTramoTipoHorario) ;
             }
 
             return ResponseEntity.ok().build();
@@ -137,7 +148,7 @@ public class Paso3GeneradorController
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudo actualizar la sesión base";
+            String mensajeError = "ERROR - No se pudo actualizar la restricción de asignatura";
 
             log.error(mensajeError, exception) ;
 
@@ -149,42 +160,132 @@ public class Paso3GeneradorController
     }
 
     /**
-     * Método que actualiza una sesión base
-     * @param numeroSesion - Número de sesión
-     * @param impartir - Impartir
+     * Método que actualiza una restricción de tipo de horario
+     * @param numeroRestriccion - Número de la restricción
+     * @param asignatura - Asignatura
+     * @param profesor - Profesor
      * @param diaTramoTipoHorario - Día y tramo de tipo horario
      */
-    private void actualizarSesionesBaseInternal(int numeroSesion, Asignatura asignatura, Profesor profesor, DiaTramoTipoHorario diaTramoTipoHorario)
+    private void actualizarRestriccionesImpartirInternal(int numeroRestriccion, Asignatura asignatura, Profesor profesor, DiaTramoTipoHorario diaTramoTipoHorario)
     {
-        // Creamos una instancia de IdGeneradorSesionBase
-        IdGeneradorSesionBase idGeneradorSesionBase = new IdGeneradorSesionBase() ;
+        // Creamos una instancia de IdGeneradorRestriccionesImpartir
+        IdGeneradorRestriccionesImpartir idGeneradorRestriccionesImpartir = new IdGeneradorRestriccionesImpartir() ;
         
         // Asignamos los valores a la instancia
-        idGeneradorSesionBase.setNumeroSesion(numeroSesion) ;   
-        idGeneradorSesionBase.setAsignatura(asignatura) ;
-        idGeneradorSesionBase.setProfesor(profesor) ;
-        idGeneradorSesionBase.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+        idGeneradorRestriccionesImpartir.setNumeroRestriccion(numeroRestriccion) ;   
+        idGeneradorRestriccionesImpartir.setAsignatura(asignatura) ;
+        idGeneradorRestriccionesImpartir.setProfesor(profesor) ;
+        idGeneradorRestriccionesImpartir.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
-        // Creamos una instancia de GeneradorSesionBase
-        GeneradorSesionBase generadorSesionBaseInstancia = new GeneradorSesionBase() ;
+        // Creamos una instancia de GeneradorRestriccionesImpartir
+        GeneradorRestriccionesImpartir generadorRestriccionesImpartirInstancia = new GeneradorRestriccionesImpartir() ;
         
         // Asignamos cada parámetro a la instancia
-        generadorSesionBaseInstancia.setIdGeneradorSesionBase(idGeneradorSesionBase) ;
-        generadorSesionBaseInstancia.setAsignatura(asignatura) ;
-        generadorSesionBaseInstancia.setProfesor(profesor) ;
-        generadorSesionBaseInstancia.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+        generadorRestriccionesImpartirInstancia.setIdGeneradorRestriccionesImpartir(idGeneradorRestriccionesImpartir) ;
+        generadorRestriccionesImpartirInstancia.setAsignatura(asignatura) ;
+        generadorRestriccionesImpartirInstancia.setProfesor(profesor) ;
+        generadorRestriccionesImpartirInstancia.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Guardamos la instancia en la base de datos
-        this.generadorSesionBaseRepository.saveAndFlush(generadorSesionBaseInstancia) ; 
+        this.generadorRestriccionesImpartirRepository.saveAndFlush(generadorRestriccionesImpartirInstancia) ; 
     }
 
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
-    @RequestMapping(method = RequestMethod.GET, value = "/sesionesBase")
-    public ResponseEntity<?> obtenerSesionesBase(@RequestHeader(value = "email") String email,
-                                                 @RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
-                                                 @RequestHeader(value = "curso") int curso,
-                                                 @RequestHeader(value = "etapa") String etapa,
-                                                 @RequestHeader(value = "grupo") String grupo)
+    @RequestMapping(method = RequestMethod.POST, value = "/restricciones_reduccion")
+    public ResponseEntity<?> actualizarRestriccionesReduccion(@RequestHeader(value = "email") String email,
+                                                              @RequestHeader(value = "nombreReduccion") String nombreReduccion,
+                                                              @RequestHeader(value = "curso") int curso,
+                                                              @RequestHeader(value = "etapa") String etapa,
+                                                              @RequestHeader(value = "grupo") String grupo,
+                                                              @RequestHeader(value = "numeroReduccion") int numeroReduccion,
+                                                              @RequestHeader(value = "diaDesc") String diaDesc,
+                                                              @RequestHeader(value = "tramoDesc") String tramoDesc)
+    {
+        try
+        {
+            // Buscamos el profesor
+            Profesor profesor = this.buscarProfesor(email) ;
+
+            // Buscamos la reducción
+            Reduccion reduccion = this.buscarReduccion(nombreReduccion, curso, etapa, grupo) ;
+
+            // Buscamos la restricción de reducción por número de reducción, profesor y reducción
+            Optional<GeneradorRestriccionesReduccion> generadorRestriccionesReduccionOptional = this.generadorRestriccionesReduccionRepository.buscarRestriccionesPorNumeroRestriccionProfesorReduccion(numeroReduccion, profesor, reduccion) ;
+
+            // Si existe, la borramos
+            if (generadorRestriccionesReduccionOptional.isPresent())
+            {
+                // La borramos
+                this.generadorRestriccionesReduccionRepository.delete(generadorRestriccionesReduccionOptional.get()) ;
+                this.generadorRestriccionesReduccionRepository.flush() ;
+            }
+
+            // Obtenemos las restricciones de tipo de horario de la asignatura
+            DiaTramoTipoHorario diaTramoTipoHorario = this.diaTramoTipoHorarioRepository.buscarPorDiaDescTramoDesc(diaDesc, tramoDesc) ;
+
+            if (!Constants.SIN_SELECCIONAR.equals(diaDesc) && !Constants.SIN_SELECCIONAR.equals(tramoDesc))
+            {
+                // Actualizamos la restricción de tipo de horario
+                this.actualizarRestriccionesReduccionInternal(numeroReduccion, reduccion, profesor, diaTramoTipoHorario) ;
+            }
+
+            return ResponseEntity.ok().build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudo actualizar la restricción de reducción";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Método que actualiza una restricción de reducción
+     * @param numeroRestriccion - Número de la restricción
+     * @param reduccion - Reducción
+     * @param profesor - Profesor
+     * @param diaTramoTipoHorario - Día y tramo de tipo horario
+     */
+    private void actualizarRestriccionesReduccionInternal(int numeroRestriccion, Reduccion reduccion, Profesor profesor, DiaTramoTipoHorario diaTramoTipoHorario)
+    {
+        // Creamos una instancia de IdGeneradorRestriccionesReduccion
+        IdGeneradorRestriccionesReduccion idGeneradorRestriccionesReduccion = new IdGeneradorRestriccionesReduccion() ;
+        
+        // Asignamos los valores a la instancia
+        idGeneradorRestriccionesReduccion.setNumeroRestriccion(numeroRestriccion) ;   
+        idGeneradorRestriccionesReduccion.setReduccion(reduccion) ;
+        idGeneradorRestriccionesReduccion.setProfesor(profesor) ;
+        idGeneradorRestriccionesReduccion.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+
+        // Creamos una instancia de GeneradorRestriccionesReduccion
+        GeneradorRestriccionesReduccion generadorRestriccionesReduccionInstancia = new GeneradorRestriccionesReduccion() ;
+        
+        // Asignamos cada parámetro a la instancia
+        generadorRestriccionesReduccionInstancia.setIdGeneradorRestriccionesReduccion(idGeneradorRestriccionesReduccion) ;
+        generadorRestriccionesReduccionInstancia.setReduccion(reduccion) ;
+        generadorRestriccionesReduccionInstancia.setProfesor(profesor) ;
+        generadorRestriccionesReduccionInstancia.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+
+        // Guardamos la instancia en la base de datos
+        this.generadorRestriccionesReduccionRepository.saveAndFlush(generadorRestriccionesReduccionInstancia) ; 
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/restricciones_impartir")
+    public ResponseEntity<?> obtenerRestriccionesImpartir(@RequestHeader(value = "email") String email,
+                                                          @RequestHeader(value = "nombreAsignatura") String nombreAsignatura,
+                                                          @RequestHeader(value = "curso") int curso,
+                                                          @RequestHeader(value = "etapa") String etapa,
+                                                          @RequestHeader(value = "grupo") String grupo)
     {
         try
         {
@@ -194,11 +295,11 @@ public class Paso3GeneradorController
             // Buscamos la asignatura
             Asignatura asignatura = this.buscarAsignatura(nombreAsignatura, curso, etapa, grupo) ;
 
-            // Buscamos las sesiones base de la asignatura
-            Optional<List<SesionBaseDto>> sesionesBaseOptional = 
-                    this.generadorSesionBaseRepository.buscarSesionesBasePorAsignaturaProfesorDto(asignatura, profesor) ;
+            // Buscamos las restricciones de asignatura
+            Optional<List<GeneradorRestriccionBaseDto>> restriccionesImpartirOptional = 
+                    this.generadorRestriccionesImpartirRepository.buscarRestriccionesPorAsignaturaProfesorDto(asignatura, profesor) ;
 
-            return ResponseEntity.ok(sesionesBaseOptional.get()) ;
+            return ResponseEntity.ok(restriccionesImpartirOptional.get()) ;
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
@@ -206,7 +307,46 @@ public class Paso3GeneradorController
         }
         catch (Exception exception)
         {
-            String mensajeError = "ERROR - No se pudieron obtener las sesiones base";
+            String mensajeError = "ERROR - No se pudieron obtener las restricciones de asignatura";
+
+            log.error(mensajeError, exception) ;
+
+            // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException =  new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.GET, value = "/restricciones_reduccion")
+    public ResponseEntity<?> obtenerRestriccionesReduccion(@RequestHeader(value = "email") String email,
+                                                           @RequestHeader(value = "nombreReduccion") String nombreReduccion,
+                                                           @RequestHeader(value = "curso") int curso,
+                                                           @RequestHeader(value = "etapa") String etapa,
+                                                           @RequestHeader(value = "grupo") String grupo)
+    {
+        try
+        {
+            // Buscamos el profesor
+            Profesor profesor = this.buscarProfesor(email) ;
+
+            // Buscamos la reducción
+            Reduccion reduccion = this.buscarReduccion(nombreReduccion, curso, etapa, grupo) ;
+
+            // Buscamos las restricciones de asignatura
+            Optional<List<GeneradorRestriccionBaseDto>> restriccionesReduccionOptional = 
+                    this.generadorRestriccionesReduccionRepository.buscarRestriccionesReduccionProfesorDto(reduccion, profesor) ;
+
+            return ResponseEntity.ok(restriccionesReduccionOptional.get()) ;
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron obtener las restricciones de reducción";
 
             log.error(mensajeError, exception) ;
 
@@ -260,6 +400,30 @@ public class Paso3GeneradorController
         }
 
         return asignaturaOptional.get() ;
+    }
+
+    /**
+     * Método que busca una reducción por su nombre, curso, etapa y grupo
+     * @param nombreReduccion - Nombre de la reducción
+     * @param curso - Curso
+     * @param etapa - Etapa
+     * @param grupo - Grupo
+     * @return Reduccion - Reducción encontrada
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    private Reduccion buscarReduccion(String nombreReduccion, int curso, String etapa, String grupo) throws SchoolManagerServerException
+    {
+        Optional<Reduccion> reduccionOptional = this.reduccionRepository.findReduccionesByCursoEtapaGrupoAndNombre(curso, etapa, grupo, nombreReduccion) ;
+
+        if (!reduccionOptional.isPresent())
+        {
+            String mensajeError = "La reducción con nombre " + nombreReduccion + " no existe" ;
+
+            log.error(mensajeError) ;
+            throw new SchoolManagerServerException(Constants.REDUCCION_NO_ENCONTRADA, "La reducción con nombre " + nombreReduccion + " no existe") ;
+        }
+
+        return reduccionOptional.get() ;
     }
     
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")

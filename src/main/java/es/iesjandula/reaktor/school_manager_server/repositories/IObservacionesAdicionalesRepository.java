@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface IObservacionesAdicionalesRepository extends JpaRepository<ObservacionesAdicionales, Long>
+public interface IObservacionesAdicionalesRepository extends JpaRepository<ObservacionesAdicionales, String>
 {
   @Query("SELECT oa FROM ObservacionesAdicionales oa WHERE oa.profesor.email = :email")
   Optional<ObservacionesAdicionales> buscarPorEmail(String email) ;

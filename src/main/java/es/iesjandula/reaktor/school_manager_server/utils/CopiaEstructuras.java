@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 
 public class CopiaEstructuras
 {
@@ -12,16 +12,16 @@ public class CopiaEstructuras
 	 * @param listaOriginal lista original de sesiones
 	 * @return una copia de la lista original de sesiones
 	 */
-	public static List<List<Sesion>> copiarListaDeSesiones(List<List<Sesion>> listaOriginal)
+	public static List<List<SesionBase>> copiarListaDeSesiones(List<List<SesionBase>> listaOriginal)
 	{
-        List<List<Sesion>> copia = new ArrayList<>() ;
+        List<List<SesionBase>> copia = new ArrayList<>() ;
 
         synchronized(listaOriginal)
         {
-            for (List<Sesion> sublista : listaOriginal)
+            for (List<SesionBase> sublista : listaOriginal)
             {
                 // Creamos una nueva sublista para cada sublista original
-                List<Sesion> copiaSublista = new ArrayList<Sesion>(sublista) ;
+                List<SesionBase> copiaSublista = new ArrayList<SesionBase>(sublista) ;
                 
                 // Añadimos la copia de la sublista a la nueva lista
                 copia.add(copiaSublista) ;

@@ -11,44 +11,54 @@ import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
-import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInstanciaDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInstanciaSolucionInfoGeneralDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInstanciaSolucionInfoProfesorDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.GeneradorInfoDto;
-import es.iesjandula.reaktor.school_manager_server.generator.CreadorSesiones;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInfoDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoGeneralDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoProfesorDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorRestriccionesImpartirDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorRestriccionesReduccionDto;
 import es.iesjandula.reaktor.school_manager_server.generator.Horario;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorResultados;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorResultadosParams;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreads;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreadsParams;
-import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
+import es.iesjandula.reaktor.school_manager_server.generator.sesiones.creador.CreadorSesiones;
 import es.iesjandula.reaktor.school_manager_server.models.Constantes;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorAsignadaImpartir;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorAsignadaReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoGeneral;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoProfesor;
-import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionAsignada;
-import es.iesjandula.reaktor.school_manager_server.models.GeneradorSesionBase;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestriccionesImpartir;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestriccionesReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.PreferenciasHorariasProfesor;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
+import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorAsignadaImpartir;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorAsignadaReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorInstanciaSolucionInfoGeneral;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorInstanciaSolucionInfoProfesor;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorSesionAsignada;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionAsignatura;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
 import es.iesjandula.reaktor.school_manager_server.repositories.IConstantesRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaSolucionInfoGeneral;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaSolucionInfoProfesor;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorInstanciaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionAsignadaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IGeneradorSesionBaseRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorAsignadaImpartirRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorAsignadaReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaSolucionInfoGeneral;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaSolucionInfoProfesor;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesImpartirRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 
@@ -63,13 +73,7 @@ public class GeneradorService
     private ICursoEtapaGrupoRepository cursoEtapaGrupoRepository ;
 
     @Autowired
-    private IImpartirRepository impartirRepository ;
-
-    @Autowired
-    private IGeneradorSesionBaseRepository generadorSesionBaseRepository ;
-
-    @Autowired
-    private IGeneradorSesionAsignadaRepository generadorSesionAsignadaRepository ;
+    private IGeneradorRestriccionesReduccionRepository generadorRestriccionesReduccionRepository ;
 
     @Autowired
     private IGeneradorInstanciaRepository generadorInstanciaRepository ;
@@ -79,6 +83,15 @@ public class GeneradorService
 
     @Autowired
     private IGeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesorRepository ;
+
+    @Autowired
+    private IGeneradorRestriccionesImpartirRepository generadorRestriccionesImpartirRepository ;
+
+    @Autowired
+    private IGeneradorAsignadaImpartirRepository generadorAsignadaImpartirRepository ;
+
+    @Autowired
+    private IGeneradorAsignadaReduccionRepository generadorAsignadaReduccionRepository ;
 
     @Autowired
     private IConstantesRepository constantesRepository ;
@@ -206,65 +219,128 @@ public class GeneradorService
     {
         // Creamos una instancia de CreadorSesiones para añadir las asignatura y profesor a la sesión específica
         CreadorSesiones creadorSesiones = new CreadorSesiones() ;
-        
-        // Obtenemos toda la configuración de impartición de asignaturas y profesores de BBDD con las preferencias horarias cargadas
-        List<Impartir> impartirList = this.impartirRepository.findAllWithPreferenciasHorarias() ;
 
-        // Para cada fila de impartir, verificamos si existe algún tipo de restricción base
-        for (Impartir impartir : impartirList)
+        // Creamos las sesiones asociadas a impartir
+        this.crearSesionesAsociadasAImpartir(creadorSesiones, mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos) ;
+
+        // Creamos las sesiones asociadas a reducciones
+        this.crearSesionesAsociadasAReducciones(creadorSesiones, mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos) ;
+
+        return creadorSesiones ;
+    }
+
+    /**
+     * Método que crea las sesiones asociadas a impartir
+     * @param creadorSesiones - Creador de sesiones
+     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
+     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
+     * @throws SchoolManagerServerException 
+     */
+    private void crearSesionesAsociadasAImpartir(CreadorSesiones creadorSesiones, Map<String, Integer> mapCorrelacionadorCursosMatutinos, Map<String, Integer> mapCorrelacionadorCursosVespertinos) throws SchoolManagerServerException
+    {
+        // Obtenemos todas las restricciones de impartir
+        Optional<List<GeneradorRestriccionesImpartirDto>> generadorRestriccionesImpartirDtoOptional = 
+            this.generadorRestriccionesImpartirRepository.obtenerTodasLasRestricciones() ;
+
+        // Si hay restricciones, las añadimos a la lista
+        if (generadorRestriccionesImpartirDtoOptional.isPresent())
         {
-            // Obtenemos la lista de restricciones base de la asignatura de BBDD
-            Optional<List<GeneradorSesionBase>> generadorRestriccionesBaseOptional = 
-                    this.generadorSesionBaseRepository.buscarSesionesBasePorAsignaturaProfesor(impartir.getAsignatura(), impartir.getProfesor()) ;
-            
-            List<RestriccionHoraria> restriccionesHorarias = null ;
+            // Creamos una lista de restricciones horarias
+            List<GeneradorRestriccionesImpartirDto> generadorRestriccionesImpartirDtoList = generadorRestriccionesImpartirDtoOptional.get() ;
 
-            // Si hay restricciones base, las añadimos a la lista
-            if (generadorRestriccionesBaseOptional.isPresent())
+            // Iteramos para cada restricción
+            for (GeneradorRestriccionesImpartirDto generadorRestriccionesImpartirDto : generadorRestriccionesImpartirDtoList)
             {
-                // Creamos una lista de restricciones horarias
-                restriccionesHorarias = new ArrayList<RestriccionHoraria>() ;
-
-                // Obtenemos la lista de restricciones base
-                List<GeneradorSesionBase> generadorSesionBaseList = generadorRestriccionesBaseOptional.get() ;
-
                 // Obtenemos el curso, etapa y grupo de la asignatura, y si es matutino o vespertino
-                CursoEtapaGrupo cursoEtapaGrupo = impartir.getAsignatura().getIdAsignatura().getCursoEtapaGrupo() ;
+                CursoEtapaGrupo cursoEtapaGrupo = generadorRestriccionesImpartirDto.getCursoEtapaGrupo() ;
                 boolean tipoHorarioMatutino     = cursoEtapaGrupo.getHorarioMatutino() ;
 
-                // Iteramos para cada restricción base
-                for (GeneradorSesionBase generadorSesionBase : generadorSesionBaseList)
+                // Obtenemos el curso, etapa y grupo en formato String
+                String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
+
+                // Obtenemos el día y el tramo de la restricción
+                int dia   = generadorRestriccionesImpartirDto.getDiaTramoTipoHorario().getDia() ;
+                int tramo = generadorRestriccionesImpartirDto.getDiaTramoTipoHorario().getTramo() ;
+
+                RestriccionHoraria restriccionHoraria = null ;
+
+                // Vemos si el tipo de horario es matutino o vespertino
+                if (tipoHorarioMatutino)
                 {
-                    // Obtenemos el curso, etapa y grupo en formato String
-                    String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
-
-                    // Obtenemos el día y el tramo de la restricción base
-                    int dia   = generadorSesionBase.getIdGeneradorSesionBase().getDiaTramoTipoHorario().getDia() ;
-                    int tramo = generadorSesionBase.getIdGeneradorSesionBase().getDiaTramoTipoHorario().getTramo() ;
-
-                    // Vemos si el tipo de horario es matutino o vespertino
-                    if (tipoHorarioMatutino)
-                    {
-                        // Añadimos la restricción horaria a la lista
-                        restriccionesHorarias.add(new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
-                                                                        .asignarUnDiaTramoConcreto(dia, tramo)
-                                                                        .build()) ;
-                    }
-                    else
-                    {
-                        // Añadimos la restricción horaria a la lista
-                        restriccionesHorarias.add(new RestriccionHoraria.Builder(mapCorrelacionadorCursosVespertinos.get(cursoEtapaGrupoString))
-                                                                        .asignarUnDiaTramoConcreto(dia, tramo)
-                                                                        .build()) ;
-                    }
+                    // Añadimos la restricción horaria a la lista
+                    restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
+                                                               .asignarUnDiaTramoConcreto(dia, tramo)
+                                                               .build() ;
+                }
+                else
+                {
+                    // Añadimos la restricción horaria a la lista
+                    restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosVespertinos.get(cursoEtapaGrupoString))
+                                                               .asignarUnDiaTramoConcreto(dia, tramo)
+                                                               .build() ;
                 }
 
                 // Creamos el conjunto de sesiones asociadas a la asignatura y profesor
-                creadorSesiones.crearSesiones(impartir.getAsignatura(), impartir.getProfesor(), tipoHorarioMatutino, restriccionesHorarias) ;
+                creadorSesiones.crearSesion(generadorRestriccionesImpartirDto.getAsignatura(), generadorRestriccionesImpartirDto.getProfesor(), tipoHorarioMatutino, restriccionHoraria) ;
             }
         }
+    }
 
-        return creadorSesiones ;
+    /**
+     * Método que crea las sesiones asociadas a reducciones
+     * @param creadorSesiones - Creador de sesiones
+     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
+     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
+     * @throws SchoolManagerServerException con un error
+     */
+    private void crearSesionesAsociadasAReducciones(CreadorSesiones creadorSesiones, Map<String, Integer> mapCorrelacionadorCursosMatutinos, Map<String, Integer> mapCorrelacionadorCursosVespertinos) throws SchoolManagerServerException
+    {
+        // Obtenemos todas las restricciones de impartir
+        Optional<List<GeneradorRestriccionesReduccionDto>> generadorRestriccionesReduccionDtoOptional = 
+            this.generadorRestriccionesReduccionRepository.obtenerTodasLasRestricciones() ;
+
+        // Si hay restricciones, las añadimos a la lista
+        if (generadorRestriccionesReduccionDtoOptional.isPresent())
+        {
+            // Creamos una lista de restricciones horarias
+            List<GeneradorRestriccionesReduccionDto> generadorRestriccionesReduccionDtoList = generadorRestriccionesReduccionDtoOptional.get() ;
+
+            // Iteramos para cada restricción
+            for (GeneradorRestriccionesReduccionDto generadorRestriccionesReduccionDto : generadorRestriccionesReduccionDtoList)
+            {
+                // Obtenemos el curso, etapa y grupo de la asignatura, y si es matutino o vespertino
+                CursoEtapaGrupo cursoEtapaGrupo = generadorRestriccionesReduccionDto.getCursoEtapaGrupo() ;
+                boolean tipoHorarioMatutino     = cursoEtapaGrupo.getHorarioMatutino() ;
+
+                // Obtenemos el curso, etapa y grupo en formato String
+                String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
+
+                // Obtenemos el día y el tramo de la restricción
+                int dia   = generadorRestriccionesReduccionDto.getDiaTramoTipoHorario().getDia() ;
+                int tramo = generadorRestriccionesReduccionDto.getDiaTramoTipoHorario().getTramo() ;
+
+                RestriccionHoraria restriccionHoraria = null ;
+
+                // Vemos si el tipo de horario es matutino o vespertino
+                if (tipoHorarioMatutino)
+                {
+                    // Añadimos la restricción horaria a la lista
+                    restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
+                                                               .asignarUnDiaTramoConcreto(dia, tramo)
+                                                               .build() ;
+                }
+                else
+                {
+                    // Añadimos la restricción horaria a la lista
+                    restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosVespertinos.get(cursoEtapaGrupoString))
+                                                               .asignarUnDiaTramoConcreto(dia, tramo)
+                                                               .build() ;
+                }
+
+                // Creamos el conjunto de sesiones asociadas a la asignatura y profesor
+                creadorSesiones.crearSesion(generadorRestriccionesReduccionDto.getReduccion(), generadorRestriccionesReduccionDto.getProfesor(), tipoHorarioMatutino, restriccionHoraria) ;
+            }
+        }
     }
 
     /**
@@ -428,34 +504,86 @@ public class GeneradorService
         DiaTramoTipoHorario diaTramoTipoHorario = this.diaTramoTipoHorarioService.obtenerDiaTramoTipoHorario(dia, tramo, horarioMatutino) ;
 
         // Iteramos por cada sesión de la asignación
-        for (Sesion sesion : asignacion.getListaSesiones())
+        for (SesionBase sesion : asignacion.getListaSesiones())
         {
-            // Obtenemos el profesor y la asignatura de la sesión
-            Profesor profesor = sesion.getProfesor() ;
-            Asignatura asignatura = sesion.getAsignatura() ;
+            if (sesion instanceof SesionAsignatura)
+            {
+                this.actualizarGeneradorSesionAsignadaInternalAsignatura(generadorInstancia, diaTramoTipoHorario, (SesionAsignatura) sesion) ;
+            }
+            else // Si es una sesión de reducción
+            {
+                this.actualizarGeneradorSesionAsignadaInternalReduccion(generadorInstancia, diaTramoTipoHorario, (SesionReduccion) sesion) ;
+            }
 
-            // Creamos una instancia de IdGeneradorSesionAsignada
-            IdGeneradorSesionAsignada idGeneradorSesionAsignada = new IdGeneradorSesionAsignada() ;
-
-            // Asignamos los valores a la instancia
-            idGeneradorSesionAsignada.setIdGeneradorInstancia(generadorInstancia.getId()) ;
-            idGeneradorSesionAsignada.setProfesor(profesor) ;
-            idGeneradorSesionAsignada.setAsignatura(asignatura) ;
-            idGeneradorSesionAsignada.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
-
-            // Creamos una instancia de GeneradorSesionAsignada
-            GeneradorSesionAsignada generadorSesionAsignada = new GeneradorSesionAsignada() ;
-            generadorSesionAsignada.setIdGeneradorSesionAsignada(idGeneradorSesionAsignada) ;
-
-            // Asignamos los valores a la instancia
-            generadorSesionAsignada.setGeneradorInstancia(generadorInstancia) ;
-            generadorSesionAsignada.setAsignatura(asignatura) ;
-            generadorSesionAsignada.setProfesor(profesor) ;
-            generadorSesionAsignada.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
-
-            // Guardamos la instancia en la base de datos
-            this.generadorSesionAsignadaRepository.saveAndFlush(generadorSesionAsignada) ;
         }
+    }
+
+    /**
+     * Método que actualiza el GeneradorAsignadaImpartir para una sesión de asignatura
+     * @param generadorInstancia - Generador instancia
+     * @param diaTramoTipoHorario - Día y tramo de tipo horario
+     * @param sesionAsignatura - Sesión de asignatura
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    private void actualizarGeneradorSesionAsignadaInternalAsignatura(GeneradorInstancia generadorInstancia, 
+                                                                     DiaTramoTipoHorario diaTramoTipoHorario,
+                                                                     SesionAsignatura sesionAsignatura) throws SchoolManagerServerException
+    {
+        // Creamos una instancia de Id GeneradorAsignadaImpartir
+        IdGeneradorAsignadaImpartir idGeneradorAsignadaImpartir = new IdGeneradorAsignadaImpartir() ;
+
+        // Asignamos los valores a la instancia
+        idGeneradorAsignadaImpartir.setIdGeneradorInstancia(generadorInstancia.getId()) ;
+        idGeneradorAsignadaImpartir.setProfesor(sesionAsignatura.getProfesor()) ;
+        idGeneradorAsignadaImpartir.setAsignatura(sesionAsignatura.getAsignatura()) ;
+        idGeneradorAsignadaImpartir.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+
+        // Creamos una instancia de GeneradorAsignadaImpartir
+        GeneradorAsignadaImpartir generadorAsignadaImpartir = new GeneradorAsignadaImpartir() ;
+        generadorAsignadaImpartir.setIdGeneradorAsignadaImpartir(idGeneradorAsignadaImpartir) ;
+
+        // Asignamos los valores a la instancia
+        generadorAsignadaImpartir.setGeneradorInstancia(generadorInstancia) ;
+        generadorAsignadaImpartir.setAsignatura(sesionAsignatura.getAsignatura()) ;
+        generadorAsignadaImpartir.setProfesor(sesionAsignatura.getProfesor()) ;
+        generadorAsignadaImpartir.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+
+        // Guardamos la instancia en la base de datos
+        this.generadorAsignadaImpartirRepository.saveAndFlush(generadorAsignadaImpartir) ;
+    }
+
+    /**
+     * Método que actualiza el GeneradorAsignadaImpartir para una sesión de reducción
+     * @param generadorInstancia - Generador instancia
+     * @param diaTramoTipoHorario - Día y tramo de tipo horario
+     * @param sesionReduccion - Sesión de reducción
+     * @throws SchoolManagerServerException - Excepción personalizada
+     */
+    private void actualizarGeneradorSesionAsignadaInternalReduccion(GeneradorInstancia generadorInstancia, 
+                                                                     DiaTramoTipoHorario diaTramoTipoHorario,
+                                                                     SesionReduccion sesionReduccion) throws SchoolManagerServerException
+    {
+        // Creamos una instancia de Id GeneradorAsignadaReduccion
+        IdGeneradorAsignadaReduccion idGeneradorAsignadaReduccion = new IdGeneradorAsignadaReduccion() ;
+
+        // Asignamos los valores a la instancia
+        idGeneradorAsignadaReduccion.setIdGeneradorInstancia(generadorInstancia.getId()) ;
+        idGeneradorAsignadaReduccion.setProfesor(sesionReduccion.getProfesor()) ;
+        idGeneradorAsignadaReduccion.setReduccion(sesionReduccion.getReduccion()) ;
+        idGeneradorAsignadaReduccion.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+
+        // Creamos una instancia de GeneradorAsignadaReduccion
+        GeneradorAsignadaReduccion generadorAsignadaReduccion = new GeneradorAsignadaReduccion() ;
+        generadorAsignadaReduccion.setIdGeneradorAsignadaReduccion(idGeneradorAsignadaReduccion) ;
+        
+        // Asignamos los valores a la instancia
+        generadorAsignadaReduccion.setGeneradorInstancia(generadorInstancia) ;
+        generadorAsignadaReduccion.setReduccion(sesionReduccion.getReduccion()) ;
+        generadorAsignadaReduccion.setProfesor(sesionReduccion.getProfesor()) ;
+        generadorAsignadaReduccion.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
+
+        // Guardamos la instancia en la base de datos
+        this.generadorAsignadaReduccionRepository.saveAndFlush(generadorAsignadaReduccion) ;
     }
 
     /**
@@ -473,7 +601,7 @@ public class GeneradorService
         this.generadorInstanciaSolucionInfoProfesorRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
         
         // Borramos por primera vez todas las sesiones asignadas de esta instancia
-        this.generadorSesionAsignadaRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
+        this.generadorAsignadaImpartirRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
 
         // Eliminamos el GeneradorInstancia
         this.generadorInstanciaRepository.delete(generadorInstancia) ;
@@ -787,7 +915,7 @@ public class GeneradorService
         Integer generalHitsPreferenciasConcretas = 0 ;
 
         // Obtenemos todos los profesores que según el tipo de horario
-        List<Profesor> profesores = this.generadorSesionAsignadaRepository.buscarProfesoresTipoHorario(generadorInstancia, esMatutino) ;
+        List<Profesor> profesores = this.generadorAsignadaImpartirRepository.buscarProfesoresTipoHorario(generadorInstancia, esMatutino) ;
 
         // Si hay profesores, calculamos la puntuación
         if (!profesores.isEmpty())
@@ -839,7 +967,7 @@ public class GeneradorService
     private int calcularHuecosEntreSesionesProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, boolean esMatutino)
     {
         // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
-        Integer huecosEntreSesionesProfesor = this.generadorSesionAsignadaRepository.contarHuecosEntreSesiones(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+        Integer huecosEntreSesionesProfesor = this.generadorAsignadaImpartirRepository.contarHuecosEntreSesiones(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
 
         // Obtenemos el numerador de la operación
         double numeradorOperacionProfesor = (double) huecosEntreSesionesProfesor / Constants.FACTOR_HUECOS ;
@@ -868,12 +996,12 @@ public class GeneradorService
         if (profesor.getObservacionesAdicionales().getSinClasePrimeraHora())
         {
             // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
-            preferenciasDiariasProfesor = this.generadorSesionAsignadaRepository.contarPreferenciasDiariasPrimeraHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+            preferenciasDiariasProfesor = this.generadorAsignadaImpartirRepository.contarPreferenciasDiariasPrimeraHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
         }
         else
         {
             // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
-            preferenciasDiariasProfesor = this.generadorSesionAsignadaRepository.contarPreferenciasDiariasUltimaHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+            preferenciasDiariasProfesor = this.generadorAsignadaImpartirRepository.contarPreferenciasDiariasUltimaHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
         }
 
         // Invertimos el valor ya que lo que encuentra es lo que no quería
@@ -913,11 +1041,11 @@ public class GeneradorService
             {
                 // Si no la encuentra es cuando cuenta como hit
                 hitsPreferenciasConcretasProfesor = hitsPreferenciasConcretasProfesor + 
-                                                    this.generadorSesionAsignadaRepository.contarPreferenciasConcretas(generadorInstancia.getId(), 
-                                                                                                                       profesor.getEmail(),
-                                                                                                                       esMatutino,
-                                                                                                                       preferenciaHorariaProfesor.getDiaTramoTipoHorario().getDia(),
-                                                                                                                       preferenciaHorariaProfesor.getDiaTramoTipoHorario().getTramo());
+                                                    this.generadorAsignadaImpartirRepository.contarPreferenciasConcretas(generadorInstancia.getId(), 
+                                                                                                                         profesor.getEmail(),
+                                                                                                                         esMatutino,
+                                                                                                                         preferenciaHorariaProfesor.getDiaTramoTipoHorario().getDia(),
+                                                                                                                         preferenciaHorariaProfesor.getDiaTramoTipoHorario().getTramo());
             }
         }
 

@@ -334,34 +334,29 @@ public class Constants
 	public static final int ERR_CODE_SIN_DIAS_DISPONIBLES = 301;
 
 	/**
-	 * Error - Superado el límite de restricciones que se pueden asignar a esta asignatura por sus horas
-	 */
-	public static final int ERR_CODE_SUPERADO_LIMITE_RESTRICCIONES = 302;
-
-	/**
 	 * Mensaje de error - Hay un generador en curso
 	 */
-	public static final int ERROR_CODE_GENERADOR_EN_CURSO = 303;
+	public static final int ERROR_CODE_GENERADOR_EN_CURSO = 302;
 
 	/**
 	 * Error - Validaciones de datos incorrectos
 	 */
-	public static final int ERROR_VALIDACIONES_DATOS_INCORRECTOS = 304;
+	public static final int ERROR_VALIDACIONES_DATOS_INCORRECTOS = 303;
 
 	/**
 	 * Error - No hay un generador en curso
 	 */
-	public static final int ERROR_CODE_NO_GENERADOR_EN_CURSO = 305;
+	public static final int ERROR_CODE_NO_GENERADOR_EN_CURSO = 304;
 
 	/**
 	 * Error - No se encontró la instancia del generador
 	 */
-	public static final int ERROR_CODE_GENERADOR_INSTANCIA_NO_ENCONTRADA = 306;
+	public static final int ERROR_CODE_GENERADOR_INSTANCIA_NO_ENCONTRADA = 305;
 
 	/**
 	 * Error - No se han encontrado sesiones asignadas
 	 */
-	public static final int ERROR_CODE_SESIONES_ASIGNADAS_NO_ENCONTRADAS = 307;
+	public static final int ERROR_CODE_SESIONES_ASIGNADAS_NO_ENCONTRADAS = 306;
 	
 	/**
 	 * Constantes/Configuración

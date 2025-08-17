@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.repositories;
+package es.iesjandula.reaktor.school_manager_server.repositories.generador;
 
 import java.util.List;
 import java.util.Optional;

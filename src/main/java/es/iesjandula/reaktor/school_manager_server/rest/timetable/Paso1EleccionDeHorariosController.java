@@ -646,9 +646,11 @@ public class Paso1EleccionDeHorariosController
 
             // Añadimos el email del profesor a las observaciones adicionales
             observacionesAdicionales.setProfesorEmail(email) ;
-
-            // Añadimos el profesor a las observaciones adicionales
-            observacionesAdicionales.setProfesor(profesor) ;
+            
+            // Inicializamos los campos booleanos para evitar valores nulos
+            observacionesAdicionales.setConciliacion(false);
+            observacionesAdicionales.setSinClasePrimeraHora(false);
+            observacionesAdicionales.setOtrasObservaciones("");
         }
 
         return observacionesAdicionales ;

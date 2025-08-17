@@ -11,7 +11,7 @@ import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThre
 import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThreadParams;
 import es.iesjandula.reaktor.school_manager_server.generator.threads.UltimaAsignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,7 +51,7 @@ public class ManejadorThreads
 	 *  @param ultimaAsignacion ultima asignación
 	 * @throws SchoolManagerServerException con un error
 	 */
-    public void lanzarNuevosThreads(List<List<Sesion>> sesionesPendientes,
+    public void lanzarNuevosThreads(List<List<SesionBase>> sesionesPendientes,
     								Asignacion[][] matrizAsignacionesMatutinas,
     								Asignacion[][] matrizAsignacionesVespertinas,
 									UltimaAsignacion ultimaAsignacion) throws SchoolManagerServerException
@@ -86,25 +86,25 @@ public class ManejadorThreads
 	 * @param sesiones sesiones pendientes de asignar en el horario
      * @return true si están todas las sesiones asignadas
      */
-    private boolean todasLasSesionesAsignadas(List<List<Sesion>> sesiones)
+    private boolean todasLasSesionesAsignadas(List<List<SesionBase>> sesiones)
     {
     	boolean outcome = true ;
 
 		synchronized(sesiones)
 		{
-			Iterator<List<Sesion>> iterator = sesiones.iterator() ;
+			Iterator<List<SesionBase>> iterator = sesiones.iterator() ;
 			while (iterator.hasNext() && outcome)
     		{
-				List<Sesion> sublista = iterator.next() ;
+				List<SesionBase> sublista = iterator.next() ;
 				
 				outcome = outcome && sublista.isEmpty() ;
 			}
 
 			int cont = 0 ;
-			Iterator<List<Sesion>> iterator2 = sesiones.iterator() ;
+			Iterator<List<SesionBase>> iterator2 = sesiones.iterator() ;
 			while (iterator2.hasNext())
 			{
-				List<Sesion> sublista = iterator2.next() ;
+				List<SesionBase> sublista = iterator2.next() ;
 				cont = cont + sublista.size() ;
 			}
 
@@ -120,7 +120,7 @@ public class ManejadorThreads
 	 * @param matrizAsignacionesVespertinas matriz con las asignaciones vespertinas
 	 * @param ultimaAsignacion ultima asignación
 	 */
-	private void lanzarNuevosThreadsInternal(List<List<Sesion>> sesionesPendientes,
+	private void lanzarNuevosThreadsInternal(List<List<SesionBase>> sesionesPendientes,
 											 Asignacion[][] matrizAsignacionesMatutinas,
 											 Asignacion[][] matrizAsignacionesVespertinas,
 											 UltimaAsignacion ultimaAsignacion)

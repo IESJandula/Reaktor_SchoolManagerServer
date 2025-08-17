@@ -2,10 +2,11 @@ package es.iesjandula.reaktor.school_manager_server.generator.threads;
 
 import java.util.List;
 
-import es.iesjandula.reaktor.school_manager_server.generator.GestorDeSesiones;
 import es.iesjandula.reaktor.school_manager_server.generator.Horario;
+import es.iesjandula.reaktor.school_manager_server.generator.sesiones.asignador.AsignadorSesionesController;
+import es.iesjandula.reaktor.school_manager_server.generator.sesiones.selector.SelectorSesionesController;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Sesion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +18,7 @@ public class HorarioThread extends Thread
     private HorarioThreadParams horarioThreadParams ;
     
     /** Lista de listas sesiones pendientes de asignar donde la columna es el número de restricciones y la fila la sesion */
-    private List<List<Sesion>> sesionesPendientes ;
+    private List<List<SesionBase>> sesionesPendientes ;
     
 	/** Matriz con las asignaciones matutinas */
     private Asignacion[][] matrizAsignacionesMatutinas ;
@@ -36,7 +37,7 @@ public class HorarioThread extends Thread
      * @param ultimaAsignacion ultima asignación
      */
     public HorarioThread(HorarioThreadParams horarioThreadParams,
-    					 List<List<Sesion>> sesiones,
+    					 List<List<SesionBase>> sesiones,
     					 Asignacion[][] matrizAsignacionesMatutinas,
     					 Asignacion[][] matrizAsignacionesVespertinas,
     					 UltimaAsignacion ultimaAsignacion)
@@ -127,25 +128,26 @@ public class HorarioThread extends Thread
      */
     private UltimaAsignacion generarHorario() throws SchoolManagerServerException
     {
-		// Creamos una nueva instancia de GestorDeSesiones
-		GestorDeSesiones gestorDeSesiones = new GestorDeSesiones(this.horarioThreadParams.getAsignaturaService(), this.sesionesPendientes, this.matrizAsignacionesMatutinas, this.matrizAsignacionesVespertinas, this.ultimaAsignacion) ;
-
+		// Creamos una nueva instancia de SelectorSesionesController
+		SelectorSesionesController selectorSesionesController = new SelectorSesionesController(this.horarioThreadParams.getAsignaturaService(),
+																							   this.sesionesPendientes,
+																							   this.matrizAsignacionesMatutinas,
+																							   this.matrizAsignacionesVespertinas,
+																							   this.ultimaAsignacion) ;
 		// Cogemos una de las sesiones pendientes de asignar
-		Sesion sesion = gestorDeSesiones.obtenerSesionParaAsignar() ;
+		SesionBase sesion = selectorSesionesController.obtenerSesionParaAsignar() ;
 
 		int numeroCursos 				  = -1 ;
 		int indiceCursoDiaInicial 	 	  = -1 ;
 
-		// Si la asignatura es matutina ...
-		boolean esAsignaturaMatutina = sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getHorarioMatutino() ;
-		if (esAsignaturaMatutina)
+		// Si la sesión es matutina ...
+		if (sesion.isTipoHorarioMatutino())
 		{
 			// ... obtenemos el número de cursos ...
 			numeroCursos = this.horarioThreadParams.getNumeroCursosMatutinos() ;
 
 			// ... obtenemos el índice del curso/día inicial matutino
-			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosMatutinos()
-															.get(sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getCursoEtapaGrupoString()) ;
+			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosMatutinos().get(sesion.getCursoEtapaGrupoString()) ;
 		}
 		else
 		{
@@ -153,12 +155,15 @@ public class HorarioThread extends Thread
 			numeroCursos = this.horarioThreadParams.getNumeroCursosVespertinos() ;
 
 			// ... obtenemos el índice del curso/día inicial vespertino
-			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosVespertinos()
-															.get(sesion.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getCursoEtapaGrupoString()) ;
+			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosVespertinos().get(sesion.getCursoEtapaGrupoString()) ;
 		}
 
+		// Creamos una nueva instancia de AsignadorSesionesController
+		AsignadorSesionesController asignadorSesionesController = new AsignadorSesionesController(this.horarioThreadParams.getAsignaturaService(),
+																							      selectorSesionesController.getMatrizAsignaciones()) ;
+
 		// Asignamos la sesión y devolvemos la última asignación
-		return gestorDeSesiones.asignarSesion(sesion, esAsignaturaMatutina, numeroCursos, indiceCursoDiaInicial) ;					
+		return asignadorSesionesController.asignarSesion(sesion, numeroCursos, indiceCursoDiaInicial) ;					
 	}
 }
 

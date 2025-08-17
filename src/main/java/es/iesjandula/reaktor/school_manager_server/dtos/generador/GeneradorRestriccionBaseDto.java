@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.dtos;
+package es.iesjandula.reaktor.school_manager_server.dtos.generador;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class SesionBaseDto
-    {
-    /** Número de sesión */
-    private int numeroSesion;
+public class GeneradorRestriccionBaseDto
+{
+    /** Número de la restricción */
+    private int numeroRestriccion;
 
     /** Día de la semana */
     private String diaDesc;
