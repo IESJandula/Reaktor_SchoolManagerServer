@@ -21,12 +21,16 @@ import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestriccionesImpartir;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestriccionesReduccion;
+import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesImpartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
+import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaRepository;
@@ -59,10 +63,13 @@ public class Paso3GeneradorController
     private IAsignaturaRepository asignaturaRepository ;
 
     @Autowired
-    private IReduccionRepository reduccionRepository ;
+    private IProfesorReduccionRepository profesorReduccionRepository ;
 
     @Autowired
     private IDiaTramoTipoHorarioRepository diaTramoTipoHorarioRepository ;
+
+    @Autowired
+    private IImpartirRepository impartirRepository ;
     
     @Autowired
     private IGeneradorRestriccionesImpartirRepository generadorRestriccionesImpartirRepository ;
@@ -114,14 +121,11 @@ public class Paso3GeneradorController
     {
         try
         {
-            // Buscamos el profesor
-            Profesor profesor = this.buscarProfesor(email) ;
-
             // Buscamos la asignatura
-            Asignatura asignatura = this.buscarAsignatura(nombreAsignatura, curso, etapa, grupo) ;
+            Impartir impartir = this.buscarImpartir(nombreAsignatura, curso, etapa, grupo) ;
 
             // Buscamos la restricción de tipo de horario por número de sesión, profesor y asignatura
-            Optional<GeneradorRestriccionesImpartir> generadorRestriccionesImpartirOptional = this.generadorRestriccionesImpartirRepository.buscarRestriccionesPorNumeroRestriccionProfesorAsignatura(numeroRestriccion, profesor, asignatura) ;
+            Optional<GeneradorRestriccionesImpartir> generadorRestriccionesImpartirOptional = this.generadorRestriccionesImpartirRepository.buscarRestriccionesPorNumeroRestriccionImpartir(numeroRestriccion, impartir) ;
 
             // Si existe, la borramos
             if (generadorRestriccionesImpartirOptional.isPresent())
@@ -137,7 +141,7 @@ public class Paso3GeneradorController
             if (!Constants.SIN_SELECCIONAR.equals(diaDesc) && !Constants.SIN_SELECCIONAR.equals(tramoDesc))
             {
                 // Actualizamos la restricción de tipo de horario
-                this.actualizarRestriccionesImpartirInternal(numeroRestriccion, asignatura, profesor, diaTramoTipoHorario) ;
+                this.actualizarRestriccionesImpartirInternal(numeroRestriccion, impartir, diaTramoTipoHorario) ;
             }
 
             return ResponseEntity.ok().build();
@@ -162,19 +166,17 @@ public class Paso3GeneradorController
     /**
      * Método que actualiza una restricción de tipo de horario
      * @param numeroRestriccion - Número de la restricción
-     * @param asignatura - Asignatura
-     * @param profesor - Profesor
+     * @param impartir - Impartir
      * @param diaTramoTipoHorario - Día y tramo de tipo horario
      */
-    private void actualizarRestriccionesImpartirInternal(int numeroRestriccion, Asignatura asignatura, Profesor profesor, DiaTramoTipoHorario diaTramoTipoHorario)
+    private void actualizarRestriccionesImpartirInternal(int numeroRestriccion, Impartir impartir, DiaTramoTipoHorario diaTramoTipoHorario)
     {
         // Creamos una instancia de IdGeneradorRestriccionesImpartir
         IdGeneradorRestriccionesImpartir idGeneradorRestriccionesImpartir = new IdGeneradorRestriccionesImpartir() ;
         
         // Asignamos los valores a la instancia
         idGeneradorRestriccionesImpartir.setNumeroRestriccion(numeroRestriccion) ;   
-        idGeneradorRestriccionesImpartir.setAsignatura(asignatura) ;
-        idGeneradorRestriccionesImpartir.setProfesor(profesor) ;
+        idGeneradorRestriccionesImpartir.setImpartir(impartir) ;
         idGeneradorRestriccionesImpartir.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Creamos una instancia de GeneradorRestriccionesImpartir
@@ -182,8 +184,7 @@ public class Paso3GeneradorController
         
         // Asignamos cada parámetro a la instancia
         generadorRestriccionesImpartirInstancia.setIdGeneradorRestriccionesImpartir(idGeneradorRestriccionesImpartir) ;
-        generadorRestriccionesImpartirInstancia.setAsignatura(asignatura) ;
-        generadorRestriccionesImpartirInstancia.setProfesor(profesor) ;
+        generadorRestriccionesImpartirInstancia.setImpartir(impartir) ;
         generadorRestriccionesImpartirInstancia.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Guardamos la instancia en la base de datos
@@ -203,14 +204,11 @@ public class Paso3GeneradorController
     {
         try
         {
-            // Buscamos el profesor
-            Profesor profesor = this.buscarProfesor(email) ;
-
             // Buscamos la reducción
-            Reduccion reduccion = this.buscarReduccion(nombreReduccion, curso, etapa, grupo) ;
+            ProfesorReduccion profesorReduccion = this.buscarProfesorReduccion(nombreReduccion, curso, etapa, grupo) ;
 
             // Buscamos la restricción de reducción por número de reducción, profesor y reducción
-            Optional<GeneradorRestriccionesReduccion> generadorRestriccionesReduccionOptional = this.generadorRestriccionesReduccionRepository.buscarRestriccionesPorNumeroRestriccionProfesorReduccion(numeroReduccion, profesor, reduccion) ;
+            Optional<GeneradorRestriccionesReduccion> generadorRestriccionesReduccionOptional = this.generadorRestriccionesReduccionRepository.buscarRestriccionesPorNumeroRestriccionProfesorReduccion(numeroReduccion, profesorReduccion) ;
 
             // Si existe, la borramos
             if (generadorRestriccionesReduccionOptional.isPresent())
@@ -226,7 +224,7 @@ public class Paso3GeneradorController
             if (!Constants.SIN_SELECCIONAR.equals(diaDesc) && !Constants.SIN_SELECCIONAR.equals(tramoDesc))
             {
                 // Actualizamos la restricción de tipo de horario
-                this.actualizarRestriccionesReduccionInternal(numeroReduccion, reduccion, profesor, diaTramoTipoHorario) ;
+                this.actualizarRestriccionesReduccionInternal(numeroReduccion, profesorReduccion, diaTramoTipoHorario) ;
             }
 
             return ResponseEntity.ok().build();
@@ -251,19 +249,17 @@ public class Paso3GeneradorController
     /**
      * Método que actualiza una restricción de reducción
      * @param numeroRestriccion - Número de la restricción
-     * @param reduccion - Reducción
-     * @param profesor - Profesor
+     * @param profesorReduccion - ProfesorReduccion
      * @param diaTramoTipoHorario - Día y tramo de tipo horario
      */
-    private void actualizarRestriccionesReduccionInternal(int numeroRestriccion, Reduccion reduccion, Profesor profesor, DiaTramoTipoHorario diaTramoTipoHorario)
+    private void actualizarRestriccionesReduccionInternal(int numeroRestriccion, ProfesorReduccion profesorReduccion, DiaTramoTipoHorario diaTramoTipoHorario)
     {
         // Creamos una instancia de IdGeneradorRestriccionesReduccion
         IdGeneradorRestriccionesReduccion idGeneradorRestriccionesReduccion = new IdGeneradorRestriccionesReduccion() ;
         
         // Asignamos los valores a la instancia
         idGeneradorRestriccionesReduccion.setNumeroRestriccion(numeroRestriccion) ;   
-        idGeneradorRestriccionesReduccion.setReduccion(reduccion) ;
-        idGeneradorRestriccionesReduccion.setProfesor(profesor) ;
+        idGeneradorRestriccionesReduccion.setProfesorReduccion(profesorReduccion) ;
         idGeneradorRestriccionesReduccion.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Creamos una instancia de GeneradorRestriccionesReduccion
@@ -271,8 +267,7 @@ public class Paso3GeneradorController
         
         // Asignamos cada parámetro a la instancia
         generadorRestriccionesReduccionInstancia.setIdGeneradorRestriccionesReduccion(idGeneradorRestriccionesReduccion) ;
-        generadorRestriccionesReduccionInstancia.setReduccion(reduccion) ;
-        generadorRestriccionesReduccionInstancia.setProfesor(profesor) ;
+        generadorRestriccionesReduccionInstancia.setProfesorReduccion(profesorReduccion) ;
         generadorRestriccionesReduccionInstancia.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Guardamos la instancia en la base de datos
@@ -289,15 +284,12 @@ public class Paso3GeneradorController
     {
         try
         {
-            // Buscamos el profesor
-            Profesor profesor = this.buscarProfesor(email) ;
-
             // Buscamos la asignatura
-            Asignatura asignatura = this.buscarAsignatura(nombreAsignatura, curso, etapa, grupo) ;
+            Impartir impartir = this.buscarImpartir(nombreAsignatura, curso, etapa, grupo) ;
 
             // Buscamos las restricciones de asignatura
             Optional<List<GeneradorRestriccionBaseDto>> restriccionesImpartirOptional = 
-                    this.generadorRestriccionesImpartirRepository.buscarRestriccionesPorAsignaturaProfesorDto(asignatura, profesor) ;
+                    this.generadorRestriccionesImpartirRepository.buscarRestriccionesPorImpartirDto(impartir) ;
 
             return ResponseEntity.ok(restriccionesImpartirOptional.get()) ;
         }
@@ -328,15 +320,12 @@ public class Paso3GeneradorController
     {
         try
         {
-            // Buscamos el profesor
-            Profesor profesor = this.buscarProfesor(email) ;
-
             // Buscamos la reducción
-            Reduccion reduccion = this.buscarReduccion(nombreReduccion, curso, etapa, grupo) ;
+            ProfesorReduccion profesorReduccion = this.buscarProfesorReduccion(nombreReduccion, curso, etapa, grupo) ;
 
             // Buscamos las restricciones de asignatura
             Optional<List<GeneradorRestriccionBaseDto>> restriccionesReduccionOptional = 
-                    this.generadorRestriccionesReduccionRepository.buscarRestriccionesReduccionProfesorDto(reduccion, profesor) ;
+                    this.generadorRestriccionesReduccionRepository.buscarRestriccionesReduccionProfesorDto(profesorReduccion) ;
 
             return ResponseEntity.ok(restriccionesReduccionOptional.get()) ;
         }
@@ -358,48 +347,29 @@ public class Paso3GeneradorController
     }
 
     /**
-     * Método que busca un profesor por su email
-     * @param email - Email del profesor
-     * @return Profesor - Profesor encontrado
-     * @throws SchoolManagerServerException
-     */
-    private Profesor buscarProfesor(String email) throws SchoolManagerServerException
-    {
-        Profesor profesor = this.profesorRepository.findByEmail(email) ;
-                                
-        if (profesor == null)
-        {
-            String mensajeError = "El profesor con email " + email + " no existe" ;
-
-            log.error(mensajeError) ;
-            throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError) ;
-        }
-
-        return profesor ;
-    }
-
-    /**
-     * Método que busca una asignatura por su nombre, curso, etapa y grupo
+     * Método que busca una asignatura impartida por su nombre, curso, etapa y grupo
      * @param nombreAsignatura - Nombre de la asignatura
      * @param curso - Curso
      * @param etapa - Etapa
      * @param grupo - Grupo
-     * @return Asignatura - Asignatura encontrada
+     * @return Impartir - Impartir encontrada
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    private Asignatura buscarAsignatura(String nombreAsignatura, int curso, String etapa, String grupo) throws SchoolManagerServerException
+    private Impartir buscarImpartir(String nombreAsignatura, int curso, String etapa, String grupo) throws SchoolManagerServerException
     {
-        Optional<Asignatura> asignaturaOptional = this.asignaturaRepository.findAsignaturasByCursoEtapaGrupoAndNombre(curso, etapa, grupo, nombreAsignatura) ;
+        Optional<Impartir> impartirOptional = 
+          this.impartirRepository.encontrarImpartirPorNombreAndCursoAndEtapaAndGrupo(nombreAsignatura, curso, etapa, grupo) ;
 
-        if (!asignaturaOptional.isPresent())
+        if (!impartirOptional.isPresent())
         {
-            String mensajeError = "La asignatura con nombre " + nombreAsignatura + " no existe" ;
+            String mensajeError = "La asignatura con nombre " + nombreAsignatura + " no está asignada a ningún profesor " +
+                                  "en el curso " + curso + " de la etapa " + etapa + " y grupo " + grupo ;
 
             log.error(mensajeError) ;
-            throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, "La asignatura con nombre " + nombreAsignatura + " no existe") ;
+            throw new SchoolManagerServerException(Constants.IMPARTIR_NO_ENCONTRADA, mensajeError) ;
         }
 
-        return asignaturaOptional.get() ;
+        return impartirOptional.get() ;
     }
 
     /**
@@ -411,19 +381,21 @@ public class Paso3GeneradorController
      * @return Reduccion - Reducción encontrada
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    private Reduccion buscarReduccion(String nombreReduccion, int curso, String etapa, String grupo) throws SchoolManagerServerException
+    private ProfesorReduccion buscarProfesorReduccion(String nombreReduccion, int curso, String etapa, String grupo) throws SchoolManagerServerException
     {
-        Optional<Reduccion> reduccionOptional = this.reduccionRepository.findReduccionesByCursoEtapaGrupoAndNombre(curso, etapa, grupo, nombreReduccion) ;
+        Optional<ProfesorReduccion> profesorReduccionOptional =
+          this.profesorReduccionRepository.encontrarProfesorReduccionPorNombreHorasCursoEtapaGrupo(nombreReduccion, curso, etapa, grupo) ;
 
-        if (!reduccionOptional.isPresent())
+        if (!profesorReduccionOptional.isPresent())
         {
-            String mensajeError = "La reducción con nombre " + nombreReduccion + " no existe" ;
+            String mensajeError = "La reducción con nombre " + nombreReduccion + " no está asignada a ningún profesor " +
+                                  "en el curso " + curso + " de la etapa " + etapa + " y grupo " + grupo ;
 
             log.error(mensajeError) ;
-            throw new SchoolManagerServerException(Constants.REDUCCION_NO_ENCONTRADA, "La reducción con nombre " + nombreReduccion + " no existe") ;
+            throw new SchoolManagerServerException(Constants.REDUCCION_NO_ENCONTRADA, mensajeError) ;
         }
 
-        return reduccionOptional.get() ;
+        return profesorReduccionOptional.get() ;
     }
     
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")

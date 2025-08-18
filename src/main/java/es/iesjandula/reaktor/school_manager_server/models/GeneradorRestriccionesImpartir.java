@@ -19,20 +19,12 @@ public class GeneradorRestriccionesImpartir
     private IdGeneradorRestriccionesImpartir idGeneradorRestriccionesImpartir;
 
     /**
-     * Asignatura que está siendo impartida por el profesor.
-     * Relación de muchos a uno con la entidad {@link Asignatura}.
+     * Impartir que está siendo generado por el profesor.
+     * Relación de muchos a uno con la entidad {@link Impartir}.
      */
-    @MapsId(value = "asignatura")
+    @MapsId(value = "impartir")
     @ManyToOne
-    private Asignatura asignatura;
-    
-    /**
-     * Profesor que está asignado para impartir la asignatura.
-     * Relación de muchos a uno con la entidad {@link Profesor}.
-     */
-    @MapsId(value = "profesor")
-    @ManyToOne
-    private Profesor profesor;
+    private Impartir impartir;
 
     /**
      * Día de la semana y tramo horario.

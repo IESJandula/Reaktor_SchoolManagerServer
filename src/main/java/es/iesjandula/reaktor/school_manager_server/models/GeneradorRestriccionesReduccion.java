@@ -20,19 +20,11 @@ public class GeneradorRestriccionesReduccion
 
     /**
      * Reducción que está siendo aplicada al profesor.
-     * Relación de muchos a uno con la entidad {@link Reduccion}.
+     * Relación de muchos a uno con la entidad {@link ProfesorReduccion}.
      */
-    @MapsId(value = "reduccion")
+    @MapsId(value = "profesorReduccion")
     @ManyToOne
-    private Reduccion reduccion;
-    
-    /**
-     * Profesor que está asignado para aplicar la reducción.
-     * Relación de muchos a uno con la entidad {@link Profesor}.
-     */
-    @MapsId(value = "profesor")
-    @ManyToOne
-    private Profesor profesor;
+    private ProfesorReduccion profesorReduccion;
 
     /**
      * Día de la semana y tramo horario.

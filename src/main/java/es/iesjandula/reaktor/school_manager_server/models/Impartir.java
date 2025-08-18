@@ -1,5 +1,8 @@
 package es.iesjandula.reaktor.school_manager_server.models;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdImpartir;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -48,4 +51,7 @@ public class Impartir
 
     @Column
     private Boolean asignadoDireccion;
+
+    @OneToMany(mappedBy = "impartir", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<GeneradorRestriccionesImpartir> restricciones = new HashSet<>();
 }

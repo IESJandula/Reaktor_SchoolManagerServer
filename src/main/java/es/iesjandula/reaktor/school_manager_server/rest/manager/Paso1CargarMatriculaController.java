@@ -25,7 +25,7 @@ import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
-import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos;
+import es.iesjandula.reaktor.school_manager_server.parseos.IParseoDatosBrutos;
 import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.Bloque;

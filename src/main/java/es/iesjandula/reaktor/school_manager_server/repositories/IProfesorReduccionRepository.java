@@ -2,6 +2,8 @@ package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorReduccionesDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorReduccionConRestriccionesDto;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,6 +13,7 @@ import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccion;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link ProfesorReduccion}.
@@ -48,5 +51,24 @@ public interface IProfesorReduccionRepository extends JpaRepository<ProfesorRedu
             "FROM Profesor p " +
             "WHERE p.email = :email")
     String encontrarDepartamentoPorProfesor(@Param("email") String email);
+
+    @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorReduccionConRestriccionesDto(pr.idProfesorReduccion.reduccion, pr.idProfesorReduccion.profesor, pr.idProfesorReduccion.reduccion.cursoEtapaGrupo, gri.idGeneradorRestriccionesReduccion.diaTramoTipoHorario) " +
+           "FROM ProfesorReduccion pr " +
+           "LEFT JOIN GeneradorRestriccionesReduccion gri ON gri.profesorReduccion = pr")
+    Optional<List<GeneradorReduccionConRestriccionesDto>> obtenerReduccionesConRestricciones();
+
+    @Query("""
+        SELECT pr
+        FROM ProfesorReduccion pr
+        WHERE pr.idProfesorReduccion.reduccion.idReduccion.nombre = :nombre
+              AND pr.idProfesorReduccion.reduccion.idReduccion.horas = :horas
+              AND pr.idProfesorReduccion.reduccion.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso
+              AND pr.idProfesorReduccion.reduccion.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa
+              AND pr.idProfesorReduccion.reduccion.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo
+        """)
+    Optional<ProfesorReduccion> encontrarProfesorReduccionPorNombreHorasCursoEtapaGrupo(@Param("nombre") String nombre,
+                                                                                        @Param("curso") int curso,
+                                                                                        @Param("etapa") String etapa,
+                                                                                        @Param("grupo") String grupo);
 
 }

@@ -11,12 +11,12 @@ import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorImpartirConRestriccionesDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInfoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoGeneralDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoProfesorDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorRestriccionesImpartirDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorRestriccionesReduccionDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorReduccionConRestriccionesDto;
 import es.iesjandula.reaktor.school_manager_server.generator.Horario;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorResultados;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorResultadosParams;
@@ -73,7 +73,7 @@ public class GeneradorService
     private ICursoEtapaGrupoRepository cursoEtapaGrupoRepository ;
 
     @Autowired
-    private IGeneradorRestriccionesReduccionRepository generadorRestriccionesReduccionRepository ;
+    private IProfesorReduccionRepository iProfesorReduccionRepository ;
 
     @Autowired
     private IGeneradorInstanciaRepository generadorInstanciaRepository ;
@@ -85,7 +85,7 @@ public class GeneradorService
     private IGeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesorRepository ;
 
     @Autowired
-    private IGeneradorRestriccionesImpartirRepository generadorRestriccionesImpartirRepository ;
+    private IImpartirRepository iImpartirRepository ;
 
     @Autowired
     private IGeneradorAsignadaImpartirRepository generadorAsignadaImpartirRepository ;
@@ -239,28 +239,27 @@ public class GeneradorService
     private void crearSesionesAsociadasAImpartir(CreadorSesiones creadorSesiones, Map<String, Integer> mapCorrelacionadorCursosMatutinos, Map<String, Integer> mapCorrelacionadorCursosVespertinos) throws SchoolManagerServerException
     {
         // Obtenemos todas las restricciones de impartir
-        Optional<List<GeneradorRestriccionesImpartirDto>> generadorRestriccionesImpartirDtoOptional = 
-            this.generadorRestriccionesImpartirRepository.obtenerTodasLasRestricciones() ;
+        Optional<List<GeneradorImpartirConRestriccionesDto>> generadorImpartirConRestriccionesDtoOptional = this.iImpartirRepository.obtenerImpartirConRestricciones() ;
 
         // Si hay restricciones, las añadimos a la lista
-        if (generadorRestriccionesImpartirDtoOptional.isPresent())
+        if (generadorImpartirConRestriccionesDtoOptional.isPresent())
         {
             // Creamos una lista de restricciones horarias
-            List<GeneradorRestriccionesImpartirDto> generadorRestriccionesImpartirDtoList = generadorRestriccionesImpartirDtoOptional.get() ;
+            List<GeneradorImpartirConRestriccionesDto> generadorImpartirConRestriccionesDtoList = generadorImpartirConRestriccionesDtoOptional.get() ;
 
             // Iteramos para cada restricción
-            for (GeneradorRestriccionesImpartirDto generadorRestriccionesImpartirDto : generadorRestriccionesImpartirDtoList)
+            for (GeneradorImpartirConRestriccionesDto generadorImpartirConRestriccionesDto : generadorImpartirConRestriccionesDtoList)
             {
                 // Obtenemos el curso, etapa y grupo de la asignatura, y si es matutino o vespertino
-                CursoEtapaGrupo cursoEtapaGrupo = generadorRestriccionesImpartirDto.getCursoEtapaGrupo() ;
+                CursoEtapaGrupo cursoEtapaGrupo = generadorImpartirConRestriccionesDto.getCursoEtapaGrupo() ;
                 boolean tipoHorarioMatutino     = cursoEtapaGrupo.getHorarioMatutino() ;
 
                 // Obtenemos el curso, etapa y grupo en formato String
                 String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
 
                 // Obtenemos el día y el tramo de la restricción
-                int dia   = generadorRestriccionesImpartirDto.getDiaTramoTipoHorario().getDia() ;
-                int tramo = generadorRestriccionesImpartirDto.getDiaTramoTipoHorario().getTramo() ;
+                int dia   = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getDia() ;
+                int tramo = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getTramo() ;
 
                 RestriccionHoraria restriccionHoraria = null ;
 
@@ -281,7 +280,7 @@ public class GeneradorService
                 }
 
                 // Creamos el conjunto de sesiones asociadas a la asignatura y profesor
-                creadorSesiones.crearSesion(generadorRestriccionesImpartirDto.getAsignatura(), generadorRestriccionesImpartirDto.getProfesor(), tipoHorarioMatutino, restriccionHoraria) ;
+                creadorSesiones.crearSesion(generadorImpartirConRestriccionesDto.getAsignatura(), generadorImpartirConRestriccionesDto.getProfesor(), tipoHorarioMatutino, restriccionHoraria) ;
             }
         }
     }
@@ -296,28 +295,28 @@ public class GeneradorService
     private void crearSesionesAsociadasAReducciones(CreadorSesiones creadorSesiones, Map<String, Integer> mapCorrelacionadorCursosMatutinos, Map<String, Integer> mapCorrelacionadorCursosVespertinos) throws SchoolManagerServerException
     {
         // Obtenemos todas las restricciones de impartir
-        Optional<List<GeneradorRestriccionesReduccionDto>> generadorRestriccionesReduccionDtoOptional = 
-            this.generadorRestriccionesReduccionRepository.obtenerTodasLasRestricciones() ;
+        Optional<List<GeneradorReduccionConRestriccionesDto>> generadorReduccionConRestriccionesDtoOptional = 
+            this.iProfesorReduccionRepository.obtenerReduccionesConRestricciones() ;
 
         // Si hay restricciones, las añadimos a la lista
-        if (generadorRestriccionesReduccionDtoOptional.isPresent())
+        if (generadorReduccionConRestriccionesDtoOptional.isPresent())
         {
             // Creamos una lista de restricciones horarias
-            List<GeneradorRestriccionesReduccionDto> generadorRestriccionesReduccionDtoList = generadorRestriccionesReduccionDtoOptional.get() ;
+            List<GeneradorReduccionConRestriccionesDto> generadorReduccionConRestriccionesDtoList = generadorReduccionConRestriccionesDtoOptional.get() ;
 
             // Iteramos para cada restricción
-            for (GeneradorRestriccionesReduccionDto generadorRestriccionesReduccionDto : generadorRestriccionesReduccionDtoList)
+            for (GeneradorReduccionConRestriccionesDto generadorReduccionConRestriccionesDto : generadorReduccionConRestriccionesDtoList)
             {
                 // Obtenemos el curso, etapa y grupo de la asignatura, y si es matutino o vespertino
-                CursoEtapaGrupo cursoEtapaGrupo = generadorRestriccionesReduccionDto.getCursoEtapaGrupo() ;
+                CursoEtapaGrupo cursoEtapaGrupo = generadorReduccionConRestriccionesDto.getCursoEtapaGrupo() ;
                 boolean tipoHorarioMatutino     = cursoEtapaGrupo.getHorarioMatutino() ;
 
                 // Obtenemos el curso, etapa y grupo en formato String
                 String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
 
                 // Obtenemos el día y el tramo de la restricción
-                int dia   = generadorRestriccionesReduccionDto.getDiaTramoTipoHorario().getDia() ;
-                int tramo = generadorRestriccionesReduccionDto.getDiaTramoTipoHorario().getTramo() ;
+                int dia   = generadorReduccionConRestriccionesDto.getDiaTramoTipoHorario().getDia() ;
+                int tramo = generadorReduccionConRestriccionesDto.getDiaTramoTipoHorario().getTramo() ;
 
                 RestriccionHoraria restriccionHoraria = null ;
 
@@ -338,7 +337,7 @@ public class GeneradorService
                 }
 
                 // Creamos el conjunto de sesiones asociadas a la asignatura y profesor
-                creadorSesiones.crearSesion(generadorRestriccionesReduccionDto.getReduccion(), generadorRestriccionesReduccionDto.getProfesor(), tipoHorarioMatutino, restriccionHoraria) ;
+                creadorSesiones.crearSesion(generadorReduccionConRestriccionesDto.getReduccion(), generadorReduccionConRestriccionesDto.getProfesor(), tipoHorarioMatutino, restriccionHoraria) ;
             }
         }
     }

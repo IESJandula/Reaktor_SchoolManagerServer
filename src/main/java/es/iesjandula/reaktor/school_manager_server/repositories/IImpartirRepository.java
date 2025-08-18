@@ -4,6 +4,8 @@ import es.iesjandula.reaktor.school_manager_server.dtos.ImpartidaGrupoDeptDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorImpartirDto;
+import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorImpartirConRestriccionesDto;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +15,7 @@ import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdImpartir;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interfaz que define los métodos para acceder y manipular los datos de la entidad {@link Impartir}.
@@ -79,4 +82,29 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
             "LEFT JOIN FETCH i.idImpartir.profesor p " +
             "LEFT JOIN FETCH p.preferenciasHorariasProfesor")
     List<Impartir> findAllWithPreferenciasHorarias();
+
+    @Query("""
+        SELECT new es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorImpartirConRestriccionesDto(
+          i.asignatura,
+          i.profesor,
+          i.asignatura.idAsignatura.cursoEtapaGrupo,
+          gri.diaTramoTipoHorario
+        )
+        FROM Impartir i
+        LEFT JOIN GeneradorRestriccionesImpartir gri ON gri.impartir = i
+        """)
+    Optional<List<GeneradorImpartirConRestriccionesDto>> obtenerImpartirConRestricciones();
+
+    @Query("""
+        SELECT i
+        FROM Impartir i
+        WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombre
+              AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso
+              AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa
+              AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo
+        """)
+    Optional<Impartir> encontrarImpartirPorNombreAndCursoAndEtapaAndGrupo(@Param("nombre") String nombre,
+                                                                          @Param("curso") int curso,
+                                                                          @Param("etapa") String etapa,
+                                                                          @Param("grupo") String grupo);  
 }

@@ -12,13 +12,17 @@ import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class GeneradorRestriccionesImpartirDto
+public class GeneradorImpartirConRestriccionesDto
 {
+    /** Asignatura */
     private Asignatura asignatura ;
     
+    /** Profesor */
     private Profesor profesor ;
     
+    /** Curso etapa y grupo */
     private CursoEtapaGrupo cursoEtapaGrupo ;
 
+    /** Dia y tramo de tipo horario */
     private DiaTramoTipoHorario diaTramoTipoHorario ;
 }

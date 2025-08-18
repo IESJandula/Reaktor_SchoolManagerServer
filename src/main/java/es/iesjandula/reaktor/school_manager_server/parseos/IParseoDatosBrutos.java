@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.interfaces;
+package es.iesjandula.reaktor.school_manager_server.parseos;
 
 import java.util.Scanner;
 

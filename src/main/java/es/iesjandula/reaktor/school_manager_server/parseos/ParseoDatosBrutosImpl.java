@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.iml;
+package es.iesjandula.reaktor.school_manager_server.parseos;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,7 +7,7 @@ import java.util.Scanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import es.iesjandula.reaktor.school_manager_server.interfaces.IParseoDatosBrutos;
+import es.iesjandula.reaktor.school_manager_server.parseos.IParseoDatosBrutos;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
