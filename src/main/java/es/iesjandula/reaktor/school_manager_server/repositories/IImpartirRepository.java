@@ -91,7 +91,8 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
           gri.diaTramoTipoHorario
         )
         FROM Impartir i
-        LEFT JOIN GeneradorRestriccionesImpartir gri ON gri.impartir = i
+        LEFT JOIN i.generadorRestriccionesImpartir gri
+        LEFT JOIN gri.diaTramoTipoHorario
         """)
     Optional<List<GeneradorImpartirConRestriccionesDto>> obtenerImpartirConRestricciones();
 

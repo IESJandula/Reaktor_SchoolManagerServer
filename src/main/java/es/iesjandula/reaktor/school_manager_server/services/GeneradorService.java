@@ -124,7 +124,7 @@ public class GeneradorService
         Generador generador = optionalGenerador.get() ;
 
         // Obtengo todos los cursos, etapas y grupos de BBDD
-        List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGrupos() ;
+        List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas() ;
                     
         // Creamos dos mapas de correlacionador de cursos
         Map<String, Integer> mapCorrelacionadorCursosMatutinos   = new HashMap<String, Integer>() ;
@@ -184,8 +184,8 @@ public class GeneradorService
      * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
      */
     private void crearMapasGruposMatutinosVespertinos(List<CursoEtapaGrupo> cursos,
-                                                        Map<String, Integer> mapCorrelacionadorCursosMatutinos,
-                                                        Map<String, Integer> mapCorrelacionadorCursosVespertinos)
+                                                      Map<String, Integer> mapCorrelacionadorCursosMatutinos,
+                                                      Map<String, Integer> mapCorrelacionadorCursosVespertinos)
     {
         // Creamos dos índices para los mapas que irán incrementandose de 5 en 5
         int indiceMatutino = 0 ;
@@ -254,29 +254,33 @@ public class GeneradorService
                 CursoEtapaGrupo cursoEtapaGrupo = generadorImpartirConRestriccionesDto.getCursoEtapaGrupo() ;
                 boolean tipoHorarioMatutino     = cursoEtapaGrupo.getHorarioMatutino() ;
 
-                // Obtenemos el curso, etapa y grupo en formato String
-                String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
-
-                // Obtenemos el día y el tramo de la restricción
-                int dia   = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getDia() ;
-                int tramo = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getTramo() ;
-
                 RestriccionHoraria restriccionHoraria = null ;
 
-                // Vemos si el tipo de horario es matutino o vespertino
-                if (tipoHorarioMatutino)
+                // Vemos si hay algún tipo de restricción horaria
+                if (generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario() != null)
                 {
-                    // Añadimos la restricción horaria a la lista
-                    restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
-                                                               .asignarUnDiaTramoConcreto(dia, tramo)
-                                                               .build() ;
-                }
-                else
-                {
-                    // Añadimos la restricción horaria a la lista
-                    restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosVespertinos.get(cursoEtapaGrupoString))
-                                                               .asignarUnDiaTramoConcreto(dia, tramo)
-                                                               .build() ;
+                    // Obtenemos el día y el tramo de la restricción
+                    int dia   = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getDia() ;
+                    int tramo = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getTramo() ;
+
+                    // Obtenemos el curso, etapa y grupo en formato String
+                    String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
+
+                    // Vemos si el tipo de horario es matutino o vespertino
+                    if (tipoHorarioMatutino)
+                    {
+                        // Añadimos la restricción horaria a la lista
+                        restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
+                                                                   .asignarUnDiaTramoConcreto(dia, tramo)
+                                                                   .build() ;
+                    }
+                    else
+                    {
+                        // Añadimos la restricción horaria a la lista
+                        restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosVespertinos.get(cursoEtapaGrupoString))
+                                                                   .asignarUnDiaTramoConcreto(dia, tramo)
+                                                                   .build() ;
+                    }
                 }
 
                 // Creamos el conjunto de sesiones asociadas a la asignatura y profesor

@@ -53,5 +53,5 @@ public class Impartir
     private Boolean asignadoDireccion;
 
     @OneToMany(mappedBy = "impartir", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<GeneradorRestriccionesImpartir> restricciones = new HashSet<>();
+    private Set<GeneradorRestriccionesImpartir> generadorRestriccionesImpartir = new HashSet<>();
 }

@@ -41,8 +41,13 @@ public interface ICursoEtapaGrupoRepository extends JpaRepository<CursoEtapaGrup
 
     @Query("SELECT c "
             + "FROM CursoEtapaGrupo c "
-            + "WHERE c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "' AND c.idCursoEtapaGrupo.grupo <> '" + Constants.GRUPO_OPTATIVAS + "'")
+            + "WHERE c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "'")
     public List<CursoEtapaGrupo> buscarTodosLosCursosEtapasGrupos();
+
+    @Query("SELECT c "
+            + "FROM CursoEtapaGrupo c "
+            + "WHERE c.idCursoEtapaGrupo.grupo <> '" + Constants.SIN_GRUPO_ASIGNADO + "' AND c.idCursoEtapaGrupo.grupo <> '" + Constants.GRUPO_OPTATIVAS + "'")
+    public List<CursoEtapaGrupo> buscarTodosLosCursosEtapasGruposSinOptativas();
 
     @Query("SELECT c "
             + "FROM CursoEtapaGrupo c "

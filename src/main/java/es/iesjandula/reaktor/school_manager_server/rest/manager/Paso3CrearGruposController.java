@@ -115,8 +115,10 @@ public class Paso3CrearGruposController
             // Asignar el id al registro de Curso Etapa
             cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
 
+            boolean horarioMatutinoPorDefecto = true;
+
             // Asignamos por defecto el horario matutino a true
-            cursoEtapaGrupo.setHorarioMatutino(true);
+            cursoEtapaGrupo.setHorarioMatutino(horarioMatutinoPorDefecto);
 
             // Indicamos si es ESO o Bachillerato
             cursoEtapaGrupo.setEsoBachillerato(cursoEtapa.isEsoBachillerato());
@@ -126,6 +128,19 @@ public class Paso3CrearGruposController
 
             // Log de información antes de la respuesta
             log.info("INFO - Grupo creado correctamente para el curso: {} y etapa: {}", curso, etapa);
+
+            // Debemos actualizar también aquel curso y etapa cuyo grupo sea "Optativas"
+            Optional<CursoEtapaGrupo> cursoEtapaGrupoOptativasOptional = this.iCursoEtapaGrupoRepository.findById(new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS));
+            if (cursoEtapaGrupoOptativasOptional.isPresent())
+            {
+                // Obtenemos y actualizamos el ESO o Bachillerato junto con horarioMatutino
+                CursoEtapaGrupo cursoEtapaGrupoOptativas = cursoEtapaGrupoOptativasOptional.get();
+                cursoEtapaGrupoOptativas.setEsoBachillerato(cursoEtapa.isEsoBachillerato());
+                cursoEtapaGrupoOptativas.setHorarioMatutino(horarioMatutinoPorDefecto);
+
+                // Actualizamos la BBDD
+                this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupoOptativas);
+            }
 
             // Devolver la respuesta indicando que el grupo ha sido creado correctamente
             return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -603,6 +618,18 @@ public class Paso3CrearGruposController
 
             // Log de información antes de la respuesta
             log.info("INFO - Turno horario actualizado correctamente {} {} {} {}", curso, etapa, grupo, esHorarioMatutino);
+
+            // Debemos actualizar también aquel curso y etapa cuyo grupo sea "Optativas"
+            Optional<CursoEtapaGrupo> cursoEtapaGrupoOptativasOptional = this.iCursoEtapaGrupoRepository.findById(new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS));
+            if (cursoEtapaGrupoOptativasOptional.isPresent())
+            {
+                // Obtenemos y actualizamos el horario matutino a true o false
+                CursoEtapaGrupo cursoEtapaGrupoOptativas = cursoEtapaGrupoOptativasOptional.get();
+                cursoEtapaGrupoOptativas.setHorarioMatutino(esHorarioMatutino);
+
+                // Actualizamos la BBDD
+                this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupoOptativas);
+            }
 
             // Devolvemos mensaje de OK
             return ResponseEntity.ok().build();
