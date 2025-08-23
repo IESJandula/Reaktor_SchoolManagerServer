@@ -96,7 +96,7 @@ public class HorarioThread extends Thread
 				if (log.isDebugEnabled())
 				{
 					Horario horario = new Horario(this.matrizAsignacionesMatutinas, this.matrizAsignacionesVespertinas) ;
-					log.debug("Horario actual: \n" + horario) ;
+					log.info("Horario actual: \n" + horario) ;
 				}
 
 				// Decrementamos el número de threads pendientes

@@ -3,6 +3,7 @@ package es.iesjandula.reaktor.school_manager_server.models.no_jpa;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
@@ -18,14 +19,16 @@ public class SesionReduccion extends SesionBase
     /**
      * Constructor que inicializa la lista de restricciones horarias
      * 
+     * @param cursoEtapaGrupo curso etapa grupo
      * @param reduccion reduccion
      * @param profesor profesor
      * @param tipoHorario tipo de horario
      * @param restriccionHoraria restricción horaria
      */
-    public SesionReduccion(Reduccion reduccion, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
+    public SesionReduccion(CursoEtapaGrupo cursoEtapaGrupo,
+        Reduccion reduccion, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
     {      
-        super(profesor, tipoHorarioMatutino, reduccion.getCursoEtapaGrupo().getEsoBachillerato(), restriccionHoraria) ;
+        super(cursoEtapaGrupo, profesor, tipoHorarioMatutino, cursoEtapaGrupo.getEsoBachillerato(), restriccionHoraria) ;
 
         this.reduccion = reduccion ;
     }
@@ -34,12 +37,6 @@ public class SesionReduccion extends SesionBase
     public String toString()
     {
     	return this.reduccion.toString() ;
-    }
-
-    @Override
-    public String getCursoEtapaGrupoString()
-    {
-        return this.reduccion.getCursoEtapaGrupo().getCursoEtapaGrupoString() ;
     }
 }
 

@@ -2,6 +2,7 @@ package es.iesjandula.reaktor.school_manager_server.models.no_jpa;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
 
@@ -9,6 +10,9 @@ import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.Re
 @Data
 public abstract class SesionBase
 {   
+    /** Curso etapa grupo */
+    private final CursoEtapaGrupo cursoEtapaGrupo ;
+
     /** Profesor que imparte la asignatura impartida en la sesion */
     private final Profesor profesor ;
     
@@ -24,13 +28,16 @@ public abstract class SesionBase
     /**
      * Constructor que inicializa la lista de restricciones horarias
      * 
+     * @param cursoEtapaGrupo curso etapa grupo
      * @param profesor profesor
      * @param tipoHorario tipo de horario
      * @param esEsoBachillerato indica si la sesión es de ESO o BACH (si es false, es FP)
      * @param restriccionHoraria restricción horaria
      */
-    public SesionBase(Profesor profesor, boolean tipoHorarioMatutino, boolean esEsoBachillerato, RestriccionHoraria restriccionHoraria)
+    public SesionBase(CursoEtapaGrupo cursoEtapaGrupo, Profesor profesor, boolean tipoHorarioMatutino,
+                      boolean esEsoBachillerato, RestriccionHoraria restriccionHoraria)
     {      
+        this.cursoEtapaGrupo      = cursoEtapaGrupo ;
         this.profesor            = profesor ;
         this.tipoHorarioMatutino = tipoHorarioMatutino ;
         this.esEsoBachillerato   = esEsoBachillerato ;
@@ -56,6 +63,9 @@ public abstract class SesionBase
     /**
      * @return el curso etapa grupo string
      */
-    public abstract String getCursoEtapaGrupoString() ;
+    public String getCursoEtapaGrupoString()
+    {
+        return this.cursoEtapaGrupo.getCursoEtapaGrupoString() ;
+    }
 }
 

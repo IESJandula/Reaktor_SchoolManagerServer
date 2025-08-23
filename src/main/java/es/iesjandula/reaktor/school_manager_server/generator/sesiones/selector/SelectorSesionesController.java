@@ -3,10 +3,8 @@ package es.iesjandula.reaktor.school_manager_server.generator.sesiones.selector;
 import java.util.Collections;
 import java.util.List;
 
-import es.iesjandula.reaktor.school_manager_server.models.ObservacionesAdicionales;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
-import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.generator.threads.UltimaAsignacion;
 
@@ -63,21 +61,8 @@ public class SelectorSesionesController
 		// Nos vamos a la lista que tenga más restricciones
 		List<SesionBase> listaDeSesiones = this.sesionesPendientes.get(ultimoIndiceConElementos) ;
     	
-		// Tratamos de obtener una sesión de asignaturas FP relacionada con la última asignación
-		SesionBase outcome = this.selectorSesionesAsignaturas.obtenerSesionFPRelacionadaConUltimaAsignacion(listaDeSesiones) ;
-		
-		// Nos centramos en las restricciones de la lista en la que estemos
-		if (outcome == null && ultimoIndiceConElementos == Constants.INDEX_CON_CONCILIACIONES)
-		{
-			// Tratamos de obtener una sesión para asignar relacionada con las conciliaciones
-			outcome = this.obtenerSesionParaAsignarEnConciliaciones(listaDeSesiones) ;
-		}
-		
-		// Nos centramos en las restricciones de la lista de optativas
-		if (outcome == null && ultimoIndiceConElementos == Constants.INDEX_CON_OPTATIVAS)
-		{
-			outcome = this.selectorSesionesAsignaturas.obtenerSesionParaAsignarEnOptativas(listaDeSesiones) ;
-		}
+		// Tratamos de obtener una sesión de asignaturas relacionadas con la última asignación
+		SesionBase outcome = this.selectorSesionesAsignaturas.obtenerSesionRelacionadaConUltimaAsignacion(listaDeSesiones) ;
 
 		// Llegados a este punto, no encontramos ninguna sesión válida ...
 		if (outcome == null)
@@ -118,41 +103,6 @@ public class SelectorSesionesController
     	}
     	
 		return ultimoIndiceConElementos ;
-	}
-	
-	/**
-	 * @param listaDeSesiones lista de sesiones
-	 * @return una sesión con la conciliación de entrar a primera hora y sino, alguna otra
-	 */
-	private SesionBase obtenerSesionParaAsignarEnConciliaciones(List<SesionBase> listaDeSesiones)
-	{
-		// Me interesa asignar primero las conciliaciones de entrar a primera hora
-		int i = 0 ;
-		int indiceSesionEncontrada = -1 ;
-		while (i < listaDeSesiones.size() && indiceSesionEncontrada == -1)
-		{
-			SesionBase temp = listaDeSesiones.get(i) ;
-
-			ObservacionesAdicionales observacionesAdicionales = temp.getProfesor().getObservacionesAdicionales() ;
-
-			if (observacionesAdicionales != null && observacionesAdicionales.getConciliacion() != null && observacionesAdicionales.getConciliacion())
-			{
-				indiceSesionEncontrada = i ;
-			}
-
-			i++ ;
-		}	
-
-		SesionBase outcome = null ;
-
-		// Si encontramos alguna ...
-		if (indiceSesionEncontrada != -1)
-		{
-			// ... obtenemos la sesión, la borramos y mezclamos la lista
-			outcome = this.obtenerSesionBorrarYmezclar(listaDeSesiones, indiceSesionEncontrada) ;
-		}
-
-		return outcome ;
 	}
 
 	/**

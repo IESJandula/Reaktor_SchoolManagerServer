@@ -93,6 +93,7 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
         FROM Impartir i
         LEFT JOIN i.generadorRestriccionesImpartir gri
         LEFT JOIN gri.diaTramoTipoHorario
+        LEFT JOIN FETCH i.profesor.preferenciasHorariasProfesor
         """)
     Optional<List<GeneradorImpartirConRestriccionesDto>> obtenerImpartirConRestricciones();
 

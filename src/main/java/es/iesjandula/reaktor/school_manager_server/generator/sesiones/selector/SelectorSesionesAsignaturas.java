@@ -43,7 +43,7 @@ public class SelectorSesionesAsignaturas extends SelectorSesionesBase
 	 * @param listaDeSesiones lista de sesiones de asignaturas
 	 * @return una sesión de FP asociada a la asignatura de la última asignación
 	 */
-	protected SesionBase obtenerSesionFPRelacionadaConUltimaAsignacion(List<SesionBase> listaDeSesiones)
+	protected SesionBase obtenerSesionRelacionadaConUltimaAsignacion(List<SesionBase> listaDeSesiones)
 	{
 		SesionBase outcome = null ;
 
@@ -56,29 +56,52 @@ public class SelectorSesionesAsignaturas extends SelectorSesionesBase
 			// Obtenemos la asignatura de la última asignación
             SesionAsignatura ultimaAsignacionSesionAsignatura = (SesionAsignatura) this.ultimaAsignacion.getAsignacion().getListaSesiones().get(0) ;
 
-			// Vemos si es FP
-            boolean esFP = !ultimaAsignacionSesionAsignatura.getAsignatura().isEsoBachillerato() ;
-
             // Si es FP ...
-            if (esFP)
+            if (!ultimaAsignacionSesionAsignatura.getAsignatura().isEsoBachillerato())
             {
-                // Obtenemos la asignatura de la última asignación
-                Asignatura ultimaAsignacionAsignatura = ultimaAsignacionSesionAsignatura.getAsignatura() ;
-
-                // Obtenemos el índice del curso-día de la última asignación
-                int indiceCursoDia = this.ultimaAsignacion.getIndicesAsignacionSesion().getIndiceCursoDia() ;
-
-                // Asignamos previamente la matriz de sesiones ya que nos basamos en la asignación anterior
-                this.seleccionarMatrizAsignaciones(ultimaAsignacionSesionAsignatura) ;
-
-                // Validamos si el día de la sesión es correcto
-                if (SesionesUtils.sesionSinMasXOcurrenciasElMismoDia(this.getMatrizAsignaciones(), indiceCursoDia, ultimaAsignacionSesionBase))
-                {
-                    // Si es válido, tratamos de obtener la sesión
-                    outcome = this.obtenerAsignaturaFPInternal(listaDeSesiones, ultimaAsignacionAsignatura) ;
-                }
+				// ... tratamos de obtener la sesión que sea del mismo módulo que la última asignación
+                outcome = this.obtenerSesionRelacionadaConUltimaAsignacionFP(listaDeSesiones,
+																			 ultimaAsignacionSesionBase,
+																			 ultimaAsignacionSesionAsignatura) ;
             }
+			else if (ultimaAsignacionSesionAsignatura.getAsignatura().isOptativa())
+			{
+				// ... tratamos de obtener la sesión que sea de la misma asignatura que la última asignación
+				outcome = this.obtenerSesionParaAsignarEnOptativasInternal(listaDeSesiones,
+																		   ultimaAsignacionSesionAsignatura.getAsignatura()) ;
+			}
         }
+
+		return outcome ;
+	}
+
+	/**
+	 * @param listaDeSesiones lista de sesiones
+	 * @param ultimaAsignacionSesionBase sesión base de la última asignación
+	 * @param ultimaAsignacionSesionAsignatura sesión de asignatura de la última asignación
+	 * @return una sesión de FP asociada a la asignatura de la última asignación
+	 */
+	private SesionBase obtenerSesionRelacionadaConUltimaAsignacionFP(List<SesionBase> listaDeSesiones,
+																	 SesionBase ultimaAsignacionSesionBase,
+																	 SesionAsignatura ultimaAsignacionSesionAsignatura)
+	{
+		SesionBase outcome = null ;
+
+		// Obtenemos la asignatura de la última asignación
+		Asignatura ultimaAsignacionAsignatura = ultimaAsignacionSesionAsignatura.getAsignatura() ;
+
+		// Obtenemos el índice del curso-día de la última asignación
+		int indiceCursoDia = this.ultimaAsignacion.getIndicesAsignacionSesion().getIndiceCursoDia() ;
+
+		// Asignamos previamente la matriz de sesiones ya que nos basamos en la asignación anterior
+		this.seleccionarMatrizAsignaciones(ultimaAsignacionSesionAsignatura) ;
+
+		// Validamos si el día de la sesión es correcto
+		if (SesionesUtils.sesionSinMasXOcurrenciasElMismoDia(this.getMatrizAsignaciones(), indiceCursoDia, ultimaAsignacionSesionBase))
+		{
+			// Si es válido, tratamos de obtener la sesión
+			outcome = this.obtenerAsignaturaFPInternal(listaDeSesiones, ultimaAsignacionAsignatura) ;
+		}
 
 		return outcome ;
 	}
@@ -123,33 +146,6 @@ public class SelectorSesionesAsignaturas extends SelectorSesionesBase
 			// ... obtenemos la sesión, la borramos y mezclamos la lista
 			outcome = this.obtenerSesionBorrarYmezclar(listaDeSesiones, indiceSesionEncontrada) ;
 		}
-
-		return outcome ;
-	}
-
-	/**
-	 * @param listaDeSesiones lista de sesiones
-	 * @return una sesión de optativas
-	 */
-	protected SesionBase obtenerSesionParaAsignarEnOptativas(List<SesionBase> listaDeSesiones)
-	{
-		SesionBase outcome = null ;
-
-        // Primero vemos si hay una última asignación y si es una asignatura
-        if (this.ultimaAsignacion != null && this.ultimaAsignacion.getAsignacion().getListaSesiones().get(0) instanceof SesionAsignatura)
-        {
-            SesionAsignatura ultimaAsignacionSesionAsignatura = (SesionAsignatura) this.ultimaAsignacion.getAsignacion().getListaSesiones().get(0) ;
-
-            // Si la asignatura de la última asignación es una optativa ...
-            if (ultimaAsignacionSesionAsignatura.getAsignatura().isOptativa())
-            {
-                // Obtenemos la asignatura de la última asignación
-                Asignatura ultimaAsignacionAsignatura = ultimaAsignacionSesionAsignatura.getAsignatura() ;
-
-                // ... tratamos de buscar la asignatura asociada a esta
-                outcome = this.obtenerSesionParaAsignarEnOptativasInternal(listaDeSesiones, ultimaAsignacionAsignatura) ;
-            }
-        }
 
 		return outcome ;
 	}
