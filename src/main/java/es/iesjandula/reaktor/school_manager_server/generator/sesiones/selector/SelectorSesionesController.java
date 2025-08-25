@@ -5,7 +5,7 @@ import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
-import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
+import es.iesjandula.reaktor.school_manager_server.services.manager.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.generator.threads.UltimaAsignacion;
 
 import lombok.extern.slf4j.Slf4j;

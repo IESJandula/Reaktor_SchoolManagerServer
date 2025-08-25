@@ -1,30 +1,24 @@
-package es.iesjandula.reaktor.school_manager_server.services;
+package es.iesjandula.reaktor.school_manager_server.services.timetable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
-import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInfoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoGeneralDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoProfesorDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorReduccionConRestriccionesDto;
 import es.iesjandula.reaktor.school_manager_server.generator.Horario;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorResultados;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorResultadosParams;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreads;
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreadsParams;
-import es.iesjandula.reaktor.school_manager_server.generator.sesiones.creador.CreadorSesiones;
 import es.iesjandula.reaktor.school_manager_server.models.Constantes;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorAsignadaImpartir;
@@ -32,12 +26,8 @@ import es.iesjandula.reaktor.school_manager_server.models.GeneradorAsignadaReduc
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoGeneral;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoProfesor;
-import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestriccionesImpartir;
-import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestriccionesReduccion;
-import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.PreferenciasHorariasProfesor;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
-import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorAsignadaImpartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorAsignadaReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorInstanciaSolucionInfoGeneral;
@@ -46,19 +36,15 @@ import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionReduccion;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
 import es.iesjandula.reaktor.school_manager_server.repositories.IConstantesRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorAsignadaImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorAsignadaReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaSolucionInfoGeneral;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaSolucionInfoProfesor;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesImpartirRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.services.manager.AsignaturaService;
+import es.iesjandula.reaktor.school_manager_server.services.manager.DiaTramoTipoHorarioService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 
@@ -70,12 +56,6 @@ public class GeneradorService
     private IGeneradorRepository generadorRepository ;
 
     @Autowired
-    private ICursoEtapaGrupoRepository cursoEtapaGrupoRepository ;
-
-    @Autowired
-    private IProfesorReduccionRepository iProfesorReduccionRepository ;
-
-    @Autowired
     private IGeneradorInstanciaRepository generadorInstanciaRepository ;
 
     @Autowired
@@ -83,12 +63,6 @@ public class GeneradorService
 
     @Autowired
     private IGeneradorInstanciaSolucionInfoProfesor generadorInstanciaSolucionInfoProfesorRepository ;
-
-    @Autowired
-    private IImpartirRepository iImpartirRepository ;
-
-    @Autowired
-    private IGeneradorRestriccionesImpartirRepository generadorRestriccionesImpartirRepository ;
 
     @Autowired
     private IGeneradorAsignadaImpartirRepository generadorAsignadaImpartirRepository ;
@@ -105,11 +79,15 @@ public class GeneradorService
     @Autowired
     private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
 
+    @Autowired
+    private GeneradorConfigService generadorConfigService ;
+
     /**
      * Método que arranca el generador
+     * @param recargarDatos - Recargar datos
      * @throws SchoolManagerServerException
      */
-    public void configurarYarrancarGenerador() throws SchoolManagerServerException
+    public void configurarYarrancarGenerador(boolean recargarDatos) throws SchoolManagerServerException
     {
         // Obtenemos el generador en curso
         Optional<Generador> optionalGenerador = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
@@ -126,21 +104,8 @@ public class GeneradorService
         // Obtenemos el generador
         Generador generador = optionalGenerador.get() ;
 
-        // Obtengo todos los cursos, etapas y grupos de BBDD
-        List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas() ;
-                    
-        // Creamos dos mapas de correlacionador de cursos
-        Map<String, Integer> mapCorrelacionadorCursosMatutinos   = new HashMap<String, Integer>() ;
-        Map<String, Integer> mapCorrelacionadorCursosVespertinos = new HashMap<String, Integer>() ;
-        
-        // Creamos los mapas de correlacionador de cursos
-        this.crearMapasGruposMatutinosVespertinos(cursos, mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos) ;
-
-        // Obtenemos el número de cursos matutinos que hay
-        int numeroCursosMatutinos = mapCorrelacionadorCursosMatutinos.size() ;
-        
-        // Creamos las sesiones
-        CreadorSesiones creadorSesiones = this.crearSesiones(mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos) ;
+        // Configuramos el generador
+        this.generadorConfigService.configurarGenerador(recargarDatos) ;
 
         // Creamos una nueva instancia de GeneradorInstancia
         GeneradorInstancia generadorInstancia = new GeneradorInstancia() ;
@@ -150,11 +115,10 @@ public class GeneradorService
         this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
 
         // Creamos los manejadores y threads
-        ManejadorThreads manejadorThreads = this.crearManejadorThreads(mapCorrelacionadorCursosMatutinos,
-                                                                       mapCorrelacionadorCursosVespertinos,
-                                                                       numeroCursosMatutinos,
-                                                                       creadorSesiones,
-                                                                       generadorInstancia) ;
+        ManejadorThreads manejadorThreads = this.crearManejadorThreads(generadorInstancia) ;
+
+        // Obtenemos el número de cursos matutinos que hay
+        int numeroCursosMatutinos = this.generadorConfigService.getMapCorrelacionadorCursosMatutinos().size() ;
 
         // Creamos las matrices de sesiones vacía, donde cada columna representa un curso en un día
     	Asignacion[][] asignacionesInicialesMatutinas   = null ;
@@ -166,7 +130,7 @@ public class GeneradorService
 		}
 
 		// Obtenemos el número de cursos vespertinos que hay
-    	int numeroCursosVespertinos = mapCorrelacionadorCursosVespertinos.size() ;
+    	int numeroCursosVespertinos = this.generadorConfigService.getMapCorrelacionadorCursosVespertinos().size() ;
 
     	Asignacion[][] asignacionesInicialesVespertinas = null ;
 		if (numeroCursosVespertinos > 0)
@@ -177,310 +141,18 @@ public class GeneradorService
 		}
     	
     	// Lanzamos nuevos threads para procesar la siguiente clase
-        manejadorThreads.lanzarNuevosThreads(creadorSesiones.getListaDeListaSesiones(), asignacionesInicialesMatutinas, asignacionesInicialesVespertinas, null) ;
-    }
-
-    /**
-     * Método que crea los mapas de correlacionador de cursos matutinos y vespertinos
-     * @param cursos - Lista de cursos
-     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
-     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
-     */
-    private void crearMapasGruposMatutinosVespertinos(List<CursoEtapaGrupo> cursos,
-                                                      Map<String, Integer> mapCorrelacionadorCursosMatutinos,
-                                                      Map<String, Integer> mapCorrelacionadorCursosVespertinos)
-    {
-        // Creamos dos índices para los mapas que irán incrementandose de 5 en 5
-        int indiceMatutino = 0 ;
-        int indiceVespertino = 0 ;
-
-        // Realizo un bucle para distinguir entre matutinos y vespertinos
-        for (CursoEtapaGrupo curso : cursos)
-        {
-            if (curso.getHorarioMatutino())
-            {
-                mapCorrelacionadorCursosMatutinos.put(curso.getCursoEtapaGrupoString(), indiceMatutino) ;
-                indiceMatutino = indiceMatutino + 5 ;
-            }
-            else
-            {
-                mapCorrelacionadorCursosVespertinos.put(curso.getCursoEtapaGrupoString(), indiceVespertino) ;
-                indiceVespertino = indiceVespertino + 5 ;
-            }
-        }
-    }
-    
-    /**
-     * Método que crea las sesiones
-     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
-     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
-     * @return CreadorSesiones - Creador de sesiones
-     * @throws SchoolManagerServerException - Excepción personalizada
-     */
-    private CreadorSesiones crearSesiones(Map<String, Integer> mapCorrelacionadorCursosMatutinos,
-                                          Map<String, Integer> mapCorrelacionadorCursosVespertinos) throws SchoolManagerServerException
-    {
-        // Creamos una instancia de CreadorSesiones para añadir las asignatura y profesor a la sesión específica
-        CreadorSesiones creadorSesiones = new CreadorSesiones() ;
-
-        // Creamos las sesiones asociadas a impartir
-        this.crearSesionesAsociadasAImpartir(creadorSesiones, mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos) ;
-
-        // Creamos las sesiones asociadas a reducciones
-        this.crearSesionesAsociadasAReducciones(creadorSesiones, mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos) ;
-
-        return creadorSesiones ;
-    }
-
-    /**
-     * Método que crea las sesiones asociadas a impartir
-     * @param creadorSesiones - Creador de sesiones
-     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
-     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
-     * @throws SchoolManagerServerException 
-     */
-    private void crearSesionesAsociadasAImpartir(CreadorSesiones creadorSesiones, Map<String, Integer> mapCorrelacionadorCursosMatutinos, Map<String, Integer> mapCorrelacionadorCursosVespertinos) throws SchoolManagerServerException
-    {
-        // Obtenemos todas las filas de la tabla Impartir con las preferencias horarias del profesor cargadas eager
-        Optional<List<Impartir>> impartirOptional = this.iImpartirRepository.findAllWithPreferenciasHorarias() ;
-
-        // Si hay filas en la tabla Impartir
-        if (impartirOptional.isPresent())
-        {
-            // Creamos una lista de Impartir
-            List<Impartir> impartirList = impartirOptional.get() ;
-
-            // Iteramos para cada Impartir
-            for (Impartir impartir : impartirList)
-            {
-                // Vemos si es horario matutino o vespertino
-                boolean tipoHorarioMatutino = impartir.isHorarioMatutino() ;
-
-                // Si la asignatura es optativa ...
-                if (impartir.isOptativa())
-                {
-                    // Primero recorreremos todos los cursos para crear tantas sesiones como grupos tenga la asignatura
-                    this.crearSesionesAsociadasAImpartirOptativa(creadorSesiones,
-                                                                 impartir,
-                                                                 tipoHorarioMatutino,
-                                                                 mapCorrelacionadorCursosMatutinos,
-                                                                 mapCorrelacionadorCursosVespertinos) ;
-                }
-                else
-                {
-                    // Asignatura no optativa
-                    this.crearSesionesAImpartir(creadorSesiones,
-                                                impartir,
-                                                tipoHorarioMatutino,
-                                                mapCorrelacionadorCursosMatutinos,
-                                                mapCorrelacionadorCursosVespertinos,
-                                                impartir.getCursoEtapaGrupo()) ;
-                }
-            }
-        }
-    }
-
-    /**
-     * Método que crea las sesiones asociadas a la asignatura optativa
-     * @param creadorSesiones - Creador de sesiones
-     * @param impartir - Impartir
-     * @param tipoHorarioMatutino - Tipo de horario
-     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
-     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
-     */
-    private void crearSesionesAsociadasAImpartirOptativa(CreadorSesiones creadorSesiones,
-                                                         Impartir impartir,
-                                                         boolean tipoHorarioMatutino,
-                                                         Map<String, Integer> mapCorrelacionadorCursosMatutinos,
-                                                         Map<String, Integer> mapCorrelacionadorCursosVespertinos)
-    {
-        // ... obtenemos el curso y la etapa
-        int curso    = impartir.getCurso() ;
-        String etapa = impartir.getEtapa() ;
-        
-        // ... obtenemos todos los grupos asociados a este curso y etapa
-        List<CursoEtapaGrupo> cursosEtapaGrupoDto = 
-            this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas(curso, etapa) ;
-        
-        // ... creamos tantas sesiones como grupos tenga la asignatura
-        for (int i = 0 ; i < cursosEtapaGrupoDto.size() ; i++)
-        {
-            // ... obtenemos el curso, etapa y grupo
-            CursoEtapaGrupo cursoEtapaGrupo = cursosEtapaGrupoDto.get(i) ;
-
-            // Creamos las sesiones a impartir
-            this.crearSesionesAImpartir(creadorSesiones,
-                                        impartir,
-                                        tipoHorarioMatutino,
-                                        mapCorrelacionadorCursosMatutinos,
-                                        mapCorrelacionadorCursosVespertinos,
-                                        cursoEtapaGrupo) ;
-        }
-    }
-
-    /**
-     * Método que crea las sesiones asociadas a la asignatura no optativa
-     * @param creadorSesiones - Creador de sesiones
-     * @param impartir - Impartir
-     * @param tipoHorarioMatutino - Tipo de horario
-     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
-     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
-     * @param cursoEtapaGrupo - Curso etapa grupo
-     */
-    public void crearSesionesAImpartir(CreadorSesiones creadorSesiones,
-                                       Impartir impartir,
-                                       boolean tipoHorarioMatutino,
-                                       Map<String, Integer> mapCorrelacionadorCursosMatutinos,
-                                       Map<String, Integer> mapCorrelacionadorCursosVespertinos,
-                                       CursoEtapaGrupo cursoEtapaGrupo)
-    {
-        RestriccionHoraria restriccionHoraria = null ;
-
-        // Iteramos por cada hora de la asignatura
-        for (int i = 0 ; i < impartir.getHorasTotalesAsignatura() ; i++)
-        {
-            // Buscamos la restricción de tipo de horario por número de sesión, profesor y asignatura
-            Optional<GeneradorRestriccionesImpartir> generadorRestriccionesImpartirOptional = 
-                this.generadorRestriccionesImpartirRepository.buscarRestriccionesPorNumeroRestriccionImpartir(i + 1, impartir) ;
-
-            // Si existe, obtenemos el día y el tramo de la restricción
-            if (generadorRestriccionesImpartirOptional.isPresent())
-            {
-                // Obtenemos el día y el tramo de la restricción
-                int dia   = generadorRestriccionesImpartirOptional.get().getDiaTramoTipoHorario().getDia() ;
-                int tramo = generadorRestriccionesImpartirOptional.get().getDiaTramoTipoHorario().getTramo() ;
-
-                // ... obtenemos el curso, etapa y grupo en formato String
-                String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
-
-                // ... calculamos las restricciones asociadas
-                restriccionHoraria = this.crearSesionesAsociadasAImpartirIRestriccionesHorarias(dia,
-                                                                                                tramo,
-                                                                                                cursoEtapaGrupoString,
-                                                                                                tipoHorarioMatutino,
-                                                                                                mapCorrelacionadorCursosMatutinos,
-                                                                                                mapCorrelacionadorCursosVespertinos) ;
-            }
-
-            // Creamos la sesión asociada a la asignatura y profesor en este grupo concreto
-            creadorSesiones.crearSesion(cursoEtapaGrupo,
-                                        impartir.getAsignatura(),
-                                        impartir.getProfesor(),
-                                        tipoHorarioMatutino,
-                                        restriccionHoraria) ;
-        }
-    }
-
-    /**
-     * Método que crea las sesiones asociadas a la asignatura optativa
-     * @param diaRestriccion - Día de la restricción
-     * @param tramoRestriccion - Tramo de la restricción
-     * @param cursoEtapaGrupoString - Curso, etapa y grupo en formato String
-     * @param tipoHorarioMatutino - Tipo de horario
-     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
-     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
-     * @return RestriccionHoraria - Restricción horaria
-     */
-    private RestriccionHoraria crearSesionesAsociadasAImpartirIRestriccionesHorarias(int diaRestriccion,
-                                                                                     int tramoRestriccion,
-                                                                                     String cursoEtapaGrupoString,
-                                                                                     boolean tipoHorarioMatutino,
-                                                                                     Map<String, Integer> mapCorrelacionadorCursosMatutinos,
-                                                                                     Map<String, Integer> mapCorrelacionadorCursosVespertinos)
-    {
-        RestriccionHoraria.Builder restriccionHorariaBuilder = null ;
-
-        // Vemos si el tipo de horario es matutino o vespertino
-        if (tipoHorarioMatutino)
-        {
-            // Añadimos la restricción horaria a la lista
-            restriccionHorariaBuilder = new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
-                                                              .asignarUnDiaTramoConcreto(diaRestriccion, tramoRestriccion) ;
-        }
-        else
-        {
-            // Añadimos la restricción horaria a la lista
-            restriccionHorariaBuilder = new RestriccionHoraria.Builder(mapCorrelacionadorCursosVespertinos.get(cursoEtapaGrupoString))
-                                                              .asignarUnDiaTramoConcreto(diaRestriccion, tramoRestriccion) ;
-        }
-
-        return restriccionHorariaBuilder.build() ;
-    }
-
-    /**
-     * Método que crea las sesiones asociadas a reducciones
-     * @param creadorSesiones - Creador de sesiones
-     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
-     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
-     * @throws SchoolManagerServerException con un error
-     */
-    private void crearSesionesAsociadasAReducciones(CreadorSesiones creadorSesiones, Map<String, Integer> mapCorrelacionadorCursosMatutinos, Map<String, Integer> mapCorrelacionadorCursosVespertinos) throws SchoolManagerServerException
-    {
-        // Obtenemos todas las restricciones de impartir
-        Optional<List<GeneradorReduccionConRestriccionesDto>> generadorReduccionConRestriccionesDtoOptional = 
-            this.iProfesorReduccionRepository.obtenerReduccionesConRestricciones() ;
-
-        // Si hay restricciones, las añadimos a la lista
-        if (generadorReduccionConRestriccionesDtoOptional.isPresent())
-        {
-            // Creamos una lista de restricciones horarias
-            List<GeneradorReduccionConRestriccionesDto> generadorReduccionConRestriccionesDtoList = generadorReduccionConRestriccionesDtoOptional.get() ;
-
-            // Iteramos para cada restricción
-            for (GeneradorReduccionConRestriccionesDto generadorReduccionConRestriccionesDto : generadorReduccionConRestriccionesDtoList)
-            {
-                // Obtenemos el curso, etapa y grupo de la asignatura, y si es matutino o vespertino
-                CursoEtapaGrupo cursoEtapaGrupo = generadorReduccionConRestriccionesDto.getCursoEtapaGrupo() ;
-                boolean tipoHorarioMatutino     = cursoEtapaGrupo.getHorarioMatutino() ;
-
-                // Obtenemos el curso, etapa y grupo en formato String
-                String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
-
-                // Obtenemos el día y el tramo de la restricción
-                int dia   = generadorReduccionConRestriccionesDto.getDiaTramoTipoHorario().getDia() ;
-                int tramo = generadorReduccionConRestriccionesDto.getDiaTramoTipoHorario().getTramo() ;
-
-                RestriccionHoraria restriccionHoraria = null ;
-
-                // Vemos si el tipo de horario es matutino o vespertino
-                if (tipoHorarioMatutino)
-                {
-                    // Añadimos la restricción horaria a la lista
-                    restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosMatutinos.get(cursoEtapaGrupoString))
-                                                               .asignarUnDiaTramoConcreto(dia, tramo)
-                                                               .build() ;
-                }
-                else
-                {
-                    // Añadimos la restricción horaria a la lista
-                    restriccionHoraria = new RestriccionHoraria.Builder(mapCorrelacionadorCursosVespertinos.get(cursoEtapaGrupoString))
-                                                               .asignarUnDiaTramoConcreto(dia, tramo)
-                                                               .build() ;
-                }
-
-                // Creamos el conjunto de sesiones asociadas a la asignatura y profesor
-                creadorSesiones.crearSesion(cursoEtapaGrupo,
-                                            generadorReduccionConRestriccionesDto.getReduccion(),
-                                            generadorReduccionConRestriccionesDto.getProfesor(),
-                                            tipoHorarioMatutino,
-                                            restriccionHoraria) ;
-            }
-        }
+        manejadorThreads.lanzarNuevosThreads(this.generadorConfigService.getCreadorSesiones().getListaDeListaSesiones(),
+                                             asignacionesInicialesMatutinas,
+                                             asignacionesInicialesVespertinas,
+                                              null) ;
     }
 
     /**
      * Método que crea los manejadores y threads
-     * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
-     * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
-     * @param numeroCursosMatutinos - Número de cursos matutinos
-     * @param creadorSesiones - Creador de sesiones
+     * @param generadorInstancia - Generador instancia
      * @return ManejadorThreads - Manejador de threads
      */
-    private ManejadorThreads crearManejadorThreads(Map<String, Integer> mapCorrelacionadorCursosMatutinos,
-                                                   Map<String, Integer> mapCorrelacionadorCursosVespertinos,
-                                                   int numeroCursosMatutinos,
-                                                   CreadorSesiones creadorSesiones,
-                                                   GeneradorInstancia generadorInstancia)
+    private ManejadorThreads crearManejadorThreads(GeneradorInstancia generadorInstancia)
     {
         // Obtenemos el mayor de los umbrales mínimos de las soluciones de BBDD
         int umbralMinimoSolucion = this.obtenerUmbralMinimoSolucion() ;
@@ -494,15 +166,10 @@ public class GeneradorService
         // Crear el manejador de resultados con los umbrales definidos en Constants
         ManejadorResultados manejadorResultados = new ManejadorResultados(manejadorResultadosParams) ;
 
-        // Obtenemos el número de cursos vespertinos que tenemos en el instituto
-        int numeroCursosVespertinos		  		= mapCorrelacionadorCursosVespertinos.size() ;
-
         ManejadorThreadsParams manejadorThreadsParams = 
         new ManejadorThreadsParams.Builder()
-                                  .setNumeroCursosMatutinos(numeroCursosMatutinos)
-                                  .setNumeroCursosVespertinos(numeroCursosVespertinos)
-                                  .setMapCorrelacionadorCursosMatutinos(mapCorrelacionadorCursosMatutinos) // Mapa de correlacionador de cursos (debe ser rellenado con los datos reales)
-                                  .setMapCorrelacionadorCursosVespertinos(mapCorrelacionadorCursosVespertinos) // Mapa de correlacionador de cursos (debe ser rellenado con los datos reales)
+                                  .setMapCorrelacionadorCursosMatutinos(this.generadorConfigService.getMapCorrelacionadorCursosMatutinos())
+                                  .setMapCorrelacionadorCursosVespertinos(this.generadorConfigService.getMapCorrelacionadorCursosVespertinos())
                                   .setPoolSize(Constants.THREAD_POOL_SIZE)                     // Tamaño del pool
                                   .setNumeroThreadPorIteracion(Constants.THREAD_POR_ITERACION) // Número de threads por iteración
                                   .setManejadorResultados(manejadorResultados)

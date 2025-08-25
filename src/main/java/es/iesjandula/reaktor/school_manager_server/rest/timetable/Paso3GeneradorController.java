@@ -24,25 +24,19 @@ import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestricciones
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesImpartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesReduccion;
-import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
-import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
-import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.services.timetable.GeneradorService;
+import es.iesjandula.reaktor.school_manager_server.services.timetable.ValidadorDatosService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
-import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
-import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
-import es.iesjandula.reaktor.school_manager_server.services.ValidadorDatosService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -55,12 +49,6 @@ public class Paso3GeneradorController
 
     @Autowired
     private IGeneradorRepository generadorRepository ;
-
-    @Autowired
-    private IProfesorRepository profesorRepository ;
-
-    @Autowired
-    private IAsignaturaRepository asignaturaRepository ;
 
     @Autowired
     private IProfesorReduccionRepository profesorReduccionRepository ;
@@ -412,7 +400,7 @@ public class Paso3GeneradorController
             this.generadorRepository.saveAndFlush(generador) ;
 
             // Llamamos al método que configura y lanza el generador
-            this.generadorService.configurarYarrancarGenerador() ;
+            this.generadorService.configurarYarrancarGenerador(true) ;
 
             // Devolvemos un OK
             return ResponseEntity.ok().build();

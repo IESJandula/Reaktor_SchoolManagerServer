@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.services;
+package es.iesjandula.reaktor.school_manager_server.services.timetable;
 
 import org.springframework.stereotype.Service;
 

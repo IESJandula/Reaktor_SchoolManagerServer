@@ -78,7 +78,7 @@ public class HorarioThread extends Thread
 			// Si en la nueva última asignación no se asignó nada, comenzamos el proceso de nuevo
 			if (nuevaUltimaAsignacion == null)
 			{
-				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador() ;
+				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador(false) ;
 			}
 			else
 			{
@@ -107,7 +107,7 @@ public class HorarioThread extends Thread
 										.eliminarGeneradorInstancia(this.horarioThreadParams.getGeneradorInstancia()) ;
 
 				// Si sucede una excepción aquí, el sistema no tendrá más remedio que comenzar de nuevo
-				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador() ;
+				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador(false) ;
 			}
 			catch (SchoolManagerServerException schoolManagerServerException2)
 			{
@@ -144,7 +144,7 @@ public class HorarioThread extends Thread
 		if (sesion.isTipoHorarioMatutino())
 		{
 			// ... obtenemos el número de cursos ...
-			numeroCursos = this.horarioThreadParams.getNumeroCursosMatutinos() ;
+			numeroCursos = this.horarioThreadParams.getMapCorrelacionadorCursosMatutinos().size() ;
 
 			// ... obtenemos el índice del curso/día inicial matutino
 			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosMatutinos().get(sesion.getCursoEtapaGrupoString()) ;
@@ -152,7 +152,7 @@ public class HorarioThread extends Thread
 		else
 		{
 			// ... obtenemos el número de cursos ...
-			numeroCursos = this.horarioThreadParams.getNumeroCursosVespertinos() ;
+			numeroCursos = this.horarioThreadParams.getMapCorrelacionadorCursosVespertinos().size() ;
 
 			// ... obtenemos el índice del curso/día inicial vespertino
 			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosVespertinos().get(sesion.getCursoEtapaGrupoString()) ;

@@ -71,7 +71,7 @@ public class ManejadorThreads
     		// Si la solución no supera el umbral, comenzamos de nuevo el proceso
     		if (!solucionSuperaUmbral)
     		{
-				this.manejadorThreadsParams.getGeneradorService().configurarYarrancarGenerador() ;
+				this.manejadorThreadsParams.getGeneradorService().configurarYarrancarGenerador(false) ;
     		}
     	}
     	else if (this.manejadorThreadsParams.getManejadorResultados().solucionEncontrada() == null)
@@ -128,8 +128,6 @@ public class ManejadorThreads
 		// Creamos una nueva instancia de HorarioThreadParams
 		HorarioThreadParams horarioThreadParams = 
 			new HorarioThreadParams.Builder()
-								   .setNumeroCursosMatutinos(this.manejadorThreadsParams.getNumeroCursosMatutinos())
-								   .setNumeroCursosVespertinos(this.manejadorThreadsParams.getNumeroCursosVespertinos())
 								   .setMapCorrelacionadorCursosMatutinos(this.manejadorThreadsParams.getMapCorrelacionadorCursosMatutinos())
 								   .setMapCorrelacionadorCursosVespertinos(this.manejadorThreadsParams.getMapCorrelacionadorCursosVespertinos())
 								   .setManejadorThreads(this)

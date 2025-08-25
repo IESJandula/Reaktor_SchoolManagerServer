@@ -4,17 +4,11 @@ import java.util.Map;
 
 import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreads;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
-import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
-import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
+import es.iesjandula.reaktor.school_manager_server.services.manager.AsignaturaService;
+import es.iesjandula.reaktor.school_manager_server.services.timetable.GeneradorService;
 
 public class HorarioThreadParams
 {
-	/** Número de cursos matutinos */
-	private int numeroCursosMatutinos ;
-	
-	/** Número de cursos vespertinos */
-	private int numeroCursosVespertinos ;
-	
     /** Mapa que correlaciona los nombres de los cursos matutinos con el índice que ocupan en la matriz de sesiones */
     private Map<String, Integer> mapCorrelacionadorCursosMatutinos ;
 
@@ -40,30 +34,12 @@ public class HorarioThreadParams
      */
     private HorarioThreadParams(Builder builder)
     {
-    	this.numeroCursosMatutinos			     = builder.numeroCursosMatutinos ;
-        this.numeroCursosVespertinos             = builder.numeroCursosVespertinos ;
         this.mapCorrelacionadorCursosMatutinos   = builder.mapCorrelacionadorCursosMatutinos ;
         this.mapCorrelacionadorCursosVespertinos = builder.mapCorrelacionadorCursosVespertinos ;
         this.manejadorThreads                    = builder.manejadorThreads ;
         this.asignaturaService                   = builder.asignaturaService ;
         this.generadorService                    = builder.generadorService ;
         this.generadorInstancia                  = builder.generadorInstancia ;
-    }
-    
-    /**
-     * @return número de cursos matutinos
-     */
-    public int getNumeroCursosMatutinos()
-    {
-        return this.numeroCursosMatutinos ;
-    }
-    
-    /**
-     * @return número de cursos vespertinos
-     */
-    public int getNumeroCursosVespertinos()
-    {
-        return this.numeroCursosVespertinos ;
     }
 
     /**
@@ -119,12 +95,6 @@ public class HorarioThreadParams
      */
     public static class Builder
     {
-    	/** Número de cursos matutinos */
-    	private int numeroCursosMatutinos ;
-
-        /** Número de cursos vespertinos */
-        private int numeroCursosVespertinos ;
-
         /** Mapa que correlaciona los nombres de los cursos matutinos con el índice que ocupan en la matriz de sesiones */
         private Map<String, Integer> mapCorrelacionadorCursosMatutinos;
 
@@ -142,28 +112,6 @@ public class HorarioThreadParams
 
         /** Instancia del generador */
         private GeneradorInstancia generadorInstancia ;
-
-        /**
-         * @param numeroCursos numero de cursos matutinos
-         * @return builder
-         */
-        public Builder setNumeroCursosMatutinos(int numeroCursosMatutinos)
-        {
-            this.numeroCursosMatutinos = numeroCursosMatutinos ;
-            
-            return this ;
-        }
-
-        /**
-         * @param numeroCursos numero de cursos vespertinos
-         * @return builder
-         */
-        public Builder setNumeroCursosVespertinos(int numeroCursosVespertinos)
-        {
-            this.numeroCursosVespertinos = numeroCursosVespertinos ;
-            
-            return this ;
-        }
 
         /**
          * @param mapa que correlaciona los nombres de los cursos matutinos con el índice que ocupan en la matriz de sesiones

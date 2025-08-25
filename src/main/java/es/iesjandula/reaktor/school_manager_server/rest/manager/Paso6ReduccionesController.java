@@ -22,7 +22,6 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccio
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
-import es.iesjandula.reaktor.school_manager_server.services.ReduccionProfesorService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -45,6 +44,7 @@ import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.services.manager.ReduccionProfesorService;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 

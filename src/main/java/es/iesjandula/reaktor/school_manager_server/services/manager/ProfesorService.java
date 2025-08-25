@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.services;
+package es.iesjandula.reaktor.school_manager_server.services.manager;
 
 import java.util.List;
 import java.util.stream.Collectors;

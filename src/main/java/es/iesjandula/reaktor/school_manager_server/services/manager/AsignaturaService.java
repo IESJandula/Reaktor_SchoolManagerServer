@@ -1,4 +1,4 @@
-package es.iesjandula.reaktor.school_manager_server.services;
+package es.iesjandula.reaktor.school_manager_server.services.manager;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;

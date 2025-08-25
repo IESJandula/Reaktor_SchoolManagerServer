@@ -1,6 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.generator.manejadores;
 
-import es.iesjandula.reaktor.school_manager_server.services.GeneradorService;
+import es.iesjandula.reaktor.school_manager_server.services.timetable.GeneradorService;
 
 public class ManejadorResultadosParams
 {

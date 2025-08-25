@@ -4,14 +4,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.generator.sesiones.SesionesUtils;
-import es.iesjandula.reaktor.school_manager_server.generator.threads.UltimaAsignacion;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaItem;
-import es.iesjandula.reaktor.school_manager_server.services.AsignaturaService;
+import es.iesjandula.reaktor.school_manager_server.services.manager.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 
 public class AsignadorSesionesAsignaturas

@@ -39,7 +39,7 @@ import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupo
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
-import es.iesjandula.reaktor.school_manager_server.services.CursoEtapaService;
+import es.iesjandula.reaktor.school_manager_server.services.manager.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;

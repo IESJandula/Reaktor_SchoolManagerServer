@@ -13,7 +13,7 @@ import es.iesjandula.reaktor.base.utils.BaseConstants;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
-import es.iesjandula.reaktor.school_manager_server.services.ValidadorDatosService;
+import es.iesjandula.reaktor.school_manager_server.services.timetable.ValidadorDatosService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

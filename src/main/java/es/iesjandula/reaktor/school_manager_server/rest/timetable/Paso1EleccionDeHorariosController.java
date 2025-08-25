@@ -6,8 +6,8 @@ import es.iesjandula.reaktor.school_manager_server.dtos.*;
 import es.iesjandula.reaktor.school_manager_server.models.*;
 import es.iesjandula.reaktor.school_manager_server.models.ids.*;
 import es.iesjandula.reaktor.school_manager_server.repositories.*;
-import es.iesjandula.reaktor.school_manager_server.services.ProfesorService;
-import es.iesjandula.reaktor.school_manager_server.services.ValidacionesGlobales;
+import es.iesjandula.reaktor.school_manager_server.services.manager.ProfesorService;
+import es.iesjandula.reaktor.school_manager_server.services.manager.ValidacionesGlobales;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -626,9 +626,6 @@ public class Paso1EleccionDeHorariosController
      */
     private ObservacionesAdicionales obtenerObservaciones(String email) throws SchoolManagerServerException
     {
-        // Buscamos el profesor
-        Profesor profesor = this.profesorService.buscarProfesor(email);
-
         // Buscamos las observaciones adicionales del profesor
         Optional<ObservacionesAdicionales> optionalObservacionesAdicionales = iObservacionesAdicionalesRepository.buscarPorEmail(email) ;
 
