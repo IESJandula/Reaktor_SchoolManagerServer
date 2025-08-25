@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdImpartir;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -54,4 +55,58 @@ public class Impartir
 
     @OneToMany(mappedBy = "impartir", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<GeneradorRestriccionesImpartir> generadorRestriccionesImpartir = new HashSet<>();
+
+    /**
+     * Método que devuelve si es horario matutino
+     * @return true si es horario matutino, false en caso contrario
+     */
+    public boolean isHorarioMatutino()
+    {
+        return this.asignatura.getIdAsignatura().getCursoEtapaGrupo().getHorarioMatutino() ;
+    }
+
+    /**
+     * Método que devuelve si la asignatura es optativa
+     * @return true si la asignatura es optativa, false en caso contrario
+     */
+    public boolean isOptativa()
+    {
+        return this.asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo().equals(Constants.GRUPO_OPTATIVAS) ;
+    }
+
+    /**
+     * Método que devuelve el curso etapa grupo
+     * @return Curso etapa grupo
+     */
+    public CursoEtapaGrupo getCursoEtapaGrupo()
+    {
+        return this.asignatura.getIdAsignatura().getCursoEtapaGrupo() ;
+    }
+
+    /**
+     * Método que devuelve el curso etapa grupo
+     * @return Curso etapa grupo
+     */
+    public int getCurso()
+    {
+        return this.asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getCurso() ;
+    }
+
+    /**
+     * Método que devuelve la etapa
+     * @return Etapa
+     */
+    public String getEtapa()
+    {
+        return this.asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getEtapa() ;
+    }
+
+    /**
+     * Método que devuelve el grupo
+     * @return Grupo
+     */
+    public int getHorasTotalesAsignatura()
+    {
+        return this.asignatura.getHoras() ;
+    }
 }

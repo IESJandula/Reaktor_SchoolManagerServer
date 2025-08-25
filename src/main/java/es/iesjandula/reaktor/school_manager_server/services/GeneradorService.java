@@ -12,7 +12,6 @@ import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorImpartirConRestriccionesDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInfoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoGeneralDto;
@@ -87,6 +86,9 @@ public class GeneradorService
 
     @Autowired
     private IImpartirRepository iImpartirRepository ;
+
+    @Autowired
+    private IGeneradorRestriccionesImpartirRepository generadorRestriccionesImpartirRepository ;
 
     @Autowired
     private IGeneradorAsignadaImpartirRepository generadorAsignadaImpartirRepository ;
@@ -239,37 +241,40 @@ public class GeneradorService
      */
     private void crearSesionesAsociadasAImpartir(CreadorSesiones creadorSesiones, Map<String, Integer> mapCorrelacionadorCursosMatutinos, Map<String, Integer> mapCorrelacionadorCursosVespertinos) throws SchoolManagerServerException
     {
-        // Obtenemos todas las restricciones de impartir
-        Optional<List<GeneradorImpartirConRestriccionesDto>> generadorImpartirConRestriccionesDtoOptional = this.iImpartirRepository.obtenerImpartirConRestricciones() ;
+        // Obtenemos todas las filas de la tabla Impartir con las preferencias horarias del profesor cargadas eager
+        Optional<List<Impartir>> impartirOptional = this.iImpartirRepository.findAllWithPreferenciasHorarias() ;
 
-        // Si hay restricciones, las añadimos a la lista
-        if (generadorImpartirConRestriccionesDtoOptional.isPresent())
+        // Si hay filas en la tabla Impartir
+        if (impartirOptional.isPresent())
         {
-            // Creamos una lista de restricciones horarias
-            List<GeneradorImpartirConRestriccionesDto> generadorImpartirConRestriccionesDtoList = generadorImpartirConRestriccionesDtoOptional.get() ;
+            // Creamos una lista de Impartir
+            List<Impartir> impartirList = impartirOptional.get() ;
 
-            // Iteramos para cada restricción
-            for (GeneradorImpartirConRestriccionesDto generadorImpartirConRestriccionesDto : generadorImpartirConRestriccionesDtoList)
+            // Iteramos para cada Impartir
+            for (Impartir impartir : impartirList)
             {
                 // Vemos si es horario matutino o vespertino
-                boolean tipoHorarioMatutino = generadorImpartirConRestriccionesDto.isHorarioMatutino() ;
+                boolean tipoHorarioMatutino = impartir.isHorarioMatutino() ;
 
                 // Si la asignatura es optativa ...
-                if (generadorImpartirConRestriccionesDto.isOptativa())
+                if (impartir.isOptativa())
                 {
+                    // Primero recorreremos todos los cursos para crear tantas sesiones como grupos tenga la asignatura
                     this.crearSesionesAsociadasAImpartirOptativa(creadorSesiones,
-                                                                 generadorImpartirConRestriccionesDto,
+                                                                 impartir,
                                                                  tipoHorarioMatutino,
                                                                  mapCorrelacionadorCursosMatutinos,
                                                                  mapCorrelacionadorCursosVespertinos) ;
                 }
                 else
                 {
-                    this.crearSesionesAsociadasAImpartirNoOptativa(creadorSesiones,
-                                                                   generadorImpartirConRestriccionesDto,
-                                                                   tipoHorarioMatutino,
-                                                                   mapCorrelacionadorCursosMatutinos,
-                                                                   mapCorrelacionadorCursosVespertinos) ;
+                    // Asignatura no optativa
+                    this.crearSesionesAImpartir(creadorSesiones,
+                                                impartir,
+                                                tipoHorarioMatutino,
+                                                mapCorrelacionadorCursosMatutinos,
+                                                mapCorrelacionadorCursosVespertinos,
+                                                impartir.getCursoEtapaGrupo()) ;
                 }
             }
         }
@@ -278,20 +283,20 @@ public class GeneradorService
     /**
      * Método que crea las sesiones asociadas a la asignatura optativa
      * @param creadorSesiones - Creador de sesiones
-     * @param generadorImpartirConRestriccionesDto - DTO de la asignatura
+     * @param impartir - Impartir
      * @param tipoHorarioMatutino - Tipo de horario
      * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
      * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
      */
     private void crearSesionesAsociadasAImpartirOptativa(CreadorSesiones creadorSesiones,
-                                                         GeneradorImpartirConRestriccionesDto generadorImpartirConRestriccionesDto,
+                                                         Impartir impartir,
                                                          boolean tipoHorarioMatutino,
                                                          Map<String, Integer> mapCorrelacionadorCursosMatutinos,
                                                          Map<String, Integer> mapCorrelacionadorCursosVespertinos)
     {
         // ... obtenemos el curso y la etapa
-        int curso    = generadorImpartirConRestriccionesDto.getCurso() ;
-        String etapa = generadorImpartirConRestriccionesDto.getEtapa() ;
+        int curso    = impartir.getCurso() ;
+        String etapa = impartir.getEtapa() ;
         
         // ... obtenemos todos los grupos asociados a este curso y etapa
         List<CursoEtapaGrupo> cursosEtapaGrupoDto = 
@@ -303,77 +308,67 @@ public class GeneradorService
             // ... obtenemos el curso, etapa y grupo
             CursoEtapaGrupo cursoEtapaGrupo = cursosEtapaGrupoDto.get(i) ;
 
-            RestriccionHoraria restriccionHoraria = null ;
-
-            // Si hay algún tipo de restricción horaria en un día y tramo concreto ...
-            if (generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario() != null)
-            {
-                // ... obtenemos el día y el tramo de la restricción
-                int dia   = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getDia() ;
-                int tramo = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getTramo() ;
- 
-                // ... calculamos las restricciones asociadas
-                restriccionHoraria = this.crearSesionesAsociadasAImpartirIRestriccionesHorarias(dia,
-                                                                                                tramo,
-                                                                                                cursoEtapaGrupo.getCursoEtapaGrupoString(),
-                                                                                                tipoHorarioMatutino,
-                                                                                                mapCorrelacionadorCursosMatutinos,
-                                                                                                mapCorrelacionadorCursosVespertinos) ;
-            }
-
-            // Creamos la sesión asociada a la asignatura y profesor
-            creadorSesiones.crearSesion(cursoEtapaGrupo,
-                                        generadorImpartirConRestriccionesDto.getAsignatura(),
-                                        generadorImpartirConRestriccionesDto.getProfesor(),
+            // Creamos las sesiones a impartir
+            this.crearSesionesAImpartir(creadorSesiones,
+                                        impartir,
                                         tipoHorarioMatutino,
-                                        restriccionHoraria) ;
+                                        mapCorrelacionadorCursosMatutinos,
+                                        mapCorrelacionadorCursosVespertinos,
+                                        cursoEtapaGrupo) ;
         }
     }
 
     /**
      * Método que crea las sesiones asociadas a la asignatura no optativa
      * @param creadorSesiones - Creador de sesiones
-     * @param generadorImpartirConRestriccionesDto - DTO de la asignatura
+     * @param impartir - Impartir
      * @param tipoHorarioMatutino - Tipo de horario
      * @param mapCorrelacionadorCursosMatutinos - Mapa de correlacionador de cursos matutinos
      * @param mapCorrelacionadorCursosVespertinos - Mapa de correlacionador de cursos vespertinos
+     * @param cursoEtapaGrupo - Curso etapa grupo
      */
-    public void crearSesionesAsociadasAImpartirNoOptativa(CreadorSesiones creadorSesiones,
-                                                          GeneradorImpartirConRestriccionesDto generadorImpartirConRestriccionesDto,
-                                                          boolean tipoHorarioMatutino,
-                                                          Map<String, Integer> mapCorrelacionadorCursosMatutinos,
-                                                          Map<String, Integer> mapCorrelacionadorCursosVespertinos)
+    public void crearSesionesAImpartir(CreadorSesiones creadorSesiones,
+                                       Impartir impartir,
+                                       boolean tipoHorarioMatutino,
+                                       Map<String, Integer> mapCorrelacionadorCursosMatutinos,
+                                       Map<String, Integer> mapCorrelacionadorCursosVespertinos,
+                                       CursoEtapaGrupo cursoEtapaGrupo)
     {
-        // ... obtenemos el curso, etapa y grupo
-        CursoEtapaGrupo cursoEtapaGrupo = generadorImpartirConRestriccionesDto.getCursoEtapaGrupo() ;
-
         RestriccionHoraria restriccionHoraria = null ;
 
-        // Si hay algún tipo de restricción horaria en un día y tramo concreto ...
-        if (generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario() != null)
+        // Iteramos por cada hora de la asignatura
+        for (int i = 0 ; i < impartir.getHorasTotalesAsignatura() ; i++)
         {
-            // ... obtenemos el día y el tramo de la restricción
-            int dia   = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getDia() ;
-            int tramo = generadorImpartirConRestriccionesDto.getDiaTramoTipoHorario().getTramo() ;
+            // Buscamos la restricción de tipo de horario por número de sesión, profesor y asignatura
+            Optional<GeneradorRestriccionesImpartir> generadorRestriccionesImpartirOptional = 
+                this.generadorRestriccionesImpartirRepository.buscarRestriccionesPorNumeroRestriccionImpartir(i + 1, impartir) ;
 
-            // ... obtenemos el curso, etapa y grupo en formato String
-            String cursoEtapaGrupoString = generadorImpartirConRestriccionesDto.getCursoEtapaGrupo().getCursoEtapaGrupoString() ;
+            // Si existe, obtenemos el día y el tramo de la restricción
+            if (generadorRestriccionesImpartirOptional.isPresent())
+            {
+                // Obtenemos el día y el tramo de la restricción
+                int dia   = generadorRestriccionesImpartirOptional.get().getDiaTramoTipoHorario().getDia() ;
+                int tramo = generadorRestriccionesImpartirOptional.get().getDiaTramoTipoHorario().getTramo() ;
 
-            // ... calculamos las restricciones asociadas
-            restriccionHoraria = this.crearSesionesAsociadasAImpartirIRestriccionesHorarias(dia,
-                                                                                            tramo,
-                                                                                            cursoEtapaGrupoString,
-                                                                                            tipoHorarioMatutino,
-                                                                                            mapCorrelacionadorCursosMatutinos,
-                                                                                            mapCorrelacionadorCursosVespertinos) ;
+                // ... obtenemos el curso, etapa y grupo en formato String
+                String cursoEtapaGrupoString = cursoEtapaGrupo.getCursoEtapaGrupoString() ;
+
+                // ... calculamos las restricciones asociadas
+                restriccionHoraria = this.crearSesionesAsociadasAImpartirIRestriccionesHorarias(dia,
+                                                                                                tramo,
+                                                                                                cursoEtapaGrupoString,
+                                                                                                tipoHorarioMatutino,
+                                                                                                mapCorrelacionadorCursosMatutinos,
+                                                                                                mapCorrelacionadorCursosVespertinos) ;
+            }
+
+            // Creamos la sesión asociada a la asignatura y profesor en este grupo concreto
+            creadorSesiones.crearSesion(cursoEtapaGrupo,
+                                        impartir.getAsignatura(),
+                                        impartir.getProfesor(),
+                                        tipoHorarioMatutino,
+                                        restriccionHoraria) ;
         }
-
-        // Creamos la sesión asociada a la asignatura y profesor en este grupo concreto
-        creadorSesiones.crearSesion(cursoEtapaGrupo,
-                                    generadorImpartirConRestriccionesDto.getAsignatura(),
-                                    generadorImpartirConRestriccionesDto.getProfesor(),
-                                    tipoHorarioMatutino,
-                                    restriccionHoraria) ;
     }
 
     /**

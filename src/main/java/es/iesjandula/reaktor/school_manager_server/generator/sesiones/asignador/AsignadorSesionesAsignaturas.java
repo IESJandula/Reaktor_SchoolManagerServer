@@ -123,35 +123,31 @@ public class AsignadorSesionesAsignaturas
 
 			// Si:
 				// justo en este día y tramo horario hay alguna asignación y
-				// comprobando que  la lista es mayor que cero y
+				// la lista de sesiones es mayor que cero y
 				// es una asignatura y
 				// es optativa y 
 				// no es la misma que la que estamos buscando ...
 			encontrado = this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()] != null &&
+						 this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()].getListaSesiones().size() > 0 &&
 						 this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()].getListaSesiones().get(0) instanceof SesionAsignatura &&
 						 this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()].isOptativas() &&
 						!SesionesUtils.buscarAsignaturaEnAsignacion(this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()], asignatura) ;
 
 			// ... y si, además:
 				
-				// si la asignatura es del bloque de optativas
+			// si la asignatura es del bloque de optativas
 			if (encontrado)
 			{
 				// Obtenemos la sesión de asignatura
 				SesionAsignatura sesionAsignatura = (SesionAsignatura) this.matrizAsignaciones[restriccionHorariaItem.getIndiceDia()][restriccionHorariaItem.getTramoHorario()].getListaSesiones().get(0) ;
 
-				// ... vemos si la asignatura es del bloque de optativas
+				// ... y si la asignatura es del bloque de optativas ...
 				encontrado = sesionAsignatura.getAsignatura().getBloqueId().getId() == asignatura.getBloqueId().getId() ;
-			}
-
-			// Entonces: la hacemos coincidir con la optativa del bloque
-			if (encontrado)
-			{
-				builder = builder.hacerCoincidirConOptativaDelBloque(restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario()) ;
-			}
-			else
-			{
-				builder = builder.eliminarRestriccionHorariaItem(restriccionHorariaItem) ;
+				if (encontrado)
+				{
+					// ... entonces la hacemos coincidir con la optativa del bloque
+					builder = builder.hacerCoincidirConOptativaDelBloque(restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario()) ;
+				}
 			}
 		}
 

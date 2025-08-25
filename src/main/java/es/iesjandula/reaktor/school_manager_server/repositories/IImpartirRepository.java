@@ -4,7 +4,6 @@ import es.iesjandula.reaktor.school_manager_server.dtos.ImpartidaGrupoDeptDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorImpartirDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorImpartirConRestriccionesDto;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -81,21 +80,7 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
             "FROM Impartir i " +
             "LEFT JOIN FETCH i.idImpartir.profesor p " +
             "LEFT JOIN FETCH p.preferenciasHorariasProfesor")
-    List<Impartir> findAllWithPreferenciasHorarias();
-
-    @Query("""
-        SELECT new es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorImpartirConRestriccionesDto(
-          i.asignatura,
-          i.profesor,
-          i.asignatura.idAsignatura.cursoEtapaGrupo,
-          gri.diaTramoTipoHorario
-        )
-        FROM Impartir i
-        LEFT JOIN i.generadorRestriccionesImpartir gri
-        LEFT JOIN gri.diaTramoTipoHorario
-        LEFT JOIN FETCH i.profesor.preferenciasHorariasProfesor
-        """)
-    Optional<List<GeneradorImpartirConRestriccionesDto>> obtenerImpartirConRestricciones();
+    Optional<List<Impartir>> findAllWithPreferenciasHorarias();
 
     @Query("""
         SELECT i
