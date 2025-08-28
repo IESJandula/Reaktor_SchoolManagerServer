@@ -1,5 +1,6 @@
 package es.iesjandula.reaktor.school_manager_server.generator.sesiones.selector;
 
+import java.util.Collections;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.generator.sesiones.SesionesUtils;
@@ -10,7 +11,7 @@ import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionAsignatur
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.services.manager.AsignaturaService;
 
-public class SelectorSesionesAsignaturas extends SelectorSesionesBase
+public class SelectorSesionesAsignaturas
 {
 	/** Asignatura service */
 	private AsignaturaService asignaturaService ;
@@ -22,26 +23,20 @@ public class SelectorSesionesAsignaturas extends SelectorSesionesBase
 	 * Constructor de la clase
 	 * 
 	 * @param asignaturaService asignatura service
-	 * @param matrizAsignacionesMatutinas matriz de asignaciones matutinas
-	 * @param matrizAsignacionesVespertinas matriz de asignaciones vespertinas
-	 * @param ultimaAsignacion ultima asignación
 	 */
-	public SelectorSesionesAsignaturas(AsignaturaService asignaturaService,
-                                       Asignacion[][] matrizAsignacionesMatutinas,
-                                       Asignacion[][] matrizAsignacionesVespertinas,
-                                       UltimaAsignacion ultimaAsignacion)
-    {
-        super(matrizAsignacionesMatutinas, matrizAsignacionesVespertinas) ;
-        
+	public SelectorSesionesAsignaturas(AsignaturaService asignaturaService)
+    {        
         this.asignaturaService = asignaturaService ;
-        this.ultimaAsignacion  = ultimaAsignacion ;
     } 
 
     /**
 	 * @param listaDeSesiones lista de sesiones de asignaturas
 	 * @return una sesión de FP asociada a la asignatura de la última asignación
 	 */
-	protected SesionBase obtenerSesionRelacionadaConUltimaAsignacion(List<SesionBase> listaDeSesiones)
+	protected SesionBase obtenerSesionRelacionadaConUltimaAsignacion(List<SesionBase> listaDeSesiones,
+	                                                                 Asignacion[][] matrizAsignacionesMatutinas,
+																	 Asignacion[][] matrizAsignacionesVespertinas,
+																	 UltimaAsignacion ultimaAsignacion)
 	{
 		SesionBase outcome = null ;
 
@@ -59,6 +54,8 @@ public class SelectorSesionesAsignaturas extends SelectorSesionesBase
             {
 				// ... tratamos de obtener la sesión que sea del mismo módulo que la última asignación
                 outcome = this.obtenerSesionRelacionadaConUltimaAsignacionFP(listaDeSesiones,
+																		     matrizAsignacionesMatutinas,
+																		     matrizAsignacionesVespertinas,
 																			 ultimaAsignacionSesionBase,
 																			 ultimaAsignacionSesionAsignatura) ;
             }
@@ -75,11 +72,15 @@ public class SelectorSesionesAsignaturas extends SelectorSesionesBase
 
 	/**
 	 * @param listaDeSesiones lista de sesiones
+	 * @param matrizAsignacionesMatutinas matriz de asignaciones matutinas
+	 * @param matrizAsignacionesVespertinas matriz de asignaciones vespertinas
 	 * @param ultimaAsignacionSesionBase sesión base de la última asignación
 	 * @param ultimaAsignacionSesionAsignatura sesión de asignatura de la última asignación
 	 * @return una sesión de FP asociada a la asignatura de la última asignación
 	 */
 	private SesionBase obtenerSesionRelacionadaConUltimaAsignacionFP(List<SesionBase> listaDeSesiones,
+																	 Asignacion[][] matrizAsignacionesMatutinas,
+																	 Asignacion[][] matrizAsignacionesVespertinas,
 																	 SesionBase ultimaAsignacionSesionBase,
 																	 SesionAsignatura ultimaAsignacionSesionAsignatura)
 	{
@@ -92,10 +93,12 @@ public class SelectorSesionesAsignaturas extends SelectorSesionesBase
 		int indiceCursoDia = this.ultimaAsignacion.getIndicesAsignacionSesion().getIndiceCursoDia() ;
 
 		// Asignamos previamente la matriz de sesiones ya que nos basamos en la asignación anterior
-		this.seleccionarMatrizAsignaciones(ultimaAsignacionSesionAsignatura) ;
+		Asignacion[][] matrizAsignaciones = this.seleccionarMatrizAsignaciones(matrizAsignacionesMatutinas,
+																			   matrizAsignacionesVespertinas,
+																			   ultimaAsignacionSesionAsignatura) ;
 
 		// Validamos si el día de la sesión es correcto
-		if (SesionesUtils.sesionSinMasXOcurrenciasElMismoDia(this.getMatrizAsignaciones(), indiceCursoDia, ultimaAsignacionSesionBase))
+		if (SesionesUtils.sesionSinMasXOcurrenciasElMismoDia(matrizAsignaciones, indiceCursoDia, ultimaAsignacionSesionBase))
 		{
 			// Si es válido, tratamos de obtener la sesión
 			outcome = this.obtenerAsignaturaFPInternal(listaDeSesiones, ultimaAsignacionAsignatura) ;
@@ -193,4 +196,48 @@ public class SelectorSesionesAsignaturas extends SelectorSesionesBase
 		
 		return outcome ;
 	}
+
+	/**
+	 * @param listaDeSesiones lista de sesiones
+	 * @param indiceElemento índice del elemento a eliminar
+	 * @return una sesión aleatoria
+	 */
+	private SesionBase obtenerSesionBorrarYmezclar(List<SesionBase> listaDeSesiones, int indiceElemento)
+	{
+		// Ahora, eliminamos y obtenemos el primero que encontremos
+		SesionBase sesion = listaDeSesiones.remove(indiceElemento) ;
+
+		// Mezclamos aleatoriamente todas ellas
+		Collections.shuffle(listaDeSesiones) ;
+
+		return sesion ;
+	}
+
+	/**
+     * Selecciona la matriz de asignaciones apropiada basada en el tipo de horario
+	 * 
+	 * @param matrizAsignacionesMatutinas matriz de asignaciones matutinas
+	 * @param matrizAsignacionesVespertinas matriz de asignaciones vespertinas
+	 * @param sesion sesión
+     */
+    private Asignacion[][] seleccionarMatrizAsignaciones(Asignacion[][] matrizAsignacionesMatutinas,
+														 Asignacion[][] matrizAsignacionesVespertinas,
+														 SesionBase sesion)
+    {
+		Asignacion[][] outcome = null ;
+		
+		// Si es matutino ...
+		if (sesion.isTipoHorarioMatutino())
+		{
+        	// ... elegimos la matriz de asignaciones matutinas
+			outcome = matrizAsignacionesMatutinas ;
+        }
+        else
+        {
+            // ... elegimos la matriz de asignaciones vespertinas
+            outcome = matrizAsignacionesVespertinas ;
+        }
+
+		return outcome ;
+    }
 }

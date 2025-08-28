@@ -5,16 +5,7 @@ import java.util.Objects;
 
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
-import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-@Slf4j
 public class Horario implements Comparable<Horario>
 {
 	/** Matriz de asignaciones matutinas */
@@ -32,17 +23,24 @@ public class Horario implements Comparable<Horario>
      */
     public Horario(Asignacion[][] matrizAsignacionesMatutinas, Asignacion[][] matrizAsignacionesVespertinas)
     {
-    	// Creamos una copia del estado actual del horario matutino
-        if (matrizAsignacionesMatutinas != null)
-        {
-            this.matrizAsignacionesMatutinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesMatutinas) ;
-        }
+        this.matrizAsignacionesMatutinas   = matrizAsignacionesMatutinas ;
+        this.matrizAsignacionesVespertinas = matrizAsignacionesVespertinas ;
+    }
 
-        // Creamos una copia del estado actual del horario vespertino
-        if (matrizAsignacionesVespertinas != null)   
-        {
-            this.matrizAsignacionesVespertinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesVespertinas) ;
-        }
+    /**
+     * @return matriz de asignaciones matutinas
+     */
+    public Asignacion[][] getMatrizAsignacionesMatutinas()
+    {
+        return this.matrizAsignacionesMatutinas ;
+    }
+
+    /**
+     * @return matriz de asignaciones vespertinas
+     */
+    public Asignacion[][] getMatrizAsignacionesVespertinas()
+    {
+        return this.matrizAsignacionesVespertinas ;
     }
 
     @Override

@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
@@ -14,10 +15,8 @@ import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInsta
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoGeneralDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorInstanciaSolucionInfoProfesorDto;
 import es.iesjandula.reaktor.school_manager_server.generator.Horario;
-import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorResultados;
-import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorResultadosParams;
-import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreads;
-import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreadsParams;
+import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThread;
+import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThreadParams;
 import es.iesjandula.reaktor.school_manager_server.models.Constantes;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
@@ -79,15 +78,12 @@ public class GeneradorService
     @Autowired
     private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
 
-    @Autowired
-    private GeneradorConfigService generadorConfigService ;
-
     /**
-     * Método que arranca el generador
-     * @param recargarDatos - Recargar datos
-     * @throws SchoolManagerServerException
+     * Método que crea una instancia de GeneradorInstancia
+     * @return GeneradorInstancia - Instancia de GeneradorInstancia
+     * @throws SchoolManagerServerException con un error
      */
-    public void configurarYarrancarGenerador(boolean recargarDatos) throws SchoolManagerServerException
+    public GeneradorInstancia crearGeneradorInstancia() throws SchoolManagerServerException
     {
         // Obtenemos el generador en curso
         Optional<Generador> optionalGenerador = this.generadorRepository.buscarGeneradorPorEstado(Constants.ESTADO_GENERADOR_EN_CURSO) ;
@@ -104,90 +100,41 @@ public class GeneradorService
         // Obtenemos el generador
         Generador generador = optionalGenerador.get() ;
 
-        // Configuramos el generador
-        this.generadorConfigService.configurarGenerador(recargarDatos) ;
-
         // Creamos una nueva instancia de GeneradorInstancia
         GeneradorInstancia generadorInstancia = new GeneradorInstancia() ;
+
+        // Asignamos el generador a la instancia
         generadorInstancia.setGenerador(generador) ;
 
         // Guardamos la instancia en la base de datos
         this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
 
-        // Creamos los manejadores y threads
-        ManejadorThreads manejadorThreads = this.crearManejadorThreads(generadorInstancia) ;
-
-        // Obtenemos el número de cursos matutinos que hay
-        int numeroCursosMatutinos = this.generadorConfigService.getMapCorrelacionadorCursosMatutinos().size() ;
-
-        // Creamos las matrices de sesiones vacía, donde cada columna representa un curso en un día
-    	Asignacion[][] asignacionesInicialesMatutinas   = null ;
-		if (numeroCursosMatutinos > 0)
-		{
-			asignacionesInicialesMatutinas = new Asignacion[numeroCursosMatutinos * Constants.NUMERO_DIAS_SEMANA]
-														   [Constants.NUMERO_TRAMOS_HORARIOS] ;
-
-		}
-
-		// Obtenemos el número de cursos vespertinos que hay
-    	int numeroCursosVespertinos = this.generadorConfigService.getMapCorrelacionadorCursosVespertinos().size() ;
-
-    	Asignacion[][] asignacionesInicialesVespertinas = null ;
-		if (numeroCursosVespertinos > 0)
-		{
-			asignacionesInicialesVespertinas = new Asignacion[numeroCursosVespertinos * Constants.NUMERO_DIAS_SEMANA]
-														     [Constants.NUMERO_TRAMOS_HORARIOS] ;
-
-		}
-
-        // Obtenemos la lista de lista de sesiones
-        List<List<SesionBase>> listaDeListaSesiones = this.generadorConfigService.getCreadorSesiones().getListaDeListaSesiones() ;
-
-        // Visitamos todas las sesiones e inicializamos la restricción horaria iteracion
-        for (List<SesionBase> listaSesiones : listaDeListaSesiones)
-        {
-            for (SesionBase sesion : listaSesiones)
-            {
-                sesion.inicializarRestriccionHorariaIteracion() ;
-            }
-        }
-    	
-    	// Lanzamos nuevos threads para procesar la siguiente clase
-        manejadorThreads.lanzarNuevosThreads(listaDeListaSesiones, asignacionesInicialesMatutinas, asignacionesInicialesVespertinas,null) ;
+        // Devolvemos la instancia creada
+        return generadorInstancia ;
     }
 
     /**
-     * Método que crea los manejadores y threads
-     * @param generadorInstancia - Generador instancia
-     * @return ManejadorThreads - Manejador de threads
+     * Método que lanza el generador
+     * @throws SchoolManagerServerException con un error
      */
-    private ManejadorThreads crearManejadorThreads(GeneradorInstancia generadorInstancia)
+    public void lanzarGenerador(Map<String, Integer> mapCorrelacionadorCursosMatutinos, 
+                                Map<String, Integer> mapCorrelacionadorCursosVespertinos, 
+                                List<List<SesionBase>> listaDeListaSesiones) throws SchoolManagerServerException
     {
-        // Obtenemos el mayor de los umbrales mínimos de las soluciones de BBDD
+        // Obtenemos el umbral mínimo de soluciones
         int umbralMinimoSolucion = this.obtenerUmbralMinimoSolucion() ;
 
-        ManejadorResultadosParams manejadorResultadosParams =  
-            new ManejadorResultadosParams.Builder()
-                                         .setUmbralMinimoSolucion(umbralMinimoSolucion)
-                                         .setGeneradorService(this)
-                                         .build();
+        HorarioThreadParams horarioThreadParams = 
+                              new HorarioThreadParams.Builder()
+                                                     .setGeneradorService(this)
+                                                     .setMapCorrelacionadorCursosMatutinos(mapCorrelacionadorCursosMatutinos)
+                                                     .setMapCorrelacionadorCursosVespertinos(mapCorrelacionadorCursosVespertinos)
+                                                     .setAsignaturaService(this.asignaturaService)
+                                                     .setUmbralMinimoSolucion(umbralMinimoSolucion)
+                                                     .build() ;
 
-        // Crear el manejador de resultados con los umbrales definidos en Constants
-        ManejadorResultados manejadorResultados = new ManejadorResultados(manejadorResultadosParams) ;
-
-        ManejadorThreadsParams manejadorThreadsParams = 
-        new ManejadorThreadsParams.Builder()
-                                  .setMapCorrelacionadorCursosMatutinos(this.generadorConfigService.getMapCorrelacionadorCursosMatutinos())
-                                  .setMapCorrelacionadorCursosVespertinos(this.generadorConfigService.getMapCorrelacionadorCursosVespertinos())
-                                  .setPoolSize(Constants.THREAD_POOL_SIZE)                     // Tamaño del pool
-                                  .setNumeroThreadPorIteracion(Constants.THREAD_POR_ITERACION) // Número de threads por iteración
-                                  .setManejadorResultados(manejadorResultados)
-                                  .setAsignaturaService(this.asignaturaService)
-                                  .setGeneradorService(this)
-                                  .setGeneradorInstancia(generadorInstancia)
-                                  .build() ;
-
-        return new ManejadorThreads(manejadorThreadsParams) ;
+        // Lanzamos el generador
+        new HorarioThread(horarioThreadParams, listaDeListaSesiones).start() ;
     }
 
     /**
@@ -223,9 +170,8 @@ public class GeneradorService
      * @param generadorInstancia - Generador instancia
      * @param mensajeInformacion - Mensaje de información
      * @param puntuacionObtenida - Puntuación obtenida
-     * @throws SchoolManagerServerException - Excepción personalizada
      */
-    public void actualizarGeneradorYgeneradorInstancia(GeneradorInstancia generadorInstancia, String mensajeInformacion, double puntuacionObtenida) throws SchoolManagerServerException
+    public void actualizarGeneradorYgeneradorInstancia(GeneradorInstancia generadorInstancia, String mensajeInformacion, double puntuacionObtenida)
     {
         if (Constants.MENSAJE_SOLUCION_ENCONTRADA.equals(mensajeInformacion))
         {
@@ -324,11 +270,10 @@ public class GeneradorService
      * @param generadorInstancia - Generador instancia
      * @param diaTramoTipoHorario - Día y tramo de tipo horario
      * @param sesionAsignatura - Sesión de asignatura
-     * @throws SchoolManagerServerException - Excepción personalizada
      */
-    private void actualizarGeneradorSesionAsignadaInternalAsignatura(GeneradorInstancia generadorInstancia, 
+    private void actualizarGeneradorSesionAsignadaInternalAsignatura(GeneradorInstancia generadorInstancia,
                                                                      DiaTramoTipoHorario diaTramoTipoHorario,
-                                                                     SesionAsignatura sesionAsignatura) throws SchoolManagerServerException
+                                                                     SesionAsignatura sesionAsignatura)
     {
         // Creamos una instancia de Id GeneradorAsignadaImpartir
         IdGeneradorAsignadaImpartir idGeneradorAsignadaImpartir = new IdGeneradorAsignadaImpartir() ;
@@ -668,7 +613,11 @@ public class GeneradorService
         this.seleccionarSolucionInternal(generadorInstancia) ;
     }
 
-    private void seleccionarSolucionInternal(GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
+    /**
+     * Método que selecciona una solución
+     * @param generadorInstancia - Generador instancia
+     */
+    private void seleccionarSolucionInternal(GeneradorInstancia generadorInstancia)
     {
         // Cualquier solución que haya sido elegida, la deseleccionamos
         this.generadorInstanciaRepository.deseleccionarSoluciones() ;

@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,7 @@ import es.iesjandula.reaktor.school_manager_server.models.GeneradorRestricciones
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesImpartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorRestriccionesReduccion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
@@ -32,6 +34,7 @@ import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGener
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorRestriccionesReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.services.timetable.GeneradorConfigService;
 import es.iesjandula.reaktor.school_manager_server.services.timetable.GeneradorService;
 import es.iesjandula.reaktor.school_manager_server.services.timetable.ValidadorDatosService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -67,6 +70,9 @@ public class Paso3GeneradorController
 
     @Autowired
     private IGeneradorInstanciaRepository generadorInstanciaRepository ;
+
+    @Autowired
+    private GeneradorConfigService generadorConfigService ;
 
     @Autowired
     private GeneradorService generadorService ;
@@ -399,8 +405,18 @@ public class Paso3GeneradorController
             Generador generador = new Generador() ;
             this.generadorRepository.saveAndFlush(generador) ;
 
-            // Llamamos al método que configura y lanza el generador
-            this.generadorService.configurarYarrancarGenerador(true) ;
+            // Configuramos el generador
+            this.generadorConfigService.configurarGenerador() ;
+
+            // Obtenemos las sesiones
+            List<List<SesionBase>> listaDeListaSesiones = this.generadorConfigService.getCreadorSesiones().getListaDeListaSesiones();
+
+            // Obtenemos los mapas de correlacionador de cursos
+            Map<String, Integer> mapCorrelacionadorCursosMatutinos = this.generadorConfigService.getMapCorrelacionadorCursosMatutinos() ;
+            Map<String, Integer> mapCorrelacionadorCursosVespertinos = this.generadorConfigService.getMapCorrelacionadorCursosVespertinos() ;
+
+            // Llamamos al método que lanza el generador
+            this.generadorService.lanzarGenerador(mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos, listaDeListaSesiones) ;
 
             // Devolvemos un OK
             return ResponseEntity.ok().build();

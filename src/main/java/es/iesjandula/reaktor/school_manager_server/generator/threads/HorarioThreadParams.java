@@ -2,8 +2,6 @@ package es.iesjandula.reaktor.school_manager_server.generator.threads;
 
 import java.util.Map;
 
-import es.iesjandula.reaktor.school_manager_server.generator.manejadores.ManejadorThreads;
-import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.services.manager.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.services.timetable.GeneradorService;
 
@@ -15,17 +13,14 @@ public class HorarioThreadParams
     /** Mapa que correlaciona los nombres de los cursos vespertinos con el índice que ocupan en la matriz de sesiones */
     private Map<String, Integer> mapCorrelacionadorCursosVespertinos ;
 
-    /** Manejador de threads */
-    private ManejadorThreads manejadorThreads ;
-
     /** Asignatura service */
     private AsignaturaService asignaturaService ;
 
     /** Generador service */
     private GeneradorService generadorService ;
 
-    /** Instancia del generador */
-    private GeneradorInstancia generadorInstancia ;
+    /** Umbral mínimo para considerar una solución válida */
+    private int umbralMinimoSolucion ;
 
     /**
      * Constructor privado para forzar el uso del Builder
@@ -36,10 +31,9 @@ public class HorarioThreadParams
     {
         this.mapCorrelacionadorCursosMatutinos   = builder.mapCorrelacionadorCursosMatutinos ;
         this.mapCorrelacionadorCursosVespertinos = builder.mapCorrelacionadorCursosVespertinos ;
-        this.manejadorThreads                    = builder.manejadorThreads ;
         this.asignaturaService                   = builder.asignaturaService ;
         this.generadorService                    = builder.generadorService ;
-        this.generadorInstancia                  = builder.generadorInstancia ;
+        this.umbralMinimoSolucion                = builder.umbralMinimoSolucion ;
     }
 
     /**
@@ -59,14 +53,6 @@ public class HorarioThreadParams
     }
 
     /**
-     * @return manejador de threads
-     */
-    public ManejadorThreads getManejadorThreads()
-    {
-        return this.manejadorThreads ;
-    }
-
-    /**
      * @return asignatura service
      */
     public AsignaturaService getAsignaturaService()
@@ -83,11 +69,11 @@ public class HorarioThreadParams
     }
 
     /**
-     * @return generador instancia
+     * @return umbral mínimo para considerar una solución válida
      */
-    public GeneradorInstancia getGeneradorInstancia()
+    public int getUmbralMinimoSolucion()
     {
-        return this.generadorInstancia ;
+        return this.umbralMinimoSolucion ;
     }
 
     /**
@@ -101,17 +87,14 @@ public class HorarioThreadParams
         /** Mapa que correlaciona los nombres de los cursos vespertinos con el índice que ocupan en la matriz de sesiones */
         private Map<String, Integer> mapCorrelacionadorCursosVespertinos;
 
-        /** Manejador de threads */
-        private ManejadorThreads manejadorThreads ;
-
         /** Asignatura service */
         private AsignaturaService asignaturaService ;
 
         /** Generador service */
         private GeneradorService generadorService ;
 
-        /** Instancia del generador */
-        private GeneradorInstancia generadorInstancia ;
+        /** Umbral mínimo para considerar una solución válida */
+        private int umbralMinimoSolucion ;
 
         /**
          * @param mapa que correlaciona los nombres de los cursos matutinos con el índice que ocupan en la matriz de sesiones
@@ -131,17 +114,6 @@ public class HorarioThreadParams
         public Builder setMapCorrelacionadorCursosVespertinos(Map<String, Integer> mapCorrelacionadorCursosVespertinos)
         {
             this.mapCorrelacionadorCursosVespertinos = mapCorrelacionadorCursosVespertinos ;
-            
-            return this ;
-        }
-
-        /**
-         * @param manejador de threads
-         * @return builder
-         */
-        public Builder setManejadorThreads(ManejadorThreads manejadorThreads)
-        {
-            this.manejadorThreads = manejadorThreads ;
             
             return this ;
         }
@@ -169,13 +141,13 @@ public class HorarioThreadParams
         }
 
         /**
-         * @param generadorInstancia generador instancia
+         * @param umbralMinimoSolucion umbral mínimo para considerar una solución válida
          * @return builder
          */
-        public Builder setGeneradorInstancia(GeneradorInstancia generadorInstancia)
+        public Builder setUmbralMinimoSolucion(int umbralMinimoSolucion)
         {
-            this.generadorInstancia = generadorInstancia ;
-            
+            this.umbralMinimoSolucion = umbralMinimoSolucion ;
+
             return this ;
         }
 

@@ -511,19 +511,6 @@ public class Constants
 	 */
 	public static final String TIPO_HORARIO_VESPERTINO = "tarde";
 
-	/******************************************************/
-	/******************** Threads *************************/
-	/******************************************************/
-
-	/**
-	 * Número de Threads en cada iteración
-	 */
-	public static final int THREAD_POR_ITERACION = 1;
-
-	/**
-	 * Tamaño del ThreadPool
-	 */
-	public static final int THREAD_POOL_SIZE = 10;
 
 	/******************************************************/
 	/**************** Ocurrencias por día *****************/

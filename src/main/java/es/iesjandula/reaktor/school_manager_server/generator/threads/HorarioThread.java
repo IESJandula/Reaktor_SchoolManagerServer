@@ -1,13 +1,16 @@
 package es.iesjandula.reaktor.school_manager_server.generator.threads;
 
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import es.iesjandula.reaktor.school_manager_server.generator.Horario;
 import es.iesjandula.reaktor.school_manager_server.generator.sesiones.asignador.AsignadorSesionesController;
 import es.iesjandula.reaktor.school_manager_server.generator.sesiones.selector.SelectorSesionesController;
+import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
-import es.iesjandula.reaktor.school_manager_server.utils.CopiaEstructuras;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +20,11 @@ public class HorarioThread extends Thread
     /** Clase con todos los parámetros necesarios */
     private HorarioThreadParams horarioThreadParams ;
     
-    /** Lista de listas sesiones pendientes de asignar donde la columna es el número de restricciones y la fila la sesion */
-    private List<List<SesionBase>> sesionesPendientes ;
+    /** Lista de listas sesiones pendientes originales */
+    private List<List<SesionBase>> sesionesOriginales ;
+
+	/** Lista de listas sesiones pendientes de asignar */
+    private List<List<SesionBase>> sesionesThread ;
     
 	/** Matriz con las asignaciones matutinas */
     private Asignacion[][] matrizAsignacionesMatutinas ;
@@ -26,70 +32,81 @@ public class HorarioThread extends Thread
 	/** Matriz con las asignaciones vespertinas */
     private Asignacion[][] matrizAsignacionesVespertinas ;
 
-	/** Ultima asignación */
-	private UltimaAsignacion ultimaAsignacion ;
+	/** Umbral mínimo de solución para considerar una solución */
+	private int umbralSolucionEncontrado ;
+
+	/** SelectorSesionesController */
+	private SelectorSesionesController selectorSesionesController ;
+
+	/** AsignadorSesionesController */
+	private AsignadorSesionesController asignadorSesionesController ;
     
     /**
      * @param horarioThreadParams Clase con todos los parámetros necesarios
-     * @param sesiones Lista de listas sesiones donde la columna es el número de restricciones y la fila la sesion
-     * @param matrizAsignacionesMatutinas matriz con las asignaciones matutinas
-     * @param matrizAsignacionesVespertinas matriz con las asignaciones vespertinas
-     * @param ultimaAsignacion ultima asignación
+     * @param sesionesOriginales Lista de listas sesiones originales
      */
     public HorarioThread(HorarioThreadParams horarioThreadParams,
-    					 List<List<SesionBase>> sesiones,
-    					 Asignacion[][] matrizAsignacionesMatutinas,
-    					 Asignacion[][] matrizAsignacionesVespertinas,
-    					 UltimaAsignacion ultimaAsignacion)
+    					 List<List<SesionBase>> sesionesOriginales)
     {
-    	this.horarioThreadParams = horarioThreadParams ;
-    	
-    	// Creamos una copia de las sesiones
-    	this.sesionesPendientes	 = CopiaEstructuras.copiarListaDeSesiones(sesiones) ;
-    	
-    	// Creamos una copia del estado actual del horario de las asignaciones matutinas
-    	if (matrizAsignacionesMatutinas != null)
-    	{
-    		this.matrizAsignacionesMatutinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesMatutinas) ;
-    	}
+    	this.horarioThreadParams      = horarioThreadParams ;
+    	this.sesionesOriginales       = sesionesOriginales ;
 
-    	// Creamos una copia del estado actual del horario de las asignaciones vespertinas
-		if (matrizAsignacionesVespertinas != null)
-    	{
-    		this.matrizAsignacionesVespertinas = CopiaEstructuras.copiarMatriz(matrizAsignacionesVespertinas) ;
-    	}
-		
-		// Asociamos la ultima asignación
-    	this.ultimaAsignacion = ultimaAsignacion ;
+		this.umbralSolucionEncontrado = -1 ;
+
+		// Creamos una nueva instancia de SelectorSesionesController y asignadorSesionesController
+		this.selectorSesionesController  = new SelectorSesionesController(this.horarioThreadParams.getAsignaturaService()) ;
+		this.asignadorSesionesController = new AsignadorSesionesController(this.horarioThreadParams.getAsignaturaService()) ;
     }
     
     @Override
     public void run() 
     {    
-		UltimaAsignacion nuevaUltimaAsignacion = null ;	
-    	try
-    	{
-			// Generamos el horario
-			nuevaUltimaAsignacion = this.generarHorario() ; 
+		// Comenzamos el proceso
+    	this.comenzarProceso() ;
 
-			// Decrementamos el número de threads pendientes
-			this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
-			
-			// Si en la nueva última asignación no se asignó nada, comenzamos el proceso de nuevo
-			if (nuevaUltimaAsignacion == null)
-			{
-				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador(false) ;
+		if (this.umbralSolucionEncontrado <= this.horarioThreadParams.getUmbralMinimoSolucion())
+		{
+			// Comenzamos el proceso de nuevo
+			this.comenzarProceso() ;
+		}
+	}
+
+	/**
+	 * Método que comienza el proceso
+	 */
+	private void comenzarProceso()
+	{
+		GeneradorInstancia generadorInstancia = null;
+
+		try
+		{
+			// Creamos una instancia de GeneradorInstancia
+			generadorInstancia = this.horarioThreadParams.getGeneradorService().crearGeneradorInstancia() ;
+
+			// Configuramos las estructuras de datos
+			this.configurarEstructurasDeDatos() ;
+
+			// Inicializamos la última asignación con una primera asignación
+			UltimaAsignacion ultimaAsignacion = this.asignarSesion(null) ;	
+
+			// Mientras no se hayan asignado todas las sesiones y haya una última asignación, se sigue generando el horario
+			while (!this.todasLasSesionesAsignadas() && ultimaAsignacion != null)
+			{    		
+				// Asignamos una sesión y obtenemos la última asignación
+				UltimaAsignacion nuevaUltimaAsignacion = this.asignarSesion(ultimaAsignacion) ;	
+
+				// Asignamos la nueva última asignación
+				ultimaAsignacion = nuevaUltimaAsignacion ;
 			}
-			else
+
+			// Si se han asignado todas las sesiones y hay una última asignación ...
+			if (this.todasLasSesionesAsignadas() && ultimaAsignacion != null)
 			{
-				// ... lanzamos nuevos threads para procesar las siguientes sesiones
-				this.horarioThreadParams.getManejadorThreads().lanzarNuevosThreads(this.sesionesPendientes,
-																				   this.matrizAsignacionesMatutinas, 
-																				   this.matrizAsignacionesVespertinas,
-																				   nuevaUltimaAsignacion) ;
+				// ... agregamos la solución encontrada
+				this.agregarHorarioSolucion(generadorInstancia) ;
 			}
 		}
-    	catch (SchoolManagerServerException schoolManagerServerException)
+		catch (SchoolManagerServerException schoolManagerServerException)
     	{
 			try
 			{
@@ -99,15 +116,11 @@ public class HorarioThread extends Thread
 					log.debug("Horario actual: \n" + horario) ;
 				}
 
-				// Decrementamos el número de threads pendientes
-				this.horarioThreadParams.getManejadorThreads().decrementarNumeroThreadsPendientes() ;
-
 				// Borramos la instancia del generador relacionada
-				this.horarioThreadParams.getGeneradorService()
-										.eliminarGeneradorInstancia(this.horarioThreadParams.getGeneradorInstancia()) ;
+				this.horarioThreadParams.getGeneradorService().eliminarGeneradorInstancia(generadorInstancia) ;
 
 				// Si sucede una excepción aquí, el sistema no tendrá más remedio que comenzar de nuevo
-				this.horarioThreadParams.getGeneradorService().configurarYarrancarGenerador(false) ;
+				this.comenzarProceso() ;
 			}
 			catch (SchoolManagerServerException schoolManagerServerException2)
 			{
@@ -119,23 +132,111 @@ public class HorarioThread extends Thread
 			String errorString = "EXCEPCIÓN NO ESPERADA CAPTURADA EN HorarioThread: " + exception.getMessage() ;
             log.error(errorString, exception) ;
         }
+	}
+	
+	/**
+	 * Método que configura las estructuras de datos
+	 */
+	private void configurarEstructurasDeDatos()
+	{
+        // Obtenemos el número de cursos matutinos que hay
+        int numeroCursosMatutinos = this.horarioThreadParams.getMapCorrelacionadorCursosMatutinos().size() ;
+
+        // Creamos las matrices de sesiones vacía, donde cada columna representa un curso en un día
+    	this.matrizAsignacionesMatutinas = null ;
+		if (numeroCursosMatutinos > 0)
+		{
+			this.matrizAsignacionesMatutinas = new Asignacion[numeroCursosMatutinos * Constants.NUMERO_DIAS_SEMANA]
+														     [Constants.NUMERO_TRAMOS_HORARIOS] ;
+
+		}
+
+		// Obtenemos el número de cursos vespertinos que hay
+    	int numeroCursosVespertinos = this.horarioThreadParams.getMapCorrelacionadorCursosVespertinos().size() ;
+
+    	this.matrizAsignacionesVespertinas = null ;
+		if (numeroCursosVespertinos > 0)
+		{
+			this.matrizAsignacionesVespertinas = new Asignacion[numeroCursosVespertinos * Constants.NUMERO_DIAS_SEMANA]
+														       [Constants.NUMERO_TRAMOS_HORARIOS] ;
+
+		}
+
+        // Clonamos las listas de sesiones originales en las listas de sesiones del thread
+        this.clonarListaDeSesionesOriginalesEnSesionesThread() ;
+
+        // Visitamos todas las sesiones e inicializamos la restricción horaria thread
+        for (List<SesionBase> listaSesiones : this.sesionesThread)
+        {
+            for (SesionBase sesion : listaSesiones)
+            {
+                sesion.inicializarRestriccionHorariaThread() ;
+            }
+        }
+	}
+
+	/**
+	 * Clona la lista de sesiones originales en la lista de sesiones del thread
+	 */
+	public void clonarListaDeSesionesOriginalesEnSesionesThread()
+	{
+        this.sesionesThread = new ArrayList<>() ;
+
+		for (List<SesionBase> sublista : this.sesionesOriginales)
+		{
+			// Creamos una nueva sublista para cada sublista original
+			List<SesionBase> copiaSublista = new ArrayList<SesionBase>(sublista) ;
+			
+			// Añadimos la copia de la sublista a la nueva lista
+			this.sesionesThread.add(copiaSublista) ;
+		}
+	}
+
+	/**
+     * Valida si están todas las sesiones asignadas
+     * @return true si están todas las sesiones asignadas
+     */
+    private boolean todasLasSesionesAsignadas()
+    {
+    	boolean outcome = true ;
+
+		Iterator<List<SesionBase>> iterator = this.sesionesThread.iterator() ;
+		while (iterator.hasNext() && outcome)
+		{
+			List<SesionBase> sublista = iterator.next() ;
+			
+			outcome = outcome && sublista.isEmpty() ;
+		}
+
+		int cont = 0 ;
+		Iterator<List<SesionBase>> iterator2 = this.sesionesThread.iterator() ;
+		while (iterator2.hasNext())
+		{
+			List<SesionBase> sublista = iterator2.next() ;
+			cont = cont + sublista.size() ;
+		}
+
+		log.debug("Sesiones pendientes de asignar: {}", cont) ;
+    	
+    	return outcome ; 
     }
 
 	/**
-     * Método que va a tratar de asignar una clase al horario actual
+     * Método que va a tratar de asignar una sesión
+	 * @param ultimaAsignacion última asignación
 	 * @return ultima asignación
 	 * @throws SchoolManagerServerException con un error
      */
-    private UltimaAsignacion generarHorario() throws SchoolManagerServerException
+    private UltimaAsignacion asignarSesion(UltimaAsignacion ultimaAsignacion) throws SchoolManagerServerException
     {
-		// Creamos una nueva instancia de SelectorSesionesController
-		SelectorSesionesController selectorSesionesController = new SelectorSesionesController(this.horarioThreadParams.getAsignaturaService(),
-																							   this.sesionesPendientes,
-																							   this.matrizAsignacionesMatutinas,
-																							   this.matrizAsignacionesVespertinas,
-																							   this.ultimaAsignacion) ;
+		// Inicializamos las matriz de asignación
+		Asignacion[][] matrizAsignacion = null ;
+
 		// Cogemos una de las sesiones pendientes de asignar
-		SesionBase sesion = selectorSesionesController.obtenerSesionParaAsignar() ;
+		SesionBase sesion = this.selectorSesionesController.obtenerSesionParaAsignar(this.sesionesThread,
+																		             this.matrizAsignacionesMatutinas,
+																		             this.matrizAsignacionesVespertinas,
+																			         ultimaAsignacion) ;
 
 		int numeroCursos 				  = -1 ;
 		int indiceCursoDiaInicial 	 	  = -1 ;
@@ -148,6 +249,9 @@ public class HorarioThread extends Thread
 
 			// ... obtenemos el índice del curso/día inicial matutino
 			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosMatutinos().get(sesion.getCursoEtapaGrupoString()) ;
+
+			// Cogemos las matrices de asignación
+			matrizAsignacion = this.matrizAsignacionesMatutinas ;
 		}
 		else
 		{
@@ -156,14 +260,59 @@ public class HorarioThread extends Thread
 
 			// ... obtenemos el índice del curso/día inicial vespertino
 			indiceCursoDiaInicial = this.horarioThreadParams.getMapCorrelacionadorCursosVespertinos().get(sesion.getCursoEtapaGrupoString()) ;
+
+			// Cogemos las matrices de asignación
+			matrizAsignacion = this.matrizAsignacionesVespertinas ;
 		}
 
-		// Creamos una nueva instancia de AsignadorSesionesController
-		AsignadorSesionesController asignadorSesionesController = new AsignadorSesionesController(this.horarioThreadParams.getAsignaturaService(),
-																							      selectorSesionesController.getMatrizAsignaciones()) ;
-
 		// Asignamos la sesión y devolvemos la última asignación
-		return asignadorSesionesController.asignarSesion(sesion, numeroCursos, indiceCursoDiaInicial) ;					
+		return this.asignadorSesionesController.asignarSesion(matrizAsignacion, sesion, numeroCursos, indiceCursoDiaInicial) ;					
 	}
+
+	/**
+     * Método para agregar una solución a la lista
+     * @param generadorInstancia generador instancia
+     * @return true si la solución supera el umbral, false en caso contrario
+	 * @throws SchoolManagerServerException con un error
+     */
+    private boolean agregarHorarioSolucion(GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
+    {
+    	// Creamos una instancia de Horario
+		Horario horario = new Horario(this.matrizAsignacionesMatutinas, this.matrizAsignacionesVespertinas) ;
+
+        // Guardamos el horario en la base de datos
+        this.horarioThreadParams.getGeneradorService().guardarHorariosEnGeneradorSesionAsignada(generadorInstancia, horario) ;
+		
+    	// Calculamos las puntuación de esta solución
+        int puntuacionObtenida = this.horarioThreadParams.getGeneradorService().calcularPuntuacion(generadorInstancia) ;
+
+		// Verificamos si la solución supera el umbral
+		boolean solucionSuperaUmbral = puntuacionObtenida > this.horarioThreadParams.getUmbralMinimoSolucion() ;
+   	
+        // Verificamos si la solución cumple unos mínimos
+        if (!solucionSuperaUmbral)
+        {
+            // Logueamos
+            log.info("Horario solución no supera la puntuación umbral: " + puntuacionObtenida + " < {} ó " + puntuacionObtenida + " < {}", 
+            		 this.horarioThreadParams.getUmbralMinimoSolucion(), puntuacionObtenida) ;
+
+            // Borramos de la tabla de generador instancia
+            this.horarioThreadParams.getGeneradorService().eliminarGeneradorInstancia(generadorInstancia) ;
+        }
+        else
+        {
+        	// Logueamos
+            log.info("Horario solución supera la puntuación umbral: " + puntuacionObtenida + " > {} ó " + puntuacionObtenida + " > {}", 
+            		 this.horarioThreadParams.getUmbralMinimoSolucion(), puntuacionObtenida) ;
+        	
+            // Guardamos la puntuación como la solución óptima
+            this.umbralSolucionEncontrado = puntuacionObtenida ;
+
+            // Actualizamos el GeneradorInstancia y el Generador en BBDD
+            this.horarioThreadParams.getGeneradorService().actualizarGeneradorYgeneradorInstancia(generadorInstancia, Constants.MENSAJE_SOLUCION_ENCONTRADA, puntuacionObtenida) ;
+        }
+
+        return solucionSuperaUmbral ;
+    }
 }
 

@@ -76,27 +76,22 @@ public class GeneradorConfigService
 
     /**
      * Método que configura el generador
-     * @param recargarDatos - Recargar datos
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    public void configurarGenerador(boolean recargarDatos) throws SchoolManagerServerException
+    public void configurarGenerador() throws SchoolManagerServerException
     {
-        // Si se recargan los datos, creamos los mapas de correlacionador de cursos y las sesiones
-        if (recargarDatos)
-        {
-            // Obtengo todos los cursos, etapas y grupos de BBDD
-            List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas() ;
-                
-            // Creamos dos mapas de correlacionador de cursos
-            this.mapCorrelacionadorCursosMatutinos   = new HashMap<String, Integer>() ;
-            this.mapCorrelacionadorCursosVespertinos = new HashMap<String, Integer>() ;
+        // Obtengo todos los cursos, etapas y grupos de BBDD
+        List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas() ;
             
-            // Creamos los mapas de correlacionador de cursos
-            this.crearMapasGruposMatutinosVespertinos(cursos) ;
-            
-            // Creamos las sesiones
-            this.creadorSesiones = this.crearSesiones() ;
-        }
+        // Creamos dos mapas de correlacionador de cursos
+        this.mapCorrelacionadorCursosMatutinos   = new HashMap<String, Integer>() ;
+        this.mapCorrelacionadorCursosVespertinos = new HashMap<String, Integer>() ;
+        
+        // Creamos los mapas de correlacionador de cursos
+        this.crearMapasGruposMatutinosVespertinos(cursos) ;
+        
+        // Creamos las sesiones
+        this.creadorSesiones = this.crearSesiones() ;
     }
 
     /**

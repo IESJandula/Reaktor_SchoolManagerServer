@@ -10,7 +10,7 @@ import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaIteracion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaThread;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaItem;
 import es.iesjandula.reaktor.school_manager_server.services.manager.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -24,9 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AsignadorSesionesController
 {
-	/** Matriz de asignaciones */
-	private Asignacion[][] matrizAsignaciones ;
-
 	/** Asignador de sesiones de asignaturas */
 	private AsignadorSesionesAsignaturas asignadorSesionesAsignaturas ;
 
@@ -34,56 +31,60 @@ public class AsignadorSesionesController
 	 * Constructor de la clase
 	 * 
 	 * @param asignaturaService asignatura service
-	 * @param matrizAsignaciones matriz de asignaciones
 	 */
-	public AsignadorSesionesController(AsignaturaService asignaturaService, Asignacion[][] matrizAsignaciones)
+	public AsignadorSesionesController(AsignaturaService asignaturaService)
 	{
-		this.matrizAsignaciones 		  = matrizAsignaciones ;
-		this.asignadorSesionesAsignaturas = new AsignadorSesionesAsignaturas(asignaturaService, matrizAsignaciones) ;
+		this.asignadorSesionesAsignaturas = new AsignadorSesionesAsignaturas(asignaturaService) ;
 	}
 				
 	/**
+	 * @param matrizAsignaciones matriz de asignaciones
      * @param sesion sesión
      * @param numeroCursos número de cursos
 	 * @param indiceCursoDiaInicial índice del curso y día inicial
 	 * @return ultima asignacion
      * @throws SchoolManagerServerException con un error
      */
-    public UltimaAsignacion asignarSesion(SesionBase sesion, int numeroCursos, int indiceCursoDiaInicial) throws SchoolManagerServerException
+    public UltimaAsignacion asignarSesion(Asignacion[][] matrizAsignaciones,
+										  SesionBase sesion,
+										  int numeroCursos,
+										  int indiceCursoDiaInicial) throws SchoolManagerServerException
     {
         // Obtener restricción horaria de iteración de esa sesion
-		RestriccionHorariaIteracion restriccionHorariaIteracion = 
-			this.obtenerRestriccionHorariaDeSesion(sesion, numeroCursos, indiceCursoDiaInicial) ;
+		RestriccionHorariaThread restriccionHorariaThread = 
+			this.obtenerRestriccionHorariaDeSesion(matrizAsignaciones, sesion, numeroCursos, indiceCursoDiaInicial) ;
 
 		// Obtenemos el siguiente item de la restricción horaria
-		RestriccionHorariaItem restriccionHorariaItem = restriccionHorariaIteracion.obtenerRestriccionHorariaItem(sesion) ;
+		RestriccionHorariaItem restriccionHorariaItem = restriccionHorariaThread.obtenerRestriccionHorariaItem(sesion) ;
 		
 		// Creamos una nueva instancia de indicesAsignacionSesion
 		IndicesAsignacionSesion indicesAsignacionSesion = new IndicesAsignacionSesion(restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario()) ;
 
 		// Asignamos la sesión
-		Asignacion asignacion = this.asignarSesion(sesion, indicesAsignacionSesion) ;
+		Asignacion asignacion = this.asignarSesion(matrizAsignaciones, sesion, indicesAsignacionSesion) ;
 
 		// Devolvemos la última asignación
         return new UltimaAsignacion(indicesAsignacionSesion, asignacion) ;
     }
     
     /**
+     * @param matrizAsignaciones matriz de asignaciones
      * @param sesion sesion
 	 * @param numeroCursos número de cursos
      * @param indiceCursoDiaInicial índice del curso y día inicial
      * @return una nueva instancia que restringe los horarios (días y horas)
      * @throws SchoolManagerServerException con un error
      */
-    private RestriccionHorariaIteracion obtenerRestriccionHorariaDeSesion(SesionBase sesion,
-																          int numeroCursos,
-    															          int indiceCursoDiaInicial) throws SchoolManagerServerException
+    private RestriccionHorariaThread obtenerRestriccionHorariaDeSesion(Asignacion[][] matrizAsignaciones,
+		                                                               SesionBase sesion,
+																       int numeroCursos,
+    															       int indiceCursoDiaInicial) throws SchoolManagerServerException
     {
 		// Obtenemos la posible restricción horaria iteración impuesta sobre la sesión
-		RestriccionHorariaIteracion restriccionHorariaIteracion = sesion.getRestriccionHorariaIteracion() ;
+		RestriccionHorariaThread restriccionHorariaThread = sesion.getRestriccionHorariaThread() ;
 
 		// Obtenemos las restricciones relacionadas con el día y tramo horario
-		this.obtenerRestriccionHorariaDeSesionPorDiaTramo(sesion, numeroCursos, restriccionHorariaIteracion) ;
+		this.obtenerRestriccionHorariaDeSesionPorDiaTramo(matrizAsignaciones, sesion, numeroCursos, restriccionHorariaThread) ;
 
 		// Ahora vemos si la sesión es de tipo asignatura
 		boolean esAsignatura = sesion instanceof SesionAsignatura ;
@@ -94,13 +95,13 @@ public class AsignadorSesionesController
 			// Ahora vemos si hay que restringir por bloques de asignaturas (optativas) si es que es una optativa
 			if (sesionAsignatura.getAsignatura().isOptativa())
 			{
-				this.obtenerRestriccionHorariaDeSesionPorOptativas(sesionAsignatura.getAsignatura(), restriccionHorariaIteracion) ;
+				this.obtenerRestriccionHorariaDeSesionPorOptativas(matrizAsignaciones, sesionAsignatura.getAsignatura(), restriccionHorariaThread) ;
 			}
 
 			// Si no es ESO ni BACHILLERATO, la restricción será a nivel de FP
 			if (!sesionAsignatura.isEsoBachillerato())
 			{
-				this.obtenerRestriccionHorariaDeSesionPorModuloFp(sesionAsignatura.getAsignatura(), restriccionHorariaIteracion) ;
+				this.obtenerRestriccionHorariaDeSesionPorModuloFp(matrizAsignaciones, sesionAsignatura.getAsignatura(), restriccionHorariaThread) ;
 			}
 		}
 		else // Entonces es una reducción
@@ -108,20 +109,24 @@ public class AsignadorSesionesController
 			// No hacemos nada por ahora
 		}
 
-		return restriccionHorariaIteracion ;
+		return restriccionHorariaThread ;
 	}
 	
 	/**
+	 * @param matrizAsignaciones matriz de asignaciones
 	 * @param sesion sesion
 	 * @param numeroCursos número de cursos
-	 * @param restriccionHorariaIteracion restriccion horaria iteración
+	 * @param restriccionHorariaThread restriccion horaria thread
 	 */
-	private void obtenerRestriccionHorariaDeSesionPorDiaTramo(SesionBase sesion, int numeroCursos, RestriccionHorariaIteracion restriccionHorariaIteracion)
+	private void obtenerRestriccionHorariaDeSesionPorDiaTramo(Asignacion[][] matrizAsignaciones,
+															  SesionBase sesion,
+															  int numeroCursos,
+															  RestriccionHorariaThread restriccionHorariaThread)
 	{
 		// Introducimos en una misma lista las restricciones no evitables y las evitables
 		List<RestriccionHorariaItem> restriccionesHorarias = new ArrayList<>() ;
-		restriccionesHorarias.addAll(restriccionHorariaIteracion.getRestriccionesHorariasNoEvitables()) ;
-		restriccionesHorarias.addAll(restriccionHorariaIteracion.getRestriccionesHorariasEvitables()) ;
+		restriccionesHorarias.addAll(restriccionHorariaThread.getRestriccionesHorariasNoEvitables()) ;
+		restriccionesHorarias.addAll(restriccionHorariaThread.getRestriccionesHorariasEvitables()) ;
 
 		// Iteramos y quitamos todos aquellos items incompatibles
 		Iterator<RestriccionHorariaItem> iterator = restriccionesHorarias.iterator() ;
@@ -131,8 +136,8 @@ public class AsignadorSesionesController
 
 			// Vemos si se cumple el número máximo de ocurrencias por día y si el profesor no tiene sesión en esta hora ya asignada
 			boolean restriccionIncompatible = 
-			  !SesionesUtils.sesionSinMasXOcurrenciasElMismoDia(this.matrizAsignaciones, restriccionHorariaItem.getIndiceDia(), sesion) ||
-			  !this.profesorSinSesionEnEstaHora(numeroCursos, restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario(), sesion.getProfesor()) ;
+			  !SesionesUtils.sesionSinMasXOcurrenciasElMismoDia(matrizAsignaciones, restriccionHorariaItem.getIndiceDia(), sesion) ||
+			  !this.profesorSinSesionEnEstaHora(matrizAsignaciones, numeroCursos, restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario(), sesion.getProfesor()) ;
 
 			// Si todavía es compatible la restricción ...
 			if (!restriccionIncompatible)
@@ -140,71 +145,74 @@ public class AsignadorSesionesController
 				if (sesion instanceof SesionAsignatura)
 				{
 					restriccionIncompatible = 
-					  this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorDiaTramo(((SesionAsignatura) sesion).getAsignatura(), restriccionHorariaItem) ;
+					  this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorDiaTramo(matrizAsignaciones, ((SesionAsignatura) sesion).getAsignatura(), restriccionHorariaItem) ;
 				}
 			}
 
 			if (restriccionIncompatible)
 			{
-				restriccionHorariaIteracion.eliminarRestriccionHorariaItem(restriccionHorariaItem) ;
+				restriccionHorariaThread.eliminarRestriccionHorariaItem(restriccionHorariaItem) ;
 			}
 		}
 	}
 
 	/**
+	 * @param matrizAsignaciones matriz de asignaciones
 	 * @param asignatura asignatura
-	 * @param restriccionHorariaIteracion restriccion horaria iteración
+	 * @param restriccionHorariaThread restriccion horaria thread
 	 */
-	private void obtenerRestriccionHorariaDeSesionPorOptativas(Asignatura asignatura, RestriccionHorariaIteracion restriccionHorariaIteracion)
+	private void obtenerRestriccionHorariaDeSesionPorOptativas(Asignacion[][] matrizAsignaciones, Asignatura asignatura, RestriccionHorariaThread restriccionHorariaThread)
 	{
 		// Creamos un nuevo ArrayList de RestriccionHorariaItem sobre las restricciones no evitables
-		List<RestriccionHorariaItem> restriccionesHorariasNoEvitables = new ArrayList<>(restriccionHorariaIteracion.getRestriccionesHorariasNoEvitables()) ;
+		List<RestriccionHorariaItem> restriccionesHorariasNoEvitables = new ArrayList<>(restriccionHorariaThread.getRestriccionesHorariasNoEvitables()) ;
 
 		// Obtenemos las restricciones de sesión por optativas en las no evitables
-		boolean encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorOptativas(asignatura, restriccionHorariaIteracion, restriccionesHorariasNoEvitables) ;
+		boolean encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorOptativas(matrizAsignaciones, asignatura, restriccionHorariaThread, restriccionesHorariasNoEvitables) ;
 
 		// Obtenemos las restricciones de sesión por optativas en las evitables
 		if (!encontrado)
 		{
 			// Creamos un nuevo ArrayList de RestriccionHorariaItem sobre las restricciones evitables
-			List<RestriccionHorariaItem> restriccionesHorariasEvitables = new ArrayList<>(restriccionHorariaIteracion.getRestriccionesHorariasEvitables()) ;
+			List<RestriccionHorariaItem> restriccionesHorariasEvitables = new ArrayList<>(restriccionHorariaThread.getRestriccionesHorariasEvitables()) ;
 
 			// Obtenemos las restricciones de sesión por optativas en las evitables
-			encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorOptativas(asignatura, restriccionHorariaIteracion, restriccionesHorariasEvitables) ;
+			encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorOptativas(matrizAsignaciones, asignatura, restriccionHorariaThread, restriccionesHorariasEvitables) ;
 		}
 	}
 
 	/**
+	 * @param matrizAsignaciones matriz de asignaciones
 	 * @param asignatura asignatura
-	 * @param restriccionHorariaIteracion restriccion horaria iteración
+	 * @param restriccionHorariaThread restriccion horaria thread
 	 */
-	private void obtenerRestriccionHorariaDeSesionPorModuloFp(Asignatura asignatura, RestriccionHorariaIteracion restriccionHorariaIteracion)
+	private void obtenerRestriccionHorariaDeSesionPorModuloFp(Asignacion[][] matrizAsignaciones, Asignatura asignatura, RestriccionHorariaThread restriccionHorariaThread)
 	{
 		// Creamos un nuevo ArrayList de RestriccionHorariaItem sobre las restricciones no evitables
-		List<RestriccionHorariaItem> restriccionesHorariasNoEvitables = new ArrayList<>(restriccionHorariaIteracion.getRestriccionesHorariasNoEvitables()) ;
+		List<RestriccionHorariaItem> restriccionesHorariasNoEvitables = new ArrayList<>(restriccionHorariaThread.getRestriccionesHorariasNoEvitables()) ;
 
 		// Obtenemos las restricciones de sesión por módulo FP en las no evitables
-		boolean encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorModuloFp(asignatura, restriccionHorariaIteracion, restriccionesHorariasNoEvitables) ;
+		boolean encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorModuloFp(matrizAsignaciones, asignatura, restriccionHorariaThread, restriccionesHorariasNoEvitables) ;
 
 		// Si no se ha encontrado en las no evitables, se intenta en las evitables
 		if (!encontrado)
 		{
 			// Obtenemos las restricciones de sesión por módulo FP en las evitables
-			List<RestriccionHorariaItem> restriccionesHorariasEvitables = new ArrayList<>(restriccionHorariaIteracion.getRestriccionesHorariasEvitables()) ;
+			List<RestriccionHorariaItem> restriccionesHorariasEvitables = new ArrayList<>(restriccionHorariaThread.getRestriccionesHorariasEvitables()) ;
 
 			// Obtenemos las restricciones de sesión por módulo FP en las evitables
-			encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorModuloFp(asignatura, restriccionHorariaIteracion, restriccionesHorariasEvitables) ;
+			encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorModuloFp(matrizAsignaciones, asignatura, restriccionHorariaThread, restriccionesHorariasEvitables) ;
 		}
 	}
 	
 	/**
+	 * @param matrizAsignaciones matriz de asignaciones
      * @param numeroCursos numero de cursos
      * @param indiceCursoDia índice curso día
      * @param indiceTramoHorario hora sobre la que verificar
 	 * @param profesor profesor
 	 * @return true si el profesor ya tiene una clase asignada a esa misma hora
 	 */
-	private boolean profesorSinSesionEnEstaHora(int numeroCursos, int indiceCursoDia, int indiceTramoHorario, Profesor profesor)
+	private boolean profesorSinSesionEnEstaHora(Asignacion[][] matrizAsignaciones, int numeroCursos, int indiceCursoDia, int indiceTramoHorario, Profesor profesor)
 	{
         boolean profesorSinSesionEnEstaHora = true ;
         
@@ -220,8 +228,8 @@ public class AsignadorSesionesController
         	int indiceCursoBusqueda = diaExacto + (i * Constants.NUMERO_DIAS_SEMANA) ;
         	
     		// Si es true es porque el profesor NO tiene clase asignada a esa misma hora
-    		profesorSinSesionEnEstaHora = this.matrizAsignaciones[indiceCursoBusqueda][indiceTramoHorario] == null ||
-    									 !this.buscarProfesor(this.matrizAsignaciones[indiceCursoBusqueda][indiceTramoHorario], profesor) ;
+    		profesorSinSesionEnEstaHora = matrizAsignaciones[indiceCursoBusqueda][indiceTramoHorario] == null ||
+    									 !this.buscarProfesor(matrizAsignaciones[indiceCursoBusqueda][indiceTramoHorario], profesor) ;
             i++ ;
         }
         
@@ -249,21 +257,22 @@ public class AsignadorSesionesController
 	}
 
 	/**
+	 * @param matrizAsignaciones matriz de asignaciones
      * @param sesion sesión
      * @param asignacionSesion asignacion sesion
 	 * @return asignacion con la sesión asignada
      * @throws SchoolManagerServerException con un error
      */
-	protected Asignacion asignarSesion(SesionBase sesion, IndicesAsignacionSesion indicesAsignacionSesion) throws SchoolManagerServerException
+	protected Asignacion asignarSesion(Asignacion[][] matrizAsignaciones, SesionBase sesion, IndicesAsignacionSesion indicesAsignacionSesion) throws SchoolManagerServerException
 	{
 		// Obtenemos la asignación actual
-		Asignacion asignacion = this.matrizAsignaciones[indicesAsignacionSesion.getIndiceCursoDia()][indicesAsignacionSesion.getIndiceTramoHorario()] ;
+		Asignacion asignacion = matrizAsignaciones[indicesAsignacionSesion.getIndiceCursoDia()][indicesAsignacionSesion.getIndiceTramoHorario()] ;
 		
 		// Si no hay ninguna asignación, inicializamos la instancia
 		if (asignacion == null)
 		{
 			asignacion = new Asignacion() ;
-			this.matrizAsignaciones[indicesAsignacionSesion.getIndiceCursoDia()][indicesAsignacionSesion.getIndiceTramoHorario()] = asignacion ;
+			matrizAsignaciones[indicesAsignacionSesion.getIndiceCursoDia()][indicesAsignacionSesion.getIndiceTramoHorario()] = asignacion ;
 		}
 		
 		// Si es una asignatura ...

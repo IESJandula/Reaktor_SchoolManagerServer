@@ -12,12 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
-public class RestriccionHorariaIteracion extends RestriccionHorariaBase
+public class RestriccionHorariaThread extends RestriccionHorariaBase
 {
     /**
      * @param restriccionHorariaInit Restricción horaria inicial
      */
-    public RestriccionHorariaIteracion(RestriccionHorariaInit restriccionHorariaInit)
+    public RestriccionHorariaThread(RestriccionHorariaInit restriccionHorariaInit)
     {
         super(new ArrayList<RestriccionHorariaItem>(restriccionHorariaInit.getRestriccionesHorariasNoEvitables()), new ArrayList<RestriccionHorariaItem>(restriccionHorariaInit.getRestriccionesHorariasEvitables())) ;
         

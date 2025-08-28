@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaInit;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaIteracion;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaThread;
 
 @Slf4j
 @Data
@@ -27,7 +27,7 @@ public abstract class SesionBase
     private RestriccionHorariaInit restriccionHorariaInit ;
 
     /** Propuesta de restricciones horarias iteracion */
-    private RestriccionHorariaIteracion restriccionHorariaIteracion ;
+    private RestriccionHorariaThread restriccionHorariaThread ;
 
     /**
      * Constructor que inicializa la lista de restricciones horarias
@@ -59,9 +59,9 @@ public abstract class SesionBase
     /**
      * Inicializa la restricción horaria iteracion
      */
-    public void inicializarRestriccionHorariaIteracion()
+    public void inicializarRestriccionHorariaThread()
     {
-        this.restriccionHorariaIteracion = new RestriccionHorariaIteracion(this.restriccionHorariaInit) ;
+        this.restriccionHorariaThread = new RestriccionHorariaThread(this.restriccionHorariaInit) ;
     }
 }
 
