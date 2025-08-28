@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaInit;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 
@@ -23,12 +23,12 @@ public class SesionAsignatura extends SesionBase
      * @param asignatura asignatura
      * @param profesor profesor
      * @param tipoHorario tipo de horario
-     * @param restriccionHoraria restricción horaria
+     * @param restriccionHorariaInit restricción horaria init
      */
     public SesionAsignatura(CursoEtapaGrupo cursoEtapaGrupo, Asignatura asignatura, Profesor profesor,
-                            boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
+                            boolean tipoHorarioMatutino, RestriccionHorariaInit restriccionHorariaInit)
     {      
-        super(cursoEtapaGrupo, profesor, tipoHorarioMatutino, cursoEtapaGrupo.getEsoBachillerato(), restriccionHoraria) ;
+        super(cursoEtapaGrupo, profesor, tipoHorarioMatutino, cursoEtapaGrupo.getEsoBachillerato(), restriccionHorariaInit) ;
 
         this.asignatura = asignatura ;
     }

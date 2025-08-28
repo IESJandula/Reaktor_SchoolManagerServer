@@ -10,7 +10,7 @@ import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.Asignacion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaIteracion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaItem;
 import es.iesjandula.reaktor.school_manager_server.services.manager.AsignaturaService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -51,11 +51,12 @@ public class AsignadorSesionesController
      */
     public UltimaAsignacion asignarSesion(SesionBase sesion, int numeroCursos, int indiceCursoDiaInicial) throws SchoolManagerServerException
     {
-        // Obtener restricción horaria de esa sesion
-		RestriccionHoraria restriccionHoraria = this.obtenerRestriccionHorariaDeSesion(sesion, numeroCursos, indiceCursoDiaInicial) ;
+        // Obtener restricción horaria de iteración de esa sesion
+		RestriccionHorariaIteracion restriccionHorariaIteracion = 
+			this.obtenerRestriccionHorariaDeSesion(sesion, numeroCursos, indiceCursoDiaInicial) ;
 
 		// Obtenemos el siguiente item de la restricción horaria
-		RestriccionHorariaItem restriccionHorariaItem = restriccionHoraria.obtenerRestriccionHorariaItem(sesion) ;
+		RestriccionHorariaItem restriccionHorariaItem = restriccionHorariaIteracion.obtenerRestriccionHorariaItem(sesion) ;
 		
 		// Creamos una nueva instancia de indicesAsignacionSesion
 		IndicesAsignacionSesion indicesAsignacionSesion = new IndicesAsignacionSesion(restriccionHorariaItem.getIndiceDia(), restriccionHorariaItem.getTramoHorario()) ;
@@ -74,109 +75,53 @@ public class AsignadorSesionesController
      * @return una nueva instancia que restringe los horarios (días y horas)
      * @throws SchoolManagerServerException con un error
      */
-    private RestriccionHoraria obtenerRestriccionHorariaDeSesion(SesionBase sesion,
-																 int numeroCursos,
-    															 int indiceCursoDiaInicial) throws SchoolManagerServerException
+    private RestriccionHorariaIteracion obtenerRestriccionHorariaDeSesion(SesionBase sesion,
+																          int numeroCursos,
+    															          int indiceCursoDiaInicial) throws SchoolManagerServerException
     {
-		// Obtenemos la posible restricción horaria impuesta sobre la sesión
-		RestriccionHoraria restriccionHoraria = sesion.getRestriccionHoraria() ;
+		// Obtenemos la posible restricción horaria iteración impuesta sobre la sesión
+		RestriccionHorariaIteracion restriccionHorariaIteracion = sesion.getRestriccionHorariaIteracion() ;
 
-		// Si no hay restricciones horarias impuestas sobre la sesión, vamos a crear un builder que vamos a ir enriqueciendo con restricciones
-		if (sesion.getRestriccionHoraria() == null)
+		// Obtenemos las restricciones relacionadas con el día y tramo horario
+		this.obtenerRestriccionHorariaDeSesionPorDiaTramo(sesion, numeroCursos, restriccionHorariaIteracion) ;
+
+		// Ahora vemos si la sesión es de tipo asignatura
+		boolean esAsignatura = sesion instanceof SesionAsignatura ;
+		if (esAsignatura)
 		{
-			// Vamos a crear un builder que vamos a ir enriqueciendo con restricciones
-			// antes de devolver la instancia de Restriccion Horaria
-			RestriccionHoraria.Builder builder = new RestriccionHoraria.Builder(indiceCursoDiaInicial) ;
+			SesionAsignatura sesionAsignatura = (SesionAsignatura) sesion ;
 
-			// Obtenemos las restricciones relacionadas con tratar de evitar que se coja de primera o última hora
-			this.obtenerRestriccionHorariaDeSesionTratarEvitarClasePrimeraUltimaHora(sesion, builder) ;
-
-			// Obtenemos las restricciones relacionadas con los días y tramos que le gustaría evitar al profesor
-			this.obtenerRestriccionHorariaDeSesionPorPreferenciasHorariasProfesores(sesion, builder) ;
-
-			// Obtenemos las restricciones relacionadas con el día y tramo horario
-			this.obtenerRestriccionHorariaDeSesionPorDiaTramo(sesion, numeroCursos, builder) ;
-
-			// Ahora en la conciliación de los profesores siempre que la asignatura sea matutina
-			if (sesion.isTipoHorarioMatutino())
+			// Ahora vemos si hay que restringir por bloques de asignaturas (optativas) si es que es una optativa
+			if (sesionAsignatura.getAsignatura().isOptativa())
 			{
-				this.obtenerRestriccionHorariaDeSesionPorConciliacion(sesion, builder) ;
+				this.obtenerRestriccionHorariaDeSesionPorOptativas(sesionAsignatura.getAsignatura(), restriccionHorariaIteracion) ;
 			}
 
-			// Ahora vemos si la sesión es de tipo asignatura
-			boolean esAsignatura = sesion instanceof SesionAsignatura ;
-			if (esAsignatura)
+			// Si no es ESO ni BACHILLERATO, la restricción será a nivel de FP
+			if (!sesionAsignatura.isEsoBachillerato())
 			{
-				SesionAsignatura sesionAsignatura = (SesionAsignatura) sesion ;
-
-				// Ahora vemos si hay que restringir por bloques de asignaturas (optativas) si es que es una optativa
-				if (sesionAsignatura.getAsignatura().isOptativa())
-				{
-					this.obtenerRestriccionHorariaDeSesionPorOptativas(sesionAsignatura.getAsignatura(), builder) ;
-				}
-
-				// Si no es ESO ni BACHILLERATO, la restricción será a nivel de FP
-				if (!sesionAsignatura.isEsEsoBachillerato())
-				{
-					this.obtenerRestriccionHorariaDeSesionPorModuloFp(sesionAsignatura.getAsignatura(), builder) ;
-				}
+				this.obtenerRestriccionHorariaDeSesionPorModuloFp(sesionAsignatura.getAsignatura(), restriccionHorariaIteracion) ;
 			}
-			else // Entonces es una reducción
-			{
-				// No hacemos nada por ahora
-			}
-			// Hacemos un build para obtener la instancia de Restriccion Horaria
-			restriccionHoraria = builder.build() ;
+		}
+		else // Entonces es una reducción
+		{
+			// No hacemos nada por ahora
 		}
 
-		return restriccionHoraria ;
+		return restriccionHorariaIteracion ;
 	}
 	
 	/**
 	 * @param sesion sesion
-	 * @param builder restriccion horaria builder
+	 * @param numeroCursos número de cursos
+	 * @param restriccionHorariaIteracion restriccion horaria iteración
 	 */
-	private void obtenerRestriccionHorariaDeSesionTratarEvitarClasePrimeraUltimaHora(SesionBase sesion, RestriccionHoraria.Builder builder)
-	{
-		// Si el profesor prefiere no tener clase a primera hora, se intenta que no se coja de esta
-		if (sesion.getProfesor().getObservacionesAdicionales().getSinClasePrimeraHora())
-		{
-			builder = builder.tratarEvitarClasePrimeraHora() ;
-		}
-		// Si el profesor prefiere no tener clase a última hora, se intenta que no se coja de esta
-		else if (!sesion.getProfesor().getObservacionesAdicionales().getSinClasePrimeraHora())
-		{
-			builder = builder.tratarEvitarClaseUltimaHora() ;
-		}
-	}
-
-	/**
-	 * @param sesion sesion
-	 * @param builder restriccion horaria builder
-	 */
-	private void obtenerRestriccionHorariaDeSesionPorPreferenciasHorariasProfesores(SesionBase sesion, RestriccionHoraria.Builder builder)
-	{
-		// Obtenemos las preferencias horarias del profesor
-		List<PreferenciasHorariasProfesor> preferenciasHorariasProfesores = sesion.getProfesor().getPreferenciasHorariasProfesor() ;
-
-		// Si hay preferencias horarias, se intenta que no se coja de esta
-		if (preferenciasHorariasProfesores != null && preferenciasHorariasProfesores.size() > 0)
-		{
-			// Si hay preferencias horarias, se intenta que no se coja de esta
-			builder = builder.tratarEvitarClaseTramoHorario(preferenciasHorariasProfesores) ;
-		}
-	}
-	
-	/**
-	 * @param sesion sesion
-	 * @param builder restriccion horaria builder
-	 */
-	private void obtenerRestriccionHorariaDeSesionPorDiaTramo(SesionBase sesion, int numeroCursos, RestriccionHoraria.Builder builder)
+	private void obtenerRestriccionHorariaDeSesionPorDiaTramo(SesionBase sesion, int numeroCursos, RestriccionHorariaIteracion restriccionHorariaIteracion)
 	{
 		// Introducimos en una misma lista las restricciones no evitables y las evitables
 		List<RestriccionHorariaItem> restriccionesHorarias = new ArrayList<>() ;
-		restriccionesHorarias.addAll(builder.getRestriccionesHorariasNoEvitables()) ;
-		restriccionesHorarias.addAll(builder.getRestriccionesHorariasEvitables()) ;
+		restriccionesHorarias.addAll(restriccionHorariaIteracion.getRestriccionesHorariasNoEvitables()) ;
+		restriccionesHorarias.addAll(restriccionHorariaIteracion.getRestriccionesHorariasEvitables()) ;
 
 		// Iteramos y quitamos todos aquellos items incompatibles
 		Iterator<RestriccionHorariaItem> iterator = restriccionesHorarias.iterator() ;
@@ -194,79 +139,61 @@ public class AsignadorSesionesController
 			{
 				if (sesion instanceof SesionAsignatura)
 				{
-					restriccionIncompatible = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorDiaTramo(((SesionAsignatura) sesion).getAsignatura(), restriccionHorariaItem) ;
+					restriccionIncompatible = 
+					  this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorDiaTramo(((SesionAsignatura) sesion).getAsignatura(), restriccionHorariaItem) ;
 				}
 			}
 
 			if (restriccionIncompatible)
 			{
-				builder = builder.eliminarRestriccionHorariaItem(restriccionHorariaItem) ;
-			}
-		}
-	}
-    
-    /**
-     * @param sesion sesion
-     * @param builder restriccion horaria builder
-     */
-	private void obtenerRestriccionHorariaDeSesionPorConciliacion(SesionBase sesion, RestriccionHoraria.Builder builder)
-	{
-    	if (sesion.getProfesor().getObservacionesAdicionales().getConciliacion())
-		{
-			if (sesion.getProfesor().getObservacionesAdicionales().getSinClasePrimeraHora())
-			{
-				builder = builder.sinClasePrimeraHora() ;
-			}
-			else
-			{
-				builder = builder.sinClaseUltimaHora() ;
+				restriccionHorariaIteracion.eliminarRestriccionHorariaItem(restriccionHorariaItem) ;
 			}
 		}
 	}
 
 	/**
 	 * @param asignatura asignatura
-	 * @param builder restriccion horaria builder
+	 * @param restriccionHorariaIteracion restriccion horaria iteración
 	 */
-	private void obtenerRestriccionHorariaDeSesionPorOptativas(Asignatura asignatura, RestriccionHoraria.Builder builder)
+	private void obtenerRestriccionHorariaDeSesionPorOptativas(Asignatura asignatura, RestriccionHorariaIteracion restriccionHorariaIteracion)
 	{
 		// Creamos un nuevo ArrayList de RestriccionHorariaItem sobre las restricciones no evitables
-		List<RestriccionHorariaItem> restriccionesHorariasNoEvitables = new ArrayList<>(builder.getRestriccionesHorariasNoEvitables()) ;
+		List<RestriccionHorariaItem> restriccionesHorariasNoEvitables = new ArrayList<>(restriccionHorariaIteracion.getRestriccionesHorariasNoEvitables()) ;
 
 		// Obtenemos las restricciones de sesión por optativas en las no evitables
-		boolean encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorOptativas(asignatura, builder, restriccionesHorariasNoEvitables) ;
+		boolean encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorOptativas(asignatura, restriccionHorariaIteracion, restriccionesHorariasNoEvitables) ;
 
 		// Obtenemos las restricciones de sesión por optativas en las evitables
 		if (!encontrado)
 		{
 			// Creamos un nuevo ArrayList de RestriccionHorariaItem sobre las restricciones evitables
-			List<RestriccionHorariaItem> restriccionesHorariasEvitables = new ArrayList<>(builder.getRestriccionesHorariasEvitables()) ;
+			List<RestriccionHorariaItem> restriccionesHorariasEvitables = new ArrayList<>(restriccionHorariaIteracion.getRestriccionesHorariasEvitables()) ;
 
 			// Obtenemos las restricciones de sesión por optativas en las evitables
-			encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorOptativas(asignatura, builder, restriccionesHorariasEvitables) ;
+			encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorOptativas(asignatura, restriccionHorariaIteracion, restriccionesHorariasEvitables) ;
 		}
 	}
 
 	/**
 	 * @param asignatura asignatura
-	 * @param builder restriccion horaria builder
+	 * @param restriccionHorariaIteracion restriccion horaria iteración
 	 */
-	private void obtenerRestriccionHorariaDeSesionPorModuloFp(Asignatura asignatura, RestriccionHoraria.Builder builder)
+	private void obtenerRestriccionHorariaDeSesionPorModuloFp(Asignatura asignatura, RestriccionHorariaIteracion restriccionHorariaIteracion)
 	{
 		// Creamos un nuevo ArrayList de RestriccionHorariaItem sobre las restricciones no evitables
-		List<RestriccionHorariaItem> restriccionesHorariasNoEvitables = new ArrayList<>(builder.getRestriccionesHorariasNoEvitables()) ;
+		List<RestriccionHorariaItem> restriccionesHorariasNoEvitables = new ArrayList<>(restriccionHorariaIteracion.getRestriccionesHorariasNoEvitables()) ;
 
 		// Obtenemos las restricciones de sesión por módulo FP en las no evitables
-		boolean encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorModuloFp(asignatura, builder, restriccionesHorariasNoEvitables) ;
+		boolean encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorModuloFp(asignatura, restriccionHorariaIteracion, restriccionesHorariasNoEvitables) ;
 
 		// Si no se ha encontrado en las no evitables, se intenta en las evitables
 		if (!encontrado)
 		{
 			// Obtenemos las restricciones de sesión por módulo FP en las evitables
-			List<RestriccionHorariaItem> restriccionesHorariasEvitables = new ArrayList<>(builder.getRestriccionesHorariasEvitables()) ;
+			List<RestriccionHorariaItem> restriccionesHorariasEvitables = new ArrayList<>(restriccionHorariaIteracion.getRestriccionesHorariasEvitables()) ;
 
 			// Obtenemos las restricciones de sesión por módulo FP en las evitables
-			encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorModuloFp(asignatura, builder, restriccionesHorariasEvitables) ;
+			encontrado = this.asignadorSesionesAsignaturas.obtenerRestriccionHorariaDeSesionPorModuloFp(asignatura, restriccionHorariaIteracion, restriccionesHorariasEvitables) ;
 		}
 	}
 	

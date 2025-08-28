@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaInit;
 
 @Slf4j
 @Data
@@ -23,12 +23,12 @@ public class SesionReduccion extends SesionBase
      * @param reduccion reduccion
      * @param profesor profesor
      * @param tipoHorario tipo de horario
-     * @param restriccionHoraria restricción horaria
+     * @param restriccionHorariaInit restricción horaria init
      */
     public SesionReduccion(CursoEtapaGrupo cursoEtapaGrupo,
-        Reduccion reduccion, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
+        Reduccion reduccion, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHorariaInit restriccionHorariaInit)
     {      
-        super(cursoEtapaGrupo, profesor, tipoHorarioMatutino, cursoEtapaGrupo.getEsoBachillerato(), restriccionHoraria) ;
+        super(cursoEtapaGrupo, profesor, tipoHorarioMatutino, cursoEtapaGrupo.getEsoBachillerato(), restriccionHorariaInit) ;
 
         this.reduccion = reduccion ;
     }

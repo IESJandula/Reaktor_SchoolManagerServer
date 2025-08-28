@@ -139,12 +139,21 @@ public class GeneradorService
 														     [Constants.NUMERO_TRAMOS_HORARIOS] ;
 
 		}
+
+        // Obtenemos la lista de lista de sesiones
+        List<List<SesionBase>> listaDeListaSesiones = this.generadorConfigService.getCreadorSesiones().getListaDeListaSesiones() ;
+
+        // Visitamos todas las sesiones e inicializamos la restricción horaria iteracion
+        for (List<SesionBase> listaSesiones : listaDeListaSesiones)
+        {
+            for (SesionBase sesion : listaSesiones)
+            {
+                sesion.inicializarRestriccionHorariaIteracion() ;
+            }
+        }
     	
     	// Lanzamos nuevos threads para procesar la siguiente clase
-        manejadorThreads.lanzarNuevosThreads(this.generadorConfigService.getCreadorSesiones().getListaDeListaSesiones(),
-                                             asignacionesInicialesMatutinas,
-                                             asignacionesInicialesVespertinas,
-                                              null) ;
+        manejadorThreads.lanzarNuevosThreads(listaDeListaSesiones, asignacionesInicialesMatutinas, asignacionesInicialesVespertinas,null) ;
     }
 
     /**

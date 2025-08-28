@@ -4,7 +4,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaInit;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaIteracion;
 
 @Slf4j
 @Data
@@ -20,10 +21,13 @@ public abstract class SesionBase
     private final boolean tipoHorarioMatutino ;
 
     /** Indica si la sesión es de ESO o BACH */
-    private final boolean esEsoBachillerato ;
+    private final boolean esoBachillerato ;
 
-    /** Propuesta de dia y/o tramo a forzar */
-    private RestriccionHoraria restriccionHoraria ;
+    /** Propuesta de restricciones horarias iniciales */
+    private RestriccionHorariaInit restriccionHorariaInit ;
+
+    /** Propuesta de restricciones horarias iteracion */
+    private RestriccionHorariaIteracion restriccionHorariaIteracion ;
 
     /**
      * Constructor que inicializa la lista de restricciones horarias
@@ -31,33 +35,17 @@ public abstract class SesionBase
      * @param cursoEtapaGrupo curso etapa grupo
      * @param profesor profesor
      * @param tipoHorario tipo de horario
-     * @param esEsoBachillerato indica si la sesión es de ESO o BACH (si es false, es FP)
-     * @param restriccionHoraria restricción horaria
+     * @param esoBachillerato indica si la sesión es de ESO o BACH (si es false, es FP)
+     * @param restriccionHorariaInit restricción horaria init
      */
     public SesionBase(CursoEtapaGrupo cursoEtapaGrupo, Profesor profesor, boolean tipoHorarioMatutino,
-                      boolean esEsoBachillerato, RestriccionHoraria restriccionHoraria)
+                      boolean esoBachillerato, RestriccionHorariaInit restriccionHorariaInit)
     {      
-        this.cursoEtapaGrupo      = cursoEtapaGrupo ;
-        this.profesor            = profesor ;
-        this.tipoHorarioMatutino = tipoHorarioMatutino ;
-        this.esEsoBachillerato   = esEsoBachillerato ;
-        this.restriccionHoraria  = restriccionHoraria ;
-    }
-
-    /**
-     * @return true si la sesión es de asignatura, false en caso contrario
-     */
-    public boolean isTipoHorarioMatutino()
-    {
-        return this.tipoHorarioMatutino ;
-    }
-
-    /**
-     * @return true si la sesión es de ESO o BACH, false en caso contrario
-     */
-    public boolean isEsoBachillerato()
-    {
-        return this.esEsoBachillerato ;
+        this.cursoEtapaGrupo        = cursoEtapaGrupo ;
+        this.profesor               = profesor ;
+        this.tipoHorarioMatutino    = tipoHorarioMatutino ;
+        this.esoBachillerato        = esoBachillerato ;
+        this.restriccionHorariaInit = restriccionHorariaInit ;
     }
 
     /**
@@ -66,6 +54,14 @@ public abstract class SesionBase
     public String getCursoEtapaGrupoString()
     {
         return this.cursoEtapaGrupo.getCursoEtapaGrupoString() ;
+    }
+
+    /**
+     * Inicializa la restricción horaria iteracion
+     */
+    public void inicializarRestriccionHorariaIteracion()
+    {
+        this.restriccionHorariaIteracion = new RestriccionHorariaIteracion(this.restriccionHorariaInit) ;
     }
 }
 

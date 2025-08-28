@@ -7,7 +7,7 @@ import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionAsignatura;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionReduccion;
-import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHoraria;
+import es.iesjandula.reaktor.school_manager_server.models.no_jpa.restrictions.RestriccionHorariaInit;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -49,13 +49,13 @@ public class CreadorSesiones
      * @param restriccionHoraria restricción horaria
      */
     public void crearSesion(CursoEtapaGrupo cursoEtapaGrupo, Asignatura asignatura, Profesor profesor,
-                            boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
+                            boolean tipoHorarioMatutino, RestriccionHorariaInit restriccionHorariaInit)
     {
         // Por defecto, la lista de sesiones elegida es la de sin restricciones
         List<SesionBase> listaSesionesElegida = this.sesionesSinRestricciones ;
 
         // Si la asignatura tiene restricciones horarias, la lista elegida es la de sesiones con restricciones horarias
-        if (restriccionHoraria != null)
+        if (restriccionHorariaInit != null)
         {
             listaSesionesElegida = this.sesionesConRestriccionesHorarias ;
         }
@@ -70,7 +70,7 @@ public class CreadorSesiones
         }
 
         // Añadimos la sesión a la lista elegida
-        listaSesionesElegida.add(new SesionAsignatura(cursoEtapaGrupo, asignatura, profesor, tipoHorarioMatutino, restriccionHoraria)) ;
+        listaSesionesElegida.add(new SesionAsignatura(cursoEtapaGrupo, asignatura, profesor, tipoHorarioMatutino, restriccionHorariaInit)) ;
     }
 
     /**
@@ -83,13 +83,13 @@ public class CreadorSesiones
      * @param restriccionHoraria restricción horaria
      */
     public void crearSesion(CursoEtapaGrupo cursoEtapaGrupo,
-        Reduccion reduccion, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHoraria restriccionHoraria)
+        Reduccion reduccion, Profesor profesor, boolean tipoHorarioMatutino, RestriccionHorariaInit restriccionHorariaInit)
     {
         // Por defecto, la lista de sesiones elegida es la de sin restricciones
         List<SesionBase> listaSesionesElegida = this.sesionesSinRestricciones ;
 
         // Si la reduccion tiene restricciones horarias, la lista elegida es la de sesiones con restricciones horarias
-        if (restriccionHoraria != null)
+        if (restriccionHorariaInit != null)
         {
             listaSesionesElegida = this.sesionesConRestriccionesHorarias ;
         }
@@ -99,7 +99,7 @@ public class CreadorSesiones
         }
 
         // Añadimos la sesión a la lista elegida
-        listaSesionesElegida.add(new SesionReduccion(cursoEtapaGrupo, reduccion, profesor, tipoHorarioMatutino, restriccionHoraria)) ;
+        listaSesionesElegida.add(new SesionReduccion(cursoEtapaGrupo, reduccion, profesor, tipoHorarioMatutino, restriccionHorariaInit)) ;
     }
 
     /**
