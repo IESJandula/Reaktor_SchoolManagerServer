@@ -38,13 +38,13 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      */
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorAsignadaImpartirProfesorDto(gai.diaTramoTipoHorario.diaDesc, " +
                                                                                                                       "gai.diaTramoTipoHorario.tramoDesc, " +
-                                                                                                                      "gai.asignatura.idAsignatura.cursoEtapaGrupo.horarioMatutino, " +
-                                                                                                                      "gai.asignatura.idAsignatura.nombre, " +
-                                                                                                                      "gai.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, " +
-                                                                                                                      "gai.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, " +
-                                                                                                                      "gai.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
+                                                                                                                      "gai.impartir.asignatura.idAsignatura.cursoEtapaGrupo.horarioMatutino, " +
+                                                                                                                      "gai.impartir.asignatura.idAsignatura.nombre, " +
+                                                                                                                      "gai.impartir.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, " +
+                                                                                                                      "gai.impartir.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, " +
+                                                                                                                      "gai.impartir.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
            "FROM GeneradorAsignadaImpartir gai " +
-           "WHERE gai.profesor = :profesor " +
+           "WHERE gai.impartir.profesor = :profesor " +
            "AND gai.generadorInstancia.solucionElegida = true " + 
            "ORDER BY gai.diaTramoTipoHorario.dia, gai.diaTramoTipoHorario.tramo")
     Optional<List<GeneradorAsignadaImpartirProfesorDto>> buscarHorarioProfesorSolucionElegida(Profesor profesor);
@@ -56,12 +56,12 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      */
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorAsignadaImpartirCursoEtapaGrupoDto(gai.diaTramoTipoHorario.diaDesc, " +
                                                                                                                              "gai.diaTramoTipoHorario.tramoDesc, " +
-                                                                                                                             "gai.asignatura.idAsignatura.cursoEtapaGrupo.horarioMatutino, " +
-                                                                                                                             "gai.asignatura.idAsignatura.nombre, " +
-                                                                                                                             "gai.profesor.nombre, " +
-                                                                                                                             "gai.profesor.apellidos) " +
+                                                                                                                             "gai.impartir.asignatura.idAsignatura.cursoEtapaGrupo.horarioMatutino, " +
+                                                                                                                             "gai.impartir.asignatura.idAsignatura.nombre, " +
+                                                                                                                             "gai.impartir.profesor.nombre, " +
+                                                                                                                             "gai.impartir.profesor.apellidos) " +
            "FROM GeneradorAsignadaImpartir gai " +
-           "WHERE gai.asignatura.idAsignatura.cursoEtapaGrupo = :cursoEtapaGrupo " +
+           "WHERE gai.impartir.asignatura.idAsignatura.cursoEtapaGrupo = :cursoEtapaGrupo " +
            "AND gai.generadorInstancia.solucionElegida = true " +
            "ORDER BY gai.diaTramoTipoHorario.dia, gai.diaTramoTipoHorario.tramo")
     Optional<List<GeneradorAsignadaImpartirCursoEtapaGrupoDto>> buscarHorarioCursoEtapaGrupoSolucionElegida(CursoEtapaGrupo cursoEtapaGrupo);
@@ -77,10 +77,10 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      * @return - Número de huecos entre sesiones
      */
     @Query(value = "SELECT COALESCE(SUM(huecos),0) FROM ( " +
-           "  SELECT (MAX(dtth.tramo) - MIN(dtth.tramo) + 1) - COUNT(gai.profesor_email) AS huecos " +
+           "  SELECT (MAX(dtth.tramo) - MIN(dtth.tramo) + 1) - COUNT(gai.impartir_profesor_email) AS huecos " +
            "  FROM dia_tramo_tipo_horario dtth " +
            "  JOIN generador_asignada_impartir gai ON gai.dia_tramo_tipo_horario_id = dtth.id " +
-           "  WHERE gai.profesor_email = :email " +
+           "  WHERE gai.impartir_profesor_email = :email " +
            "    AND gai.generador_instancia_id = :generadorInstanciaId " +
            "    AND dtth.horario_matutino = :esMatutino " +
            "    AND dtth.dia != -1 AND dtth.tramo != -1 " +
@@ -94,7 +94,7 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      * @return - Lista de profesores
      */
     @Query("SELECT DISTINCT p FROM GeneradorAsignadaImpartir gai " +
-           "JOIN gai.profesor p " +
+           "JOIN gai.impartir.profesor p " +
            "LEFT JOIN FETCH p.preferenciasHorariasProfesor " +
            "LEFT JOIN FETCH p.observacionesAdicionales " +
            "WHERE gai.generadorInstancia = :generadorInstancia " +
@@ -110,7 +110,7 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      */
     @Query(value = "SELECT COUNT(*) " +
                    "FROM GeneradorAsignadaImpartir gai " +
-                   "WHERE gai.profesor.email = :profesorEmail " + 
+                   "WHERE gai.impartir.profesor.email = :profesorEmail " + 
                      "AND gai.generadorInstancia.id = :generadorInstanciaId " +
                      "AND gai.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                      "AND gai.diaTramoTipoHorario.tramo = " + Constants.TRAMO_HORARIO_PRIMERA_HORA)
@@ -125,7 +125,7 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      */
     @Query(value = "SELECT COUNT(*) " +
                    "FROM GeneradorAsignadaImpartir gai " +
-                   "WHERE gai.profesor.email = :profesorEmail " + 
+                   "WHERE gai.impartir.profesor.email = :profesorEmail " + 
                      "AND gai.generadorInstancia.id = :generadorInstanciaId " +
                      "AND gai.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                      "AND gai.diaTramoTipoHorario.tramo = " + Constants.TRAMO_HORARIO_SEXTA_HORA)
@@ -142,7 +142,7 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      */
     @Query(value = "SELECT CASE WHEN COUNT(gai) > 0 THEN 0 ELSE 1 END  " +
                    "FROM GeneradorAsignadaImpartir gai " +
-                   "WHERE gai.profesor.email = :profesorEmail " + 
+                   "WHERE gai.impartir.profesor.email = :profesorEmail " +   
                      "AND gai.generadorInstancia.id = :generadorInstanciaId " +
                      "AND gai.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                      "AND gai.diaTramoTipoHorario.tramo = :tramo " +

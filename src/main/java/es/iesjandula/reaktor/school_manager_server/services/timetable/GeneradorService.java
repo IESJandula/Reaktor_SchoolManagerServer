@@ -18,6 +18,7 @@ import es.iesjandula.reaktor.school_manager_server.generator.Horario;
 import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThread;
 import es.iesjandula.reaktor.school_manager_server.generator.threads.HorarioThreadParams;
 import es.iesjandula.reaktor.school_manager_server.models.Constantes;
+import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
 import es.iesjandula.reaktor.school_manager_server.models.Generador;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorAsignadaImpartir;
@@ -25,6 +26,7 @@ import es.iesjandula.reaktor.school_manager_server.models.GeneradorAsignadaReduc
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstancia;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoGeneral;
 import es.iesjandula.reaktor.school_manager_server.models.GeneradorInstanciaSolucionInfoProfesor;
+import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.PreferenciasHorariasProfesor;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdGeneradorAsignadaImpartir;
@@ -36,6 +38,7 @@ import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionAsignatur
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionBase;
 import es.iesjandula.reaktor.school_manager_server.models.no_jpa.SesionReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.IConstantesRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.IImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorAsignadaImpartirRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorAsignadaReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.generador.IGeneradorInstanciaRepository;
@@ -77,6 +80,9 @@ public class GeneradorService
 
     @Autowired
     private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
+
+    @Autowired
+    private IImpartirRepository impartirRepository ;
 
     /** Referencia al hilo del generador */
     private HorarioThread horarioThread ;
@@ -285,18 +291,42 @@ public class GeneradorService
      * @param generadorInstancia - Generador instancia
      * @param diaTramoTipoHorario - Día y tramo de tipo horario
      * @param sesionAsignatura - Sesión de asignatura
+     * @throws SchoolManagerServerException - Excepción personalizada
      */
     private void actualizarGeneradorSesionAsignadaInternalAsignatura(GeneradorInstancia generadorInstancia,
                                                                      DiaTramoTipoHorario diaTramoTipoHorario,
-                                                                     SesionAsignatura sesionAsignatura)
+                                                                     SesionAsignatura sesionAsignatura) throws SchoolManagerServerException
     {
         // Creamos una instancia de Id GeneradorAsignadaImpartir
         IdGeneradorAsignadaImpartir idGeneradorAsignadaImpartir = new IdGeneradorAsignadaImpartir() ;
 
+        // Obtenemos el curso, etapa y grupo de la sesión de asignatura, junto con el nombre e email del profesor
+        CursoEtapaGrupo cursoEtapaGrupo = sesionAsignatura.getAsignatura().getIdAsignatura().getCursoEtapaGrupo() ;
+        
+        int curso     = cursoEtapaGrupo.getIdCursoEtapaGrupo().getCurso() ;
+        String etapa  = cursoEtapaGrupo.getIdCursoEtapaGrupo().getEtapa() ;
+        String grupo  = cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo() ;
+        String nombre = sesionAsignatura.getAsignatura().getIdAsignatura().getNombre() ;
+        String email  = sesionAsignatura.getProfesor().getEmail() ;
+
+        // Buscamos la instancia de Impartir relacionada con la sesión de asignatura
+        Optional<Impartir> optionalImpartir =
+            this.impartirRepository.buscarPorNombreAndCursoAndEtapaAndGrupoAndProfesor(nombre, curso, etapa, grupo, email) ;
+
+        if (!optionalImpartir.isPresent())
+        {
+            String mensajeError = "ERROR - No se encontró la instancia de Impartir relacionada con la sesión de asignatura" ;
+            log.error(mensajeError) ;
+
+            throw new SchoolManagerServerException(Constants.IMPARTIR_NO_ENCONTRADA, mensajeError, null) ;
+        }
+
+        // Obtenemos la instancia de Impartir
+        Impartir impartir = optionalImpartir.get() ;
+
         // Asignamos los valores a la instancia
         idGeneradorAsignadaImpartir.setIdGeneradorInstancia(generadorInstancia.getId()) ;
-        idGeneradorAsignadaImpartir.setProfesor(sesionAsignatura.getProfesor()) ;
-        idGeneradorAsignadaImpartir.setAsignatura(sesionAsignatura.getAsignatura()) ;
+        idGeneradorAsignadaImpartir.setImpartir(impartir) ;
         idGeneradorAsignadaImpartir.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Creamos una instancia de GeneradorAsignadaImpartir
@@ -305,8 +335,7 @@ public class GeneradorService
 
         // Asignamos los valores a la instancia
         generadorAsignadaImpartir.setGeneradorInstancia(generadorInstancia) ;
-        generadorAsignadaImpartir.setAsignatura(sesionAsignatura.getAsignatura()) ;
-        generadorAsignadaImpartir.setProfesor(sesionAsignatura.getProfesor()) ;
+        generadorAsignadaImpartir.setImpartir(impartir) ;
         generadorAsignadaImpartir.setDiaTramoTipoHorario(diaTramoTipoHorario) ;
 
         // Guardamos la instancia en la base de datos

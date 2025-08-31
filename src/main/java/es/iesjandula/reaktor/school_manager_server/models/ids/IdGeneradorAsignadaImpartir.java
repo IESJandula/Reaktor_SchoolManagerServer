@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
+import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
@@ -30,13 +31,9 @@ public class IdGeneradorAsignadaImpartir implements Serializable
     /** Identificador de la instancia del generador a la que pertenece esta asignación */
     private Integer idGeneradorInstancia ;
 
-	/** Asignatura que está siendo impartida por un profesor */
+	/** Impartir que está siendo generado por el profesor */
 	@ManyToOne
-	private Asignatura asignatura;
-
-	/** Profesor que imparte la asignatura */
-	@ManyToOne
-	private Profesor profesor;
+	private Impartir impartir;
 
     /** Día de la semana y tramo horario */
 	@ManyToOne
