@@ -78,6 +78,9 @@ public class GeneradorService
     @Autowired
     private DiaTramoTipoHorarioService diaTramoTipoHorarioService ;
 
+    /** Referencia al hilo del generador */
+    private HorarioThread horarioThread ;
+
     /**
      * Método que crea una instancia de GeneradorInstancia
      * @return GeneradorInstancia - Instancia de GeneradorInstancia
@@ -114,12 +117,12 @@ public class GeneradorService
     }
 
     /**
-     * Método que lanza el generador
+     * Método que lanza el thread del generador
      * @throws SchoolManagerServerException con un error
      */
-    public void lanzarGenerador(Map<String, Integer> mapCorrelacionadorCursosMatutinos, 
-                                Map<String, Integer> mapCorrelacionadorCursosVespertinos, 
-                                List<List<SesionBase>> listaDeListaSesiones) throws SchoolManagerServerException
+    public void lanzarThreadGenerador(Map<String, Integer> mapCorrelacionadorCursosMatutinos, 
+                                      Map<String, Integer> mapCorrelacionadorCursosVespertinos, 
+                                      List<List<SesionBase>> listaDeListaSesiones) throws SchoolManagerServerException
     {
         // Obtenemos el umbral mínimo de soluciones
         int umbralMinimoSolucion = this.obtenerUmbralMinimoSolucion() ;
@@ -134,7 +137,8 @@ public class GeneradorService
                                                      .build() ;
 
         // Lanzamos el generador
-        new HorarioThread(horarioThreadParams, listaDeListaSesiones).start() ;
+        this.horarioThread = new HorarioThread(horarioThreadParams, listaDeListaSesiones) ;
+        this.horarioThread.start() ;
     }
 
     /**
@@ -192,6 +196,17 @@ public class GeneradorService
             // Actualizamos el GeneradorInstancia con el estado a error
             generadorInstancia.pararGeneradorInstancia(Constants.ESTADO_GENERADOR_ERROR, puntuacionObtenida, mensajeInformacion) ;
             this.generadorInstanciaRepository.saveAndFlush(generadorInstancia) ;
+        }
+    }
+
+    /**
+     * Método que forza la detención del hilo del generador
+     */
+    public void forzarDetencionThreadGenerador()
+    {
+        if (this.horarioThread != null)
+        {
+            this.horarioThread.forzarDetencion() ;
         }
     }
 
@@ -337,20 +352,22 @@ public class GeneradorService
      * @param generadorInstancia - Generador instancia
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    @Transactional
     public void eliminarGeneradorInstancia(GeneradorInstancia generadorInstancia) throws SchoolManagerServerException
     {
-        // Borramos por primera vez todas las soluciones generales de esta instancia
-        this.generadorInstanciaSolucionInfoGeneralRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
-
-        // Borramos por primera vez todas las soluciones de profesores de esta instancia
-        this.generadorInstanciaSolucionInfoProfesorRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
-        
-        // Borramos por primera vez todas las sesiones asignadas de esta instancia
-        this.generadorAsignadaImpartirRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
-
-        // Eliminamos el GeneradorInstancia
-        this.generadorInstanciaRepository.delete(generadorInstancia) ;
+        if (generadorInstancia != null)
+        {
+            // Borramos por primera vez todas las soluciones generales de esta instancia
+            this.generadorInstanciaSolucionInfoGeneralRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
+    
+            // Borramos por primera vez todas las soluciones de profesores de esta instancia
+            this.generadorInstanciaSolucionInfoProfesorRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
+            
+            // Borramos por primera vez todas las sesiones asignadas de esta instancia
+            this.generadorAsignadaImpartirRepository.borrarPorIdGeneradorInstancia(generadorInstancia.getId()) ;
+    
+            // Eliminamos el GeneradorInstancia
+            this.generadorInstanciaRepository.delete(generadorInstancia) ;
+        }
     }
 
     /**
@@ -591,7 +608,6 @@ public class GeneradorService
      * @param idGeneradorInstancia - ID de la instancia del generador
      * @throws SchoolManagerServerException - Excepción personalizada
      */
-    @Transactional
     public void seleccionarSolucion(Integer idGeneradorInstancia) throws SchoolManagerServerException
     {
         // Buscamos la instancia del generador

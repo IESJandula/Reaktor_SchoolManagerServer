@@ -415,8 +415,8 @@ public class Paso3GeneradorController
             Map<String, Integer> mapCorrelacionadorCursosMatutinos = this.generadorConfigService.getMapCorrelacionadorCursosMatutinos() ;
             Map<String, Integer> mapCorrelacionadorCursosVespertinos = this.generadorConfigService.getMapCorrelacionadorCursosVespertinos() ;
 
-            // Llamamos al método que lanza el generador
-            this.generadorService.lanzarGenerador(mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos, listaDeListaSesiones) ;
+            // Llamamos al método que lanza el thread del generador
+            this.generadorService.lanzarThreadGenerador(mapCorrelacionadorCursosMatutinos, mapCorrelacionadorCursosVespertinos, listaDeListaSesiones) ;
 
             // Devolvemos un OK
             return ResponseEntity.ok().build();
@@ -492,6 +492,9 @@ public class Paso3GeneradorController
 
             // Guardamos el generador en la BBDD
             this.generadorRepository.saveAndFlush(generador);
+
+            // Forzamos la detención del hilo del generador
+            this.generadorService.forzarDetencionThreadGenerador() ;
 
             return ResponseEntity.ok().build();
         }

@@ -32,14 +32,14 @@ public class HorarioThread extends Thread
 	/** Matriz con las asignaciones vespertinas */
     private Asignacion[][] matrizAsignacionesVespertinas ;
 
-	/** Umbral mínimo de solución para considerar una solución */
-	private int umbralSolucionEncontrado ;
-
 	/** SelectorSesionesController */
 	private SelectorSesionesController selectorSesionesController ;
 
 	/** AsignadorSesionesController */
 	private AsignadorSesionesController asignadorSesionesController ;
+
+	/** Bandera para indicar si se debe detener el hilo */
+	private boolean detenerHilo ;
     
     /**
      * @param horarioThreadParams Clase con todos los parámetros necesarios
@@ -48,33 +48,47 @@ public class HorarioThread extends Thread
     public HorarioThread(HorarioThreadParams horarioThreadParams,
     					 List<List<SesionBase>> sesionesOriginales)
     {
-    	this.horarioThreadParams      = horarioThreadParams ;
-    	this.sesionesOriginales       = sesionesOriginales ;
-
-		this.umbralSolucionEncontrado = -1 ;
+    	this.horarioThreadParams = horarioThreadParams ;
+    	this.sesionesOriginales  = sesionesOriginales ;
 
 		// Creamos una nueva instancia de SelectorSesionesController y asignadorSesionesController
 		this.selectorSesionesController  = new SelectorSesionesController(this.horarioThreadParams.getAsignaturaService()) ;
 		this.asignadorSesionesController = new AsignadorSesionesController(this.horarioThreadParams.getAsignaturaService()) ;
+
+		// Inicializamos la bandera para indicar si se debe detener el hilo
+		this.detenerHilo = false ;
     }
+
+	/**
+	 * Método que forza la detención del hilo del generador
+	 */
+	public void forzarDetencion()
+	{
+		this.detenerHilo = true ;
+	}
     
     @Override
     public void run() 
     {    
-		// Comenzamos el proceso
-    	this.comenzarProceso() ;
-
-		if (this.umbralSolucionEncontrado <= this.horarioThreadParams.getUmbralMinimoSolucion())
-		{
-			// Comenzamos el proceso de nuevo
-			this.comenzarProceso() ;
-		}
+		// Comenzamos el proceso de nuevo
+		this.comenzarProceso() ;
 	}
 
 	/**
 	 * Método que comienza el proceso
 	 */
 	private void comenzarProceso()
+	{
+		while (!this.detenerHilo)
+		{
+			this.comenzarProcesoInternal() ;
+		}
+	}
+
+	/**
+	 * Método que comienza el proceso
+	 */
+	private void comenzarProcesoInternal()
 	{
 		GeneradorInstancia generadorInstancia = null;
 
@@ -86,11 +100,10 @@ public class HorarioThread extends Thread
 			// Configuramos las estructuras de datos
 			this.configurarEstructurasDeDatos() ;
 
-			// Inicializamos la última asignación con una primera asignación
-			UltimaAsignacion ultimaAsignacion = this.asignarSesion(null) ;	
+			UltimaAsignacion ultimaAsignacion = null ;
 
-			// Mientras no se hayan asignado todas las sesiones y haya una última asignación, se sigue generando el horario
-			while (!this.todasLasSesionesAsignadas() && ultimaAsignacion != null)
+			// Este bucle es para asegurarnos que se asignen todas las sesiones
+			while (!this.todasLasSesionesAsignadas())
 			{    		
 				// Asignamos una sesión y obtenemos la última asignación
 				UltimaAsignacion nuevaUltimaAsignacion = this.asignarSesion(ultimaAsignacion) ;	
@@ -99,8 +112,8 @@ public class HorarioThread extends Thread
 				ultimaAsignacion = nuevaUltimaAsignacion ;
 			}
 
-			// Si se han asignado todas las sesiones y hay una última asignación ...
-			if (this.todasLasSesionesAsignadas() && ultimaAsignacion != null)
+			// Si se han asignado todas las sesiones ...
+			if (this.todasLasSesionesAsignadas())
 			{
 				// ... agregamos la solución encontrada
 				this.agregarHorarioSolucion(generadorInstancia) ;
@@ -125,6 +138,11 @@ public class HorarioThread extends Thread
 			catch (SchoolManagerServerException schoolManagerServerException2)
 			{
 				// Excepción ya logueada
+			}
+			catch (Throwable exception)
+			{
+				String errorString = "EXCEPCIÓN NO ESPERADA CAPTURADA EN HorarioThread: " + exception.getMessage() ;
+				log.error(errorString, exception) ;
 			}
 		}
 		catch (Throwable exception)
@@ -238,8 +256,8 @@ public class HorarioThread extends Thread
 																		             this.matrizAsignacionesVespertinas,
 																			         ultimaAsignacion) ;
 
-		int numeroCursos 				  = -1 ;
-		int indiceCursoDiaInicial 	 	  = -1 ;
+		int numeroCursos 		  = -1 ;
+		int indiceCursoDiaInicial = -1 ;
 
 		// Si la sesión es matutina ...
 		if (sesion.isTipoHorarioMatutino())
@@ -304,12 +322,12 @@ public class HorarioThread extends Thread
         	// Logueamos
             log.info("Horario solución supera la puntuación umbral: " + puntuacionObtenida + " > {} ó " + puntuacionObtenida + " > {}", 
             		 this.horarioThreadParams.getUmbralMinimoSolucion(), puntuacionObtenida) ;
-        	
-            // Guardamos la puntuación como la solución óptima
-            this.umbralSolucionEncontrado = puntuacionObtenida ;
 
             // Actualizamos el GeneradorInstancia y el Generador en BBDD
             this.horarioThreadParams.getGeneradorService().actualizarGeneradorYgeneradorInstancia(generadorInstancia, Constants.MENSAJE_SOLUCION_ENCONTRADA, puntuacionObtenida) ;
+
+			// Paramos el hilo
+			this.detenerHilo = true ;
         }
 
         return solucionSuperaUmbral ;
