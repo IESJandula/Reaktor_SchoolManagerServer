@@ -61,9 +61,6 @@ public class ParseoCsvService
                 
                 // Obtenemos el nombre del alumno
                 String nombreAlumno    = splitLineaAlumnoCompleta[1].trim().replace("\"", "") ;
-                
-                // Logueamos 
-                log.info("Línea completa del alumno: {}", lineaAlumnoCompleta);
 
                 // Inicializamos la lista de datos brutos de este alumno y sus matrículas
                 List<DatosBrutoAlumnoMatricula> listaDatosBrutoAlumnoMatriculas = new ArrayList<DatosBrutoAlumnoMatricula>();
@@ -116,8 +113,9 @@ public class ParseoCsvService
      */
     private int obtenerIndiceAsignaturas(String cabecera)
     {
-        // Por defecto, el índice de comienzo de las asignaturas es 1
-        int indiceAsignaturas = 1 ;
+        // Por defecto, el índice de comienzo de las asignaturas es 2 ya que 
+        // el primer campo es el nombre del alumno (0) y el segundo es el apellido (1)
+        int indiceAsignaturas = 2 ;
 
         // Si uno de los campos presentes es la "Unidad" (indica el curso, etapa y grupo),
         // esto significa que el CSV fue importado después de que se crearan los grupos. 
@@ -126,7 +124,9 @@ public class ParseoCsvService
         // y el usuario tiene que crearlos.
         if(cabecera.contains("Unidad"))
         {
-            indiceAsignaturas = 2 ;
+            // El primer campo es el nombre del alumno (0), 
+            // el segundo es el apellido (1) y el tercero es la unidad (2)
+            indiceAsignaturas = 3 ;
         }
 
         // Devolvemos el índice de comienzo de las asignaturas
