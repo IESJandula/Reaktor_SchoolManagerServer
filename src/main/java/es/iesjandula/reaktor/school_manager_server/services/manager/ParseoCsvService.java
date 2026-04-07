@@ -139,9 +139,17 @@ public class ParseoCsvService
      */
     private String[] obtenerCabeceraSoloAsignaturas(String cabecera, int indiceAsignaturas)
     {
-        // Copiamos en un nuevo array SOLO los valores de las asignaturas
-        String[] cabeceraSoloAsignaturas = new String[cabecera.split(Constants.CSV_DELIMITER, -1).length - indiceAsignaturas];
-        System.arraycopy(cabecera.split(Constants.CSV_DELIMITER, -1), indiceAsignaturas, cabeceraSoloAsignaturas, 0, cabecera.split(Constants.CSV_DELIMITER, -1).length - indiceAsignaturas);
+        // Obtenemos el array con los valores de la cabecera
+        String[] cabeceraArray = cabecera.split(Constants.CSV_DELIMITER);
+
+        // Obtenemos el número de asignaturas
+        int numeroAsignaturas = cabeceraArray.length - indiceAsignaturas;
+
+        // Creamos un nuevo array con las asignaturas
+        String[] cabeceraSoloAsignaturas = new String[numeroAsignaturas];
+
+        // Copiamos en el nuevo array las asignaturas
+        System.arraycopy(cabeceraArray, indiceAsignaturas, cabeceraSoloAsignaturas, 0, numeroAsignaturas);
 
         // Devolvemos la cabecera con solo las asignaturas
         return cabeceraSoloAsignaturas ;
@@ -156,9 +164,14 @@ public class ParseoCsvService
      */
     private String[] obtenerAlumnoSoloAsignaturas(String[] splitLineaAlumnoCompleta, int indiceAsignaturas)
     {
-        // Copiamos en un nuevo array SOLO los valores de las asignaturas
-        String[] alumnoSoloAsignaturas = new String[splitLineaAlumnoCompleta.length - indiceAsignaturas];
-        System.arraycopy(splitLineaAlumnoCompleta, indiceAsignaturas, alumnoSoloAsignaturas, 0, splitLineaAlumnoCompleta.length - indiceAsignaturas);
+        // Obtenemos el número de asignaturas
+        int numeroAsignaturas = splitLineaAlumnoCompleta.length - indiceAsignaturas;
+
+        // Creamos un nuevo array con las asignaturas
+        String[] alumnoSoloAsignaturas = new String[numeroAsignaturas];
+
+        // Copiamos en el nuevo array las asignaturas
+        System.arraycopy(splitLineaAlumnoCompleta, indiceAsignaturas, alumnoSoloAsignaturas, 0, numeroAsignaturas);
 
         // Devolvemos el array de valores de las asignaturas del alumno
         return alumnoSoloAsignaturas ;
