@@ -41,11 +41,11 @@ public class ParseoCsvService
             // Obtenemos la cabecera del CSV
             String cabecera = scanner.nextLine();
 
-            // Obtenemos el índice de comienzo de las asignaturas
-            int indiceAsignaturas = this.obtenerIndiceAsignaturas(cabecera);
+            // Obtenemos el índice de comienzo de las asignaturas en la cabecera
+            int indiceAsignaturasCabecera = this.obtenerIndiceAsignaturasCabecera(cabecera);
 
             // Obtenemos la cabecera con solo las asignaturas
-            String[] cabeceraSoloAsignaturas = this.obtenerCabeceraSoloAsignaturas(cabecera, indiceAsignaturas);
+            String[] cabeceraSoloAsignaturas = this.obtenerCabeceraSoloAsignaturas(cabecera, indiceAsignaturasCabecera);
         
             // Mientras haya alumnos en el CSV
             while(scanner.hasNext())
@@ -66,7 +66,7 @@ public class ParseoCsvService
                 List<DatosBrutoAlumnoMatricula> listaDatosBrutoAlumnoMatriculas = new ArrayList<DatosBrutoAlumnoMatricula>();
 
                 // Array con valores de las asignaturas del alumno
-                String[] alumnoSoloAsignaturas = this.obtenerAlumnoSoloAsignaturas(splitLineaAlumnoCompleta, indiceAsignaturas);
+                String[] alumnoSoloAsignaturas = this.obtenerAlumnoSoloAsignaturas(splitLineaAlumnoCompleta, indiceAsignaturasCabecera);
 
                 // Recorremos el array de valores de las asignaturas
                 for (int i = 0; i < alumnoSoloAsignaturas.length; i++)
@@ -111,11 +111,11 @@ public class ParseoCsvService
      * @param cabecera Una cadena de texto que representa la cabecera del CSV.
      * @return int El índice de comienzo de las asignaturas.
      */
-    private int obtenerIndiceAsignaturas(String cabecera)
+    private int obtenerIndiceAsignaturasCabecera(String cabecera)
     {
         // Por defecto, el índice de comienzo de las asignaturas es 2 ya que 
-        // el primer campo es el nombre del alumno (0) y el segundo es el apellido (1)
-        int indiceAsignaturas = 2 ;
+        // el primer campo es Alumno/a (0)
+        int indiceAsignaturas = 1 ;
 
         // Si uno de los campos presentes es la "Unidad" (indica el curso, etapa y grupo),
         // esto significa que el CSV fue importado después de que se crearan los grupos. 
@@ -124,9 +124,8 @@ public class ParseoCsvService
         // y el usuario tiene que crearlos.
         if(cabecera.contains("Unidad"))
         {
-            // El primer campo es el nombre del alumno (0), 
-            // el segundo es el apellido (1) y el tercero es la unidad (2)
-            indiceAsignaturas = 3 ;
+            // El primer campo es Alumno/a (0) y el segundo es la unidad (1)
+            indiceAsignaturas = 2 ;
         }
 
         // Devolvemos el índice de comienzo de las asignaturas
@@ -162,19 +161,24 @@ public class ParseoCsvService
      * Obtiene el array de valores de las asignaturas del alumno.
      * 
      * @param splitLineaAlumnoCompleta Array con los valores del registro.
-     * @param indiceAsignaturas Índice de comienzo de las asignaturas.
+     * @param indiceAsignaturasCabecera Índice de comienzo de las asignaturas en la cabecera.
      * @return String[] Array de valores de las asignaturas del alumno.
      */
-    private String[] obtenerAlumnoSoloAsignaturas(String[] splitLineaAlumnoCompleta, int indiceAsignaturas)
+    private String[] obtenerAlumnoSoloAsignaturas(String[] splitLineaAlumnoCompleta, int indiceAsignaturasCabecera)
     {
+        // Las cabeceras tienen el campo Alumno/a que realmente contiene el nombre y apellidos del alumno
+        // Por ello, si nos vamos a la línea de un alumno nos encontramos que el nombre y apellidos realmente
+        // son dos campos ya que están separados por una coma. De esta forma, el índice de asignaturas debe ser uno más
+        int indiceAsignaturasAlumno = indiceAsignaturasCabecera + 1;
+
         // Obtenemos el número de asignaturas
-        int numeroAsignaturas = splitLineaAlumnoCompleta.length - indiceAsignaturas;
+        int numeroAsignaturas = splitLineaAlumnoCompleta.length - indiceAsignaturasAlumno;
 
         // Creamos un nuevo array con las asignaturas
         String[] alumnoSoloAsignaturas = new String[numeroAsignaturas];
 
         // Copiamos en el nuevo array las asignaturas
-        System.arraycopy(splitLineaAlumnoCompleta, indiceAsignaturas, alumnoSoloAsignaturas, 0, numeroAsignaturas);
+        System.arraycopy(splitLineaAlumnoCompleta, indiceAsignaturasAlumno, alumnoSoloAsignaturas, 0, numeroAsignaturas);
 
         // Devolvemos el array de valores de las asignaturas del alumno
         return alumnoSoloAsignaturas ;
