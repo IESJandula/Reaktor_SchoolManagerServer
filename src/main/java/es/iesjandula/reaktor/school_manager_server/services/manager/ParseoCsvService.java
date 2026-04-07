@@ -75,7 +75,7 @@ public class ParseoCsvService
                     String asignatura = cabeceraSoloAsignaturas[i].trim().replaceAll("[.\"]", "");
 
                     // Obtenemos el estado de la matrícula de esta asignatura
-                    String estadoMatricula = alumnoSoloAsignaturas[i].trim();
+                    String estadoMatricula = alumnoSoloAsignaturas[i].trim().replaceAll("[.\"]", "");
 
                     // Parsea los datos brutos del alumno y sus matrículas
                     DatosBrutoAlumnoMatricula datosBrutoAlumnoMatricula = this.parseoDatosBrutosAlumnoAsignaturas(cursoEtapa, apellidosAlumno, nombreAlumno, asignatura, estadoMatricula);
