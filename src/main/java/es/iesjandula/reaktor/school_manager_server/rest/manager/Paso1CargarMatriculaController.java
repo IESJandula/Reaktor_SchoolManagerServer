@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,6 @@ import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
-import es.iesjandula.reaktor.school_manager_server.parseos.IParseoDatosBrutos;
 import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.Bloque;
@@ -43,6 +41,7 @@ import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupo
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.services.manager.CursoEtapaService;
+import es.iesjandula.reaktor.school_manager_server.services.manager.ParseoCsvService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -53,17 +52,17 @@ import lombok.extern.slf4j.Slf4j;
 public class Paso1CargarMatriculaController
 {
     @Autowired
+    private ParseoCsvService parseoCsvService;
+
+    @Autowired
     private CursoEtapaService cursoEtapaService;
 
     @Autowired
     private IDatosBrutoAlumnoMatriculaRepository iDatosBrutoAlumnoMatriculaRepository;
-
-    @Autowired
-    private IParseoDatosBrutos iParseoDatosBrutos;
-
+    
     @Autowired
     private IAsignaturaRepository iAsignaturaRepository;
-
+    
     @Autowired
     private IMatriculaRepository iMatriculaRepository;
 
@@ -113,16 +112,13 @@ public class Paso1CargarMatriculaController
             }
 
             // Convertir MultipartFile a String
-            String archivoCsvReadable = new String(archivoCsv.getBytes(), StandardCharsets.UTF_8);
-
-            // Declarar Scanner para realizar lectura del fichero
-            Scanner scanner = new Scanner(archivoCsvReadable);
+            String csvString = new String(archivoCsv.getBytes(), StandardCharsets.UTF_8);
 
             // Obtenemos el cursoEtapa
             CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
 
             // Llamar al Service IParseoDatosBrutos para realizar parseo
-            this.iParseoDatosBrutos.parseoDatosBrutos(scanner, cursoEtapa);
+            this.parseoCsvService.parseoDatosBrutos(csvString, cursoEtapa);
 
             log.info("INFO - La matricula " + curso + " - " + etapa + " se ha cargado correctamente");
 
