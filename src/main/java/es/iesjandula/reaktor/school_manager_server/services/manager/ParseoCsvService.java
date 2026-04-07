@@ -62,6 +62,9 @@ public class ParseoCsvService
                 // Obtenemos el nombre del alumno
                 String nombreAlumno    = splitLineaAlumnoCompleta[1].trim().replace("\"", "") ;
                 
+                // Logueamos 
+                log.info("Línea completa del alumno: {}", lineaAlumnoCompleta);
+
                 // Inicializamos la lista de datos brutos de este alumno y sus matrículas
                 List<DatosBrutoAlumnoMatricula> listaDatosBrutoAlumnoMatriculas = new ArrayList<DatosBrutoAlumnoMatricula>();
 
