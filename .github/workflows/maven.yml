@@ -26,9 +26,13 @@ jobs:
       env:
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }} # Secreto para la contraseña de la base de datos
         PUBLIC_KEY_FILE: ${{ secrets.PUBLIC_KEY_FILE }} # Secreto para la clave pública para JWT
+        RABBITMQ_USERNAME: ${{ secrets.RABBITMQ_USERNAME }} # Secreto para el usuario de RabbitMQ
+        RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }} # Secreto para la contraseña de RabbitMQ
       run: |
         echo "DB_PASSWORD=${DB_PASSWORD}" > src/main/resources/application-VPS-filter.properties
         echo "PUBLIC_KEY_FILE=${PUBLIC_KEY_FILE}" >> src/main/resources/application-VPS-filter.properties
+        echo "RABBITMQ_USERNAME=${RABBITMQ_USERNAME}" >> src/main/resources/application-VPS-filter.properties
+        echo "RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}" >> src/main/resources/application-VPS-filter.properties
         mvn clean install -Dspring.config.location=src/main/resources/application-VPS.yaml
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive

@@ -7,6 +7,11 @@ spring:
     hikari:
       connection-timeout: 60000
       maximum-pool-size: 5
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
   http:
     encoding:
       charset: UTF-8
@@ -44,3 +49,6 @@ reaktor:
     umbralMinimoSolucion: 30
     factores:
       sesionesConsecutivas: 1
+  audit:
+    exchange: audit.exchange
+    routing-key: audit.key
