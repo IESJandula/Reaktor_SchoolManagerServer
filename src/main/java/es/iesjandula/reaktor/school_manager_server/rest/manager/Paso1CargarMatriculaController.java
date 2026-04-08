@@ -5,6 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
+import com.ibm.icu.text.CharsetDetector;
+import com.ibm.icu.text.CharsetMatch;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -111,8 +114,11 @@ public class Paso1CargarMatriculaController
                 throw new SchoolManagerServerException(Constants.ARCHIVO_VACIO, msgError);
             }
 
+            // Obtener la codificación del archivo CSV
+            Charset encoding = this.obtenerCodificacionArchivoCSV(archivoCsv);
+
             // Convertir MultipartFile a String
-            String csvString = new String(archivoCsv.getBytes(), StandardCharsets.UTF_8);
+            String csvString = new String(archivoCsv.getBytes(), encoding);
 
             // Obtenemos el cursoEtapa
             CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
@@ -183,6 +189,27 @@ public class Paso1CargarMatriculaController
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+
+    /**
+     * Obtiene la codificación del archivo CSV
+     * 
+     * @param archivoCsv el archivo CSV que contiene los datos de matrícula a cargar; no debe estar vacío.
+     * @return la codificación del archivo CSV
+     */
+    private Charset obtenerCodificacionArchivoCSV(MultipartFile archivoCsv)
+    {
+        // Creamos una instancia de CharsetDetector
+        CharsetDetector detector = new CharsetDetector();
+
+        // Establecemos el texto del archivo CSV
+        detector.setText(archivoCsv.getBytes());
+
+        // Detectamos la codificación del archivo CSV
+        CharsetMatch match = detector.detect();
+
+        // Devolvemos la codificación del archivo CSV
+        return Charset.forName(match.getName());
     }
 
     /**
