@@ -1,10 +1,10 @@
 package es.iesjandula.reaktor.school_manager_server.rest.manager;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
+import java.nio.charset.Charset;
 import com.ibm.icu.text.CharsetDetector;
 import com.ibm.icu.text.CharsetMatch;
 
@@ -197,7 +197,7 @@ public class Paso1CargarMatriculaController
      * @param archivoCsv el archivo CSV que contiene los datos de matrícula a cargar; no debe estar vacío.
      * @return la codificación del archivo CSV
      */
-    private Charset obtenerCodificacionArchivoCSV(MultipartFile archivoCsv)
+    private Charset obtenerCodificacionArchivoCSV(MultipartFile archivoCsv) throws IOException
     {
         // Creamos una instancia de CharsetDetector
         CharsetDetector detector = new CharsetDetector();
