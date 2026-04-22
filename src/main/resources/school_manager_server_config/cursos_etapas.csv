@@ -3,8 +3,10 @@ Curso,Etapa,esoBachillerato
 2,ESO,true
 3,ESO,true
 4,ESO,true
-1,Bachillerato,true
-2,Bachillerato,true
+1,Bachillerato (Humanidades y Ciencias Sociales),true
+1,Bachillerato (Ciencias y Tecnología),true
+2,Bachillerato (Humanidades y Ciencias Sociales),true
+2,Bachillerato (Ciencias y Tecnología),true
 1,FPB Informática,false
 2,FPB Informática,false
 1,CFGM TECO,false
