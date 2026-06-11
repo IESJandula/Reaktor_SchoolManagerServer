@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * Clase Embeddable que representa la clave primaria compuesta para la entidad {@link Asignatura}.
@@ -36,6 +38,7 @@ public class IdAsignatura implements Serializable
         @JoinColumn(name = "etapa", referencedColumnName = "etapa"),
         @JoinColumn(name = "grupo", referencedColumnName = "grupo")
     })
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private CursoEtapaGrupo cursoEtapaGrupo ;
 
 	/** Nombre de la asignatura que forma parte de la clave primaria */

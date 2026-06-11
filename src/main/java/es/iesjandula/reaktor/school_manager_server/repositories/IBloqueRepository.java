@@ -1,7 +1,10 @@
 package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.reaktor.school_manager_server.models.Bloque;
 
@@ -20,5 +23,15 @@ import es.iesjandula.reaktor.school_manager_server.models.Bloque;
 @Repository
 public interface IBloqueRepository extends JpaRepository<Bloque, String>
 {
-	
+
+	/**
+	 * Borra los bloques que se han quedado sin asignaturas asociadas (huérfanos).
+	 * <p>
+	 * Pensado para limpiar tras un borrado en cascada de Asignaturas, en el que un mismo bloque
+	 * puede ser compartido por varias asignaturas y, por tanto, no podemos cascadearlo desde la FK.
+	 */
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM Bloque b WHERE NOT EXISTS (SELECT 1 FROM Asignatura a WHERE a.bloqueId = b)")
+	void deleteBloquesSinAsignaturas();
 }

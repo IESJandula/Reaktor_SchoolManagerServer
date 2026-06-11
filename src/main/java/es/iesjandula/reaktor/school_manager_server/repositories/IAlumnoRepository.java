@@ -2,6 +2,7 @@ package es.iesjandula.reaktor.school_manager_server.repositories;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,4 +37,16 @@ public interface IAlumnoRepository extends JpaRepository<Alumno, Integer>
 										 @Param("id") Integer id);
 
     Optional<Alumno> findByNombreAndApellidos(String nombreAlumno, String apellidosAlumno);
+
+	/**
+	 * Borra los alumnos que se han quedado sin matrículas (huérfanos).
+	 * <p>
+	 * Pensado para limpiar tras un borrado en cascada de Matrículas, ya que un mismo alumno
+	 * podría tener matrículas en otros curso/etapa, por lo que no se puede cascadear directamente
+	 * desde la FK Matricula -> Alumno.
+	 */
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM Alumno a WHERE NOT EXISTS (SELECT 1 FROM Matricula m WHERE m.idMatricula.alumno = a)")
+	void deleteAlumnosSinMatriculas();
 }

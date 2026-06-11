@@ -22,10 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
-import es.iesjandula.reaktor.school_manager_server.dtos.AlumnoDto3;
 import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaDto;
-import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
@@ -224,7 +222,7 @@ public class Paso1CargarMatriculaController
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/matriculas")
-    public ResponseEntity<?> cargarMatriculas()
+    public ResponseEntity<?> listarCursosEtapasConMatriculas()
     {
         try
         {
@@ -257,9 +255,10 @@ public class Paso1CargarMatriculaController
      * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error durante el proceso de eliminación.
      */
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @Transactional
     @RequestMapping(method = RequestMethod.DELETE, value = "/matriculas")
-    public ResponseEntity<?> borrarMatriculas(@RequestHeader(value = "curso", required = true) Integer curso,
-                                              @RequestHeader(value = "etapa", required = true) String etapa)
+    public ResponseEntity<?> borrarMatriculasPorCursoYEtapa(@RequestHeader(value = "curso", required = true) Integer curso,
+                                                            @RequestHeader(value = "etapa", required = true) String etapa)
     {
         try
         {
@@ -273,41 +272,24 @@ public class Paso1CargarMatriculaController
                 throw new SchoolManagerServerException(Constants.MATRICULA_NO_ENCONTRADA, mensajeError);
             }
 
-            // Obtenemos el cursoEtapa
-            CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
+            // Borrado en cascada apoyado en las FKs ON DELETE CASCADE configuradas en BBDD:
+            //   CursoEtapaGrupo  ->  Asignatura  ->  Matricula
+            //                                    ->  (Alumno también cae cuando su Matricula desaparece, pero
+            //                                         como un Alumno puede tener matrículas en otros curso/etapa,
+            //                                         la limpieza de huérfanos se hace al final)
+            //   CursoEtapa -> DatosBrutoAlumnoMatricula
 
-            List<AlumnoDto3> alumnoDto3 = this.iDatosBrutoAlumnoMatriculaRepository.findDistinctAlumnosByCursoEtapa(curso, etapa);
+            // 1. Borramos los grupos del curso/etapa: la BBDD propaga el borrado a Asignatura y Matricula
+            this.iCursoEtapaGrupoRepository.borrarPorCursoEtapa(curso, etapa);
 
-            this.iDatosBrutoAlumnoMatriculaRepository.deleteDistinctByCursoEtapa(cursoEtapa);
-            this.iMatriculaRepository.borrarPorCursoYEtapa(curso, etapa);
-            for (AlumnoDto3 a : alumnoDto3)
-            {
-                this.iAlumnoRepository.deleteByNombreAndApellidos(a.getNombre(), a.getApellidos());
-            }
+            // 2. Limpiamos los Bloques que se hayan quedado huérfanos (sin asignaturas asociadas)
+            this.iBloqueRepository.deleteBloquesSinAsignaturas();
 
-            List<Long> bloques = this.iAsignaturaRepository.encontrarBloquePorCursoEtapa(curso, etapa);
+            // 3. Limpiamos los Alumnos que se hayan quedado sin ninguna matrícula
+            this.iAlumnoRepository.deleteAlumnosSinMatriculas();
 
-            this.iAsignaturaRepository.borrarPorCursoYEtapa(curso, etapa);
-
-//          Obtenemos el curosEtapaGrupo y lo borramos
-            List<CursoEtapaGrupoDto> cursoEtapaGrupoDto = this.iCursoEtapaGrupoRepository.encontrarCursoEtapaGruposCreados(curso, etapa);
-            CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
-            for (CursoEtapaGrupoDto cursoEtapaGrupoDtoABorrar : cursoEtapaGrupoDto)
-            {
-                IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(curso, etapa, cursoEtapaGrupoDtoABorrar.getGrupo());
-                cursoEtapaGrupo.setEsoBachillerato(cursoEtapaGrupoDtoABorrar.getEsBachillerato());
-                cursoEtapaGrupo.setHorarioMatutino(cursoEtapaGrupoDtoABorrar.getHorarioMatutino());
-                cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
-
-                this.iCursoEtapaGrupoRepository.delete(cursoEtapaGrupo);
-            }
-
-            Bloque bloque = new Bloque();
-            for (Long cantidadBloques : bloques)
-            {
-                bloque.setId(cantidadBloques);
-                this.iBloqueRepository.delete(bloque);
-            }
+            // 4. Borramos los datos en bruto del curso/etapa
+            this.iDatosBrutoAlumnoMatriculaRepository.borrarPorCursoYEtapa(curso, etapa);
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }

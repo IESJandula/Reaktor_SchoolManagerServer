@@ -13,6 +13,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * Clase que representa la clave primaria compuesta para la entidad {@link Matricula}.
@@ -45,6 +47,7 @@ public class IdMatricula implements Serializable
 		@JoinColumn(name = "grupo", referencedColumnName = "grupo"),
 		@JoinColumn(name = "nombre", referencedColumnName = "nombre")
 	})
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Asignatura asignatura;
 
     /**
@@ -54,5 +57,6 @@ public class IdMatricula implements Serializable
     @ManyToOne(cascade = CascadeType.ALL)
 	@ToString.Exclude
     @JoinColumn(name = "alumno_id", referencedColumnName = "id")
+	@OnDelete(action = OnDeleteAction.CASCADE)
     private Alumno alumno;
 }

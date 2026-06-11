@@ -10,6 +10,8 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * Entidad - DatosBrutoAlumnoMatricula
@@ -74,5 +76,6 @@ public class DatosBrutoAlumnoMatricula
      * en los que el alumno está matriculado.</p>
      */
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private CursoEtapa cursoEtapa;
 }

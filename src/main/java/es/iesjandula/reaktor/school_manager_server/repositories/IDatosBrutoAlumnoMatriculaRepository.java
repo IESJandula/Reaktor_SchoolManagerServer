@@ -66,6 +66,17 @@ public interface IDatosBrutoAlumnoMatriculaRepository extends JpaRepository<Dato
     @Modifying
     @Transactional
     void deleteDistinctByCursoEtapa(@Param("curso") CursoEtapa cursoEtapa);
+
+    /**
+     * Borra todos los registros de {@link DatosBrutoAlumnoMatricula} asociados a un curso y etapa.
+     * <p>
+     * Variante directa que evita tener que cargar primero la entidad {@link CursoEtapa}.
+     */
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM DatosBrutoAlumnoMatricula d "
+            + "WHERE d.cursoEtapa.idCursoEtapa.curso = :curso AND d.cursoEtapa.idCursoEtapa.etapa = :etapa")
+    void borrarPorCursoYEtapa(@Param("curso") Integer curso, @Param("etapa") String etapa);
     
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto(d.nombre, d.apellidos, d.asignatura, d.estadoMatricula) "
     		+ "FROM DatosBrutoAlumnoMatricula d "
