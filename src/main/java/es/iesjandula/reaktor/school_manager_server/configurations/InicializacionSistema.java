@@ -21,12 +21,9 @@ import es.iesjandula.reaktor.base.resources_handler.ResourcesHandler;
 import es.iesjandula.reaktor.base.resources_handler.ResourcesHandlerFile;
 import es.iesjandula.reaktor.base.resources_handler.ResourcesHandlerJar;
 import es.iesjandula.reaktor.base.utils.BaseException;
-import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
-import es.iesjandula.reaktor.school_manager_server.models.Departamento;
+import es.iesjandula.reaktor.school_manager_server.models.CursoAcademico;
 import es.iesjandula.reaktor.school_manager_server.models.DiaTramoTipoHorario;
-import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
-import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
-import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoAcademicoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDiaTramoTipoHorarioRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
@@ -37,20 +34,20 @@ import lombok.extern.log4j.Log4j2;
 @Service
 public class InicializacionSistema
 {
-    @Autowired
-    private ICursoEtapaRepository cursoEtapaRepository ;
-    
-	@Autowired
-	private IDepartamentoRepository departamentoRepository ;
-	
 	@Autowired
 	private IDiaTramoTipoHorarioRepository diaTramoTipoHorarioRepository ;
 
 	@Autowired
 	private IConstantesRepository iConstantesRepository;
-	
+
+	@Autowired
+	private ICursoAcademicoRepository cursoAcademicoRepository ;
+
 	@Value("${spring.jpa.hibernate.ddl-auto}")
 	private String modoDdl;
+
+	@Value("${" + Constants.PARAM_YAML_CURSO_ACADEMICO_SELECCIONADO + ":" + Constants.VALOR_CURSO_ACADEMICO_SELECCIONADO + "}")
+	private String cursoAcademicoSeleccionado;
 
 	@Value("${" + Constants.PARAM_YAML_REINICIAR_CONSTANTES + "}")
 	private Boolean reiniciarConstantes;
@@ -83,14 +80,11 @@ public class InicializacionSistema
 
 		if (Constants.MODO_DDL_CREATE.equalsIgnoreCase(this.modoDdl))
 		{
-			// Parseamos los cursos y etapas
-			this.cargarCursoEtapaDesdeCSVInternal() ;
-
-			// Parseamos los departamentos
-			this.cargarDepartamentosDesdeCSVInternal() ;
-
 			// Parseamos los dias, tramos y tipo de horario
 			this.cargarDiasTramosTipoHorarioDesdeCSVInternal() ;
+
+			// Inicializamos los cursos académicos
+			this.inicializarCursoAcademico() ;
 		}
 
 		if(Constants.MODO_INICIALIZAR_SISTEMA.equals(String.valueOf(this.reiniciarConstantes)))
@@ -122,139 +116,6 @@ public class InicializacionSistema
 		}
 		
 		return outcome;
-	}
-	
-    /**
-     * Carga cursos y etapas desde CSV - Internal
-     * @throws SchoolManagerServerException excepción mientras se leían los cursos y etapas
-     */
-	private void cargarCursoEtapaDesdeCSVInternal() throws SchoolManagerServerException
-	{
-    	// Inicializamos la lista de cursos y etapas
-        List<CursoEtapa> cursosEtapas = new ArrayList<CursoEtapa>() ;
-        
-        BufferedReader reader = null ;
-
-        try
-        {
-            // Leer el archivo CSV desde la carpeta de recursos
-            reader = new BufferedReader(new FileReader(ResourceUtils.getFile(Constants.FICHERO_CURSOS_ETAPAS), Charset.forName("UTF-8"))) ;
-            
-            // Nos saltamos la primera línea
-            reader.readLine() ;
-
-            // Leemos la segunda línea que ya tiene datos
-            String linea = reader.readLine() ;
-            
-            while (linea != null)
-            {
-            	// Leemos la línea y la spliteamos
-                String[] valores = linea.split(Constants.CSV_DELIMITER) ;
-
-                // Crea una nueva instancia de CursoEtapa
-                CursoEtapa cursoEtapa = new CursoEtapa();
-
-                // Extrae y convierte el valor del curso (columna 0)
-                int curso = Integer.parseInt(valores[0]);
-
-                // Extrae el valor de la etapa (columna 1)
-                String etapa = valores[1];    
-
-                // Extrae el valor de la columna 2
-                boolean esoBachillerato = Boolean.parseBoolean(valores[2]);
-
-                // Creamos un objeto compuesto IdCursoEtapa
-                IdCursoEtapa idCursoEtapa = new IdCursoEtapa(curso, etapa);
-
-                // Asociamos el identificador al objeto CursoEtapa
-                cursoEtapa.setIdCursoEtapa(idCursoEtapa);
-
-                // Asociamos el valor de esoBachillerato al objeto CursoEtapa
-                cursoEtapa.setEsoBachillerato(esoBachillerato);
-
-    			// Añadimos a la lista
-                cursosEtapas.add(cursoEtapa) ;
-                
-                // Leemos la siguiente línea
-                linea = reader.readLine() ;
-            }
-        }
-        catch (IOException ioException)
-        {
-			String errorString = "IOException mientras se leía línea de curso y etapa" ;
-			
-			log.error(errorString, ioException) ;
-			throw new SchoolManagerServerException(Constants.ERR_CODE_PROCESANDO_CURSO_ETAPA, errorString, ioException) ;
-        }
-        finally
-        {
-        	this.cerrarFlujo(reader) ;
-        }
-
-        // Guardamos los cursos y etapas en la base de datos
-        if (!cursosEtapas.isEmpty())
-        {
-            this.cursoEtapaRepository.saveAllAndFlush(cursosEtapas) ;
-        }
-	}
-	
-    /**
-     * Carga departamentos desde CSV - Internal
-     * @throws SchoolManagerServerException excepción mientras se leían los departamentos
-     */
-	private void cargarDepartamentosDesdeCSVInternal() throws SchoolManagerServerException
-	{
-    	// Inicializamos la lista de departamentos
-        List<Departamento> departamentos = new ArrayList<Departamento>() ;
-        
-        BufferedReader reader = null ;
-
-        try
-        {
-            // Leer el archivo CSV desde la carpeta de recursos
-            reader = new BufferedReader(new FileReader(ResourceUtils.getFile(Constants.FICHERO_DEPARTAMENTOS), Charset.forName("UTF-8"))) ;
-            
-            // Nos saltamos la primera línea
-            reader.readLine() ;
-
-            // Leemos la segunda línea que ya tiene datos
-            String linea = reader.readLine() ;
-            
-            while (linea != null)
-            {
-            	// Leemos la línea y la spliteamos
-                String[] valores = linea.split(Constants.CSV_DELIMITER) ;
-                
-                // Crea instancia de departamento
-    			Departamento departamento = new Departamento();
-    			
-    			// Setea el departamento
-    			departamento.setNombre(valores[0]);
-
-    			// Añadimos a la lista
-                departamentos.add(departamento) ;
-                
-                // Leemos la siguiente línea
-                linea = reader.readLine() ;
-            }
-        }
-        catch (IOException ioException)
-        {
-			String errorString = "IOException mientras se leía línea de departamento" ;
-			
-			log.error(errorString, ioException) ;
-			throw new SchoolManagerServerException(Constants.ERR_CODE_PROCESANDO_CURSO_ETAPA, errorString, ioException) ;
-        }
-        finally
-        {
-        	this.cerrarFlujo(reader) ;
-        }
-
-        // Guardamos los departamentos en la base de datos
-        if (!departamentos.isEmpty())
-        {
-            this.departamentoRepository.saveAllAndFlush(departamentos) ;
-        }
 	}
 	
 	/**
@@ -382,6 +243,34 @@ public class InicializacionSistema
 
 			// Almacenamos la constante en BBDD
 			this.iConstantesRepository.save(constante);
+		}
+	}
+
+	/**
+	 * Este método se encarga de inicializar los cursos académicos siempre que estemos creando la base de datos,
+	 * ya sea en el entorno de desarrollo o ejecutando el JAR.
+	 */
+	private void inicializarCursoAcademico()
+	{
+		// Si ya existen cursos académicos, no se reinicializan
+		if (this.cursoAcademicoRepository.count() > 0)
+		{
+			log.info("INFO - Cursos académicos ya existentes, no se reinicializan");
+			return;
+		}
+
+		// Iteramos por todos los cursos académicos disponibles
+		for (String cursoAcademicoString : Constants.CURSOS_ACADEMICOS)
+		{
+			// Creamos un nuevo curso académico
+			CursoAcademico cursoAcademicoEntity = new CursoAcademico();
+
+			// Seteamos el curso académico y si está seleccionado
+			cursoAcademicoEntity.setCursoAcademico(cursoAcademicoString);
+			cursoAcademicoEntity.setSeleccionado(cursoAcademicoString.equals(this.cursoAcademicoSeleccionado));
+
+			// Guardamos el curso académico
+			this.cursoAcademicoRepository.save(cursoAcademicoEntity);
 		}
 	}
 }

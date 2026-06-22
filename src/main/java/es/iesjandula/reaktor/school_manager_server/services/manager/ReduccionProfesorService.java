@@ -2,6 +2,7 @@ package es.iesjandula.reaktor.school_manager_server.services.manager;
 
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesor;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IReduccionRepository;
@@ -22,9 +23,15 @@ public class ReduccionProfesorService
     @Autowired
     private IProfesorRepository iProfesorRepository;
 
+    @Autowired
+    private CursoAcademicoResolver cursoAcademicoResolver;
+
     public Reduccion validadarYObtenerReduccion(String nombreReduccion, Integer horasReduccion) throws SchoolManagerServerException
     {
-        IdReduccion idReduccion = new IdReduccion(nombreReduccion, horasReduccion);
+        // La reducción está scoped por el curso académico activo (seleccionado = true)
+        String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+        IdReduccion idReduccion = new IdReduccion(cursoAcademico, nombreReduccion, horasReduccion);
         Optional<Reduccion> reduccion = this.iReduccionRepository.findById(idReduccion);
 
         if(reduccion.isEmpty())
@@ -39,7 +46,10 @@ public class ReduccionProfesorService
 
     public Profesor validadarYObtenerProfesor(String email) throws SchoolManagerServerException
     {
-        Optional<Profesor> profesor = this.iProfesorRepository.findById(email);
+        // El profesor pertenece al curso académico activo (seleccionado = true): NO viaja en la petición
+        String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+        Optional<Profesor> profesor = this.iProfesorRepository.findById(new IdProfesor(cursoAcademico, email));
 
         if(profesor.isEmpty())
         {

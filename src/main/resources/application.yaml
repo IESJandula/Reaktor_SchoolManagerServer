@@ -1,7 +1,7 @@
 spring:
   application:
     name: schoolManager
-  jpa.hibernate.ddl-auto: update
+  jpa.hibernate.ddl-auto: create
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_schoolManagerServer?createDatabaseIfNotExist=true
     username: root
@@ -42,6 +42,7 @@ reaktor:
   publicKeyFile: C:\claves\public_key.pem
   urlCors: http://localhost:5173, http://192.168.1.209:5173, http://192.168.1.181:5173, http://192.168.1.137:5173, http://172.20.10.2:517
   clientId: schoolManager
+  curso_academico: "2025/2026"
   firebase_server_url: http://localhost:8083
   users_timeout: 30000
   http_connection_timeout: 30000

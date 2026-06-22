@@ -38,6 +38,9 @@ public class GeneradorConfigService
     @Autowired
     private IGeneradorRestriccionesImpartirRepository generadorRestriccionesImpartirRepository ;
 
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver ;
+
     /** Mapa de correlacionador de cursos matutinos */
     private Map<String, Integer> mapCorrelacionadorCursosMatutinos ;
 
@@ -80,8 +83,11 @@ public class GeneradorConfigService
      */
     public void configurarGenerador() throws SchoolManagerServerException
     {
-        // Obtengo todos los cursos, etapas y grupos de BBDD
-        List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas() ;
+        // Resolvemos el curso académico activo (seleccionado = true)
+        String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+
+        // Obtengo todos los cursos, etapas y grupos de BBDD del curso académico activo
+        List<CursoEtapaGrupo> cursos = this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas(cursoAcademico) ;
             
         // Creamos dos mapas de correlacionador de cursos
         this.mapCorrelacionadorCursosMatutinos   = new HashMap<String, Integer>() ;
@@ -146,8 +152,11 @@ public class GeneradorConfigService
      */
     private void crearSesionesAsociadasAImpartir(CreadorSesiones creadorSesiones) throws SchoolManagerServerException
     {
-        // Obtenemos todas las filas de la tabla Impartir con las preferencias horarias del profesor cargadas eager
-        Optional<List<Impartir>> impartirOptional = this.iImpartirRepository.findAllWithPreferenciasHorarias() ;
+        // Resolvemos el curso académico activo (seleccionado = true)
+        String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+
+        // Obtenemos todas las filas de la tabla Impartir del curso académico activo con las preferencias horarias del profesor cargadas eager
+        Optional<List<Impartir>> impartirOptional = this.iImpartirRepository.findAllWithPreferenciasHorarias(cursoAcademico) ;
 
         // Si hay filas en la tabla Impartir
         if (impartirOptional.isPresent())
@@ -187,10 +196,13 @@ public class GeneradorConfigService
         // ... obtenemos el curso y la etapa
         int curso    = impartir.getCurso() ;
         String etapa = impartir.getEtapa() ;
+
+        // Obtenemos el curso académico directamente del Impartir (su asignatura ya es por curso académico)
+        String cursoAcademico = impartir.getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getCursoAcademico() ;
         
-        // ... obtenemos todos los grupos asociados a este curso y etapa
+        // ... obtenemos todos los grupos asociados a este curso y etapa del curso académico activo
         List<CursoEtapaGrupo> cursosEtapaGrupoDto = 
-            this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas(curso, etapa) ;
+            this.cursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGruposSinOptativas(cursoAcademico, curso, etapa) ;
         
         // ... creamos tantas sesiones como grupos tenga la asignatura
         for (int i = 0 ; i < cursosEtapaGrupoDto.size() ; i++)

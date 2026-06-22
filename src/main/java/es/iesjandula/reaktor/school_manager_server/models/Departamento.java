@@ -2,9 +2,12 @@ package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.List;
 
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdDepartamento;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -18,18 +21,30 @@ import lombok.NoArgsConstructor;
  * Un Departamento está asociado a varias asignaturas y profesores, los cuales se pueden
  * obtener a través de las relaciones mapeadas con otras entidades.
  * -----------------------------------------------------------------------------------------------------------------
+ * La clave primaria es compuesta {@code (cursoAcademico, nombre)} mediante {@link IdClass}, de modo que el
+ * catálogo de departamentos queda asociado/filtrado por curso académico. Los departamentos globales (profesores,
+ * asignaturas, reducciones) usan {@link Constants#CURSO_ACADEMICO_GLOBAL} como {@code cursoAcademico}.
+ * -----------------------------------------------------------------------------------------------------------------
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "Departamento")
+@IdClass(IdDepartamento.class)
 public class Departamento
 {
     /**
+     * Curso académico al que pertenece el departamento. Forma parte de la clave primaria.
+     * {@link Constants#CURSO_ACADEMICO_GLOBAL} para los departamentos globales.
+     */
+    @Id
+    @Column(length = 9)
+    private String cursoAcademico;
+
+    /**
      * Nombre del Departamento.
-     * Este atributo es la clave primaria del Departamento y se usa para identificarlo
-     * de forma única dentro de la base de datos.
+     * Junto con {@code cursoAcademico} forma la clave primaria del Departamento.
      */
     @Id
     @Column(length = 100)
@@ -65,4 +80,15 @@ public class Departamento
      */
     @OneToMany(mappedBy = "departamento")
     private List<Profesor> profesores;
+
+    /**
+     * Constructor de compatibilidad para departamentos globales (profesores, asignaturas, reducciones).
+     *
+     * @param nombre - Nombre del departamento.
+     */
+    public Departamento(String nombre)
+    {
+        this.cursoAcademico = Constants.CURSO_ACADEMICO_GLOBAL;
+        this.nombre = nombre;
+    }
 }

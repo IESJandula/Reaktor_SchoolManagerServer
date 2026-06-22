@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -76,6 +78,11 @@ public class DatosBrutoAlumnoMatricula
      * en los que el alumno está matriculado.</p>
      */
     @ManyToOne
+    @JoinColumns({
+            @JoinColumn(name = "cursoAcademico", referencedColumnName = "cursoAcademico"),
+            @JoinColumn(name = "curso", referencedColumnName = "curso"),
+            @JoinColumn(name = "etapa", referencedColumnName = "etapa")
+    })
     @OnDelete(action = OnDeleteAction.CASCADE)
     private CursoEtapa cursoEtapa;
 }

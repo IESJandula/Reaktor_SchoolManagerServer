@@ -80,13 +80,14 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
            "  SELECT (MAX(dtth.tramo) - MIN(dtth.tramo) + 1) - COUNT(gai.impartir_profesor_email) AS huecos " +
            "  FROM dia_tramo_tipo_horario dtth " +
            "  JOIN generador_asignada_impartir gai ON gai.dia_tramo_tipo_horario_id = dtth.id " +
-           "  WHERE gai.impartir_profesor_email = :email " +
+           "  WHERE gai.impartir_profesor_curso_academico = :cursoAcademico " +
+           "    AND gai.impartir_profesor_email = :email " +
            "    AND gai.generador_instancia_id = :generadorInstanciaId " +
            "    AND dtth.horario_matutino = :esMatutino " +
            "    AND dtth.dia != -1 AND dtth.tramo != -1 " +
            "  GROUP BY dtth.dia " +
            ") AS subconsulta", nativeQuery = true)
-    Integer contarHuecosEntreSesiones(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("email") String profesorId, @Param("esMatutino") Boolean esMatutino);
+    Integer contarHuecosEntreSesiones(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("cursoAcademico") String cursoAcademico, @Param("email") String profesorId, @Param("esMatutino") Boolean esMatutino);
 
     /**
      * Método que busca todos los profesores que tengan horario matutino o vespertino
@@ -110,11 +111,12 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      */
     @Query(value = "SELECT COUNT(*) " +
                    "FROM GeneradorAsignadaImpartir gai " +
-                   "WHERE gai.impartir.profesor.email = :profesorEmail " + 
+                   "WHERE gai.impartir.profesor.cursoAcademico = :cursoAcademico " +
+                     "AND gai.impartir.profesor.email = :profesorEmail " + 
                      "AND gai.generadorInstancia.id = :generadorInstanciaId " +
                      "AND gai.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                      "AND gai.diaTramoTipoHorario.tramo = " + Constants.TRAMO_HORARIO_PRIMERA_HORA)
-    Integer contarPreferenciasDiariasPrimeraHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
+    Integer contarPreferenciasDiariasPrimeraHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("cursoAcademico") String cursoAcademico, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
 
     /**
      * Método que cuenta cuántas veces se ha asignado una sesión a un profesor en la instancia elegida como solución
@@ -125,11 +127,12 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      */
     @Query(value = "SELECT COUNT(*) " +
                    "FROM GeneradorAsignadaImpartir gai " +
-                   "WHERE gai.impartir.profesor.email = :profesorEmail " + 
+                   "WHERE gai.impartir.profesor.cursoAcademico = :cursoAcademico " +
+                     "AND gai.impartir.profesor.email = :profesorEmail " + 
                      "AND gai.generadorInstancia.id = :generadorInstanciaId " +
                      "AND gai.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                      "AND gai.diaTramoTipoHorario.tramo = " + Constants.TRAMO_HORARIO_SEXTA_HORA)
-    Integer contarPreferenciasDiariasUltimaHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
+    Integer contarPreferenciasDiariasUltimaHora(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("cursoAcademico") String cursoAcademico, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino);
 
     /**
      * Método que cuenta cuántas veces se ha asignado una sesión a un profesor en la instancia elegida como solución
@@ -142,10 +145,11 @@ public interface IGeneradorAsignadaImpartirRepository extends JpaRepository<Gene
      */
     @Query(value = "SELECT CASE WHEN COUNT(gai) > 0 THEN 0 ELSE 1 END  " +
                    "FROM GeneradorAsignadaImpartir gai " +
-                   "WHERE gai.impartir.profesor.email = :profesorEmail " +   
+                   "WHERE gai.impartir.profesor.cursoAcademico = :cursoAcademico " +
+                     "AND gai.impartir.profesor.email = :profesorEmail " +   
                      "AND gai.generadorInstancia.id = :generadorInstanciaId " +
                      "AND gai.diaTramoTipoHorario.horarioMatutino = :esMatutino " +
                      "AND gai.diaTramoTipoHorario.tramo = :tramo " +
                      "AND gai.diaTramoTipoHorario.dia = :dia")
-    Integer contarPreferenciasConcretas(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino, @Param("dia") Integer dia, @Param("tramo") Integer tramo);
+    Integer contarPreferenciasConcretas(@Param("generadorInstanciaId") Integer generadorInstanciaId, @Param("cursoAcademico") String cursoAcademico, @Param("profesorEmail") String profesorEmail, @Param("esMatutino") Boolean esMatutino, @Param("dia") Integer dia, @Param("tramo") Integer tramo);
 }

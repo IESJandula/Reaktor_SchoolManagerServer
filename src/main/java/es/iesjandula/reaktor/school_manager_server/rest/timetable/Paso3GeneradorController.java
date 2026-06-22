@@ -77,6 +77,9 @@ public class Paso3GeneradorController
     @Autowired
     private GeneradorService generadorService ;
 
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver ;
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/estado")
     public ResponseEntity<?> obtenerEstadoGenerador()
@@ -351,8 +354,10 @@ public class Paso3GeneradorController
      */
     private Impartir buscarImpartir(String nombreAsignatura, int curso, String etapa, String grupo) throws SchoolManagerServerException
     {
+        String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+
         Optional<Impartir> impartirOptional = 
-          this.impartirRepository.encontrarImpartirPorNombreAndCursoAndEtapaAndGrupo(nombreAsignatura, curso, etapa, grupo) ;
+          this.impartirRepository.encontrarImpartirPorNombreAndCursoAndEtapaAndGrupo(cursoAcademico, nombreAsignatura, curso, etapa, grupo) ;
 
         if (!impartirOptional.isPresent())
         {

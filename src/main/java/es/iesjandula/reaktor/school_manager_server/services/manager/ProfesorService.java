@@ -19,6 +19,9 @@ public class ProfesorService
     @Autowired
     private IProfesorRepository iProfesorRepository;
 
+    @Autowired
+    private CursoAcademicoResolver cursoAcademicoResolver;
+
     /**
      * Obtiene la lista de profesores registrados en la base de datos.
      *
@@ -51,10 +54,13 @@ public class ProfesorService
      */
     public Profesor buscarProfesor(String email) throws SchoolManagerServerException
     {
-        Profesor profesor = this.iProfesorRepository.findByEmail(email);
+        // El curso académico se resuelve internamente (curso seleccionado): NO viaja en la petición ni en el CSV
+        String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+        Profesor profesor = this.iProfesorRepository.findByCursoAcademicoAndEmail(cursoAcademico, email);
         if (profesor == null)
         {
-            String mensajeError = "No se encontró ningún profesor con el email: " + email;
+            String mensajeError = "No se encontró ningún profesor con el email: " + email + " en el curso académico: " + cursoAcademico;
             log.error(mensajeError);
             throw new SchoolManagerServerException(Constants.PROFESOR_NO_ENCONTRADO, mensajeError);
         }

@@ -18,4 +18,10 @@ public class DatosMatriculaDto
 	
 	private String estadoMatricula;
 
+	/**
+	 * Indica si la asignatura es ad-hoc (creada a medida por dirección). El frontend muestra el aspa de borrado
+	 * solo en las asignaturas ad-hoc.
+	 */
+	private boolean esAdHoc;
+
 }

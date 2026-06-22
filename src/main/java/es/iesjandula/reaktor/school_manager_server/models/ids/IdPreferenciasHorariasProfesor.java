@@ -16,6 +16,10 @@ public class IdPreferenciasHorariasProfesor implements Serializable
     /** Identificador de la selección */
     private Integer idSeleccion;
 
+	/** Curso académico del profesor (parte de la FK compuesta hacia Profesor) */
+	@Column(name = "profesor_curso_academico", length = 9)
+	private String profesorCursoAcademico;
+
 	/** Email del profesor que imparte la asignatura */
 	@Column(name = "profesor_email")
 	private String profesorEmail;

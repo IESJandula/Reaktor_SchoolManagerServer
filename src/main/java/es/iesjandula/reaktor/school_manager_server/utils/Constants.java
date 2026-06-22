@@ -1,6 +1,8 @@
 package es.iesjandula.reaktor.school_manager_server.utils;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Clase de utilidades - Constants
@@ -34,6 +36,26 @@ public class Constants
 	 * <p>Este valor se utiliza para identificar o gestionar asignaturas optativas dentro del sistema.</p>
 	 */
 	public static final String GRUPO_OPTATIVAS = "Optativas";
+
+	/**
+	 * Grupo por defecto para entradas de catálogo curso/etapa creadas desde la vista de espacios.
+	 * <p>Permite persistir en {@code Curso_Etapa_Grupo} sin alterar la PK ni los grupos reales (A, B, etc.).</p>
+	 */
+	public static final String GRUPO_CATALOGO_CURSO_ETAPA = "-";
+
+	/**
+	 * Valor de curso académico para registros globales (grupos docentes, matrículas, espacios fijos).
+	 * <p>El catálogo curso/etapa por año académico usa el identificador real del curso académico (p. ej. {@code 2025/2026}).</p>
+	 */
+	public static final String CURSO_ACADEMICO_GLOBAL = "";
+
+	/**
+	 * Número de horas lectivas semanales que imparte un profesor a jornada completa.
+	 * <p>Se usa como jornada lectiva estándar para calcular las horas que aporta la plantilla
+	 * de un departamento ({@code plantilla * HORAS_LECTIVAS_PROFESOR}) y para proponer el número
+	 * de profesores necesarios ({@code techo(horasNecesarias / HORAS_LECTIVAS_PROFESOR)}).</p>
+	 */
+	public static final int HORAS_LECTIVAS_PROFESOR = 18;
 
     /**
      * Tipo de solicitud: Asignatura.
@@ -270,6 +292,16 @@ public class Constants
 	 * Error - No se han encontrado tramos horarios
 	 */
 	public static final int TRAMOS_HORARIOS_NO_ENCONTRADOS = 72;
+
+	/**
+	 * Error - Las asignaturas del bloque tienen horas diferentes entre sí
+	 */
+	public static final int ASIGNATURAS_BLOQUE_HORAS_DIFERENTES = 73;
+
+	/**
+	 * Error - Una asignatura en bloque no puede marcarse como sin docencia, o un bloque no puede incluir asignaturas sin docencia
+	 */
+	public static final int ASIGNATURA_BLOQUE_SIN_DOCENCIA = 74;
 
 	/************* ERRORES - Generales/De Conexión ***************/
 
@@ -638,5 +670,255 @@ public class Constants
 	public static final String MODO_INICIALIZAR_SISTEMA = "true";
 
 
+	/******************************************************/
+	/*************** Espacios - Cursos académicos *********/
+	/******************************************************/
 
+	/**
+	 * Lista de cursos académicos que se inicializan en el sistema.
+	 */
+	public static final List<String> CURSOS_ACADEMICOS = Arrays.asList("2025/2026", "2026/2027", "2027/2028", "2028/2029",
+																	   "2029/2030", "2030/2031", "2031/2032",
+																	   "2032/2033", "2033/2034", "2034/2035",
+																	   "2035/2036", "2036/2037", "2037/2038",
+																	   "2038/2039", "2039/2040", "2040/2041",
+																	   "2041/2042", "2042/2043", "2043/2044",
+																	   "2044/2045", "2045/2046", "2046/2047",
+																	   "2047/2048", "2048/2049", "2049/2050");
+
+	/**
+	 * Parámetro YAML que indica el curso académico seleccionado por defecto.
+	 */
+	public static final String PARAM_YAML_CURSO_ACADEMICO_SELECCIONADO = "reaktor.curso_academico";
+
+	/**
+	 * Valor por defecto del curso académico seleccionado.
+	 */
+	public static final String VALOR_CURSO_ACADEMICO_SELECCIONADO = "2025/2026";
+
+	/******************************************************/
+	/*********** Espacios - Códigos de error *************/
+	/******************************************************/
+
+	/** Error - El curso académico es nulo o vacío */
+	public static final int ERR_CURSO_ACADEMICO_NULO_VACIO_CODE = 400;
+
+	/** Mensaje - El curso académico es nulo o vacío */
+	public static final String ERR_CURSO_ACADEMICO_NULO_VACIO_MESSAGE = "El curso académico no puede ser nulo o vacío";
+
+	/** Error - El curso académico no existe */
+	public static final int ERR_CURSO_ACADEMICO_NO_EXISTE_CODE = 401;
+
+	/** Mensaje - El curso académico no existe */
+	public static final String ERR_CURSO_ACADEMICO_NO_EXISTE_MESSAGE = "El curso académico no existe";
+
+	/** Error - No hay ningún curso académico seleccionado */
+	public static final int ERR_NO_CURSO_ACADEMICO_SELECCIONADO_CODE = 402;
+
+	/** Mensaje - No hay ningún curso académico seleccionado */
+	public static final String ERR_NO_CURSO_ACADEMICO_SELECCIONADO_MESSAGE = "No hay ningún curso académico seleccionado";
+
+	/** Error - La etapa es nula o vacía */
+	public static final int ERR_ETAPA_NULO_VACIO_CODE = 411;
+
+	/** Mensaje - La etapa es nula o vacía */
+	public static final String ERR_ETAPA_NULO_VACIO_MESSAGE = "La etapa no puede ser nula o vacía";
+
+	/** Error - El grupo es nulo o vacío */
+	public static final int ERR_GRUPO_NULO_VACIO_CODE = 412;
+
+	/** Mensaje - El grupo es nulo o vacío */
+	public static final String ERR_GRUPO_NULO_VACIO_MESSAGE = "El grupo no puede ser nulo o vacío";
+
+	/** Error - El curso, etapa y grupo ya existe */
+	public static final int ERR_CURSO_ETAPA_GRUPO_YA_EXISTE_CODE = 413;
+
+	/** Mensaje - El curso, etapa y grupo ya existe */
+	public static final String ERR_CURSO_ETAPA_GRUPO_YA_EXISTE_MESSAGE = "El curso, etapa y grupo ya existe en la base de datos";
+
+	/** Error - El curso, etapa y grupo no existe */
+	public static final int ERR_CURSO_ETAPA_GRUPO_NO_EXISTE_CODE = 414;
+
+	/** Mensaje - El curso, etapa y grupo no existe */
+	public static final String ERR_CURSO_ETAPA_GRUPO_NO_EXISTE_MESSAGE = "El curso, etapa y grupo no existe en la base de datos";
+
+	/** Error - El grupo está asignado a un espacio fijo */
+	public static final int ERR_GRUPO_ASIGNADO_A_ESPACIO_FIJO_CODE = 415;
+
+	/** Mensaje - El grupo está asignado a un espacio fijo */
+	public static final String ERR_GRUPO_ASIGNADO_A_ESPACIO_FIJO_MESSAGE = "No puedes borrar el grupo mientras esté asociado a un espacio fijo";
+
+	/** Error - El nombre del espacio es nulo o vacío */
+	public static final int ERR_ESPACIO_NOMBRE_NULO_VACIO_CODE = 421;
+
+	/** Mensaje - El nombre del espacio es nulo o vacío */
+	public static final String ERR_ESPACIO_NOMBRE_NULO_VACIO_MESSAGE = "El nombre del espacio no puede ser nulo o vacío";
+
+	/** Error - El espacio ya existe en sin docencia */
+	public static final int ERR_ESPACIO_YA_EXISTE_EN_SIN_DOCENCIA_CODE = 422;
+
+	/** Mensaje - El espacio ya existe en sin docencia */
+	public static final String ERR_ESPACIO_YA_EXISTE_EN_SIN_DOCENCIA_MESSAGE = "Ya existe un espacio con ese nombre en este curso académico";
+
+	/** Error - El espacio ya existe en desdoble */
+	public static final int ERR_ESPACIO_YA_EXISTE_EN_DESDOBLE_CODE = 424;
+
+	/** Mensaje - El espacio ya existe en desdoble */
+	public static final String ERR_ESPACIO_YA_EXISTE_EN_DESDOBLE_MESSAGE = "Ya existe un espacio desdoble con ese nombre en este curso académico";
+
+	/** Error - El espacio no existe en sin docencia */
+	public static final int ERR_ESPACIO_NO_EXISTE_EN_SIN_DOCENCIA_CODE = 425;
+
+	/** Mensaje - El espacio no existe en sin docencia */
+	public static final String ERR_ESPACIO_NO_EXISTE_EN_SIN_DOCENCIA_MESSAGE = "El espacio no existe en sin docencia";
+
+	/** Error - El espacio no existe en fijo */
+	public static final int ERR_ESPACIO_NO_EXISTE_EN_FIJO_CODE = 426;
+
+	/** Mensaje - El espacio no existe en fijo */
+	public static final String ERR_ESPACIO_NO_EXISTE_EN_FIJO_MESSAGE = "El espacio no existe en fijo";
+
+	/** Error - El espacio no existe en desdoble */
+	public static final int ERR_ESPACIO_NO_EXISTE_EN_DESDOBLE_CODE = 427;
+
+	/** Mensaje - El espacio no existe en desdoble */
+	public static final String ERR_ESPACIO_NO_EXISTE_EN_DESDOBLE_MESSAGE = "El espacio no existe en desdoble";
+
+	/** Error - Faltan datos del grupo (curso, etapa y grupo) para el espacio fijo */
+	public static final int ERR_ESPACIO_FIJO_GRUPO_INCOMPLETO_CODE = 428;
+
+	/** Mensaje - Faltan datos del grupo para el espacio fijo */
+	public static final String ERR_ESPACIO_FIJO_GRUPO_INCOMPLETO_MESSAGE = "Debes indicar curso, etapa y grupo";
+
+	/** Error - El grupo indicado para el espacio fijo no existe */
+	public static final int ERR_ESPACIO_FIJO_GRUPO_NO_EXISTE_CODE = 429;
+
+	/** Mensaje - El grupo indicado para el espacio fijo no existe */
+	public static final String ERR_ESPACIO_FIJO_GRUPO_NO_EXISTE_MESSAGE = "El grupo indicado no existe";
+
+	/** Error - El curso académico origen y destino son iguales */
+	public static final int ERR_CURSO_ACADEMICO_ORIGEN_DESTINO_IGUALES_CODE = 430;
+
+	/** Mensaje - El curso académico origen y destino son iguales */
+	public static final String ERR_CURSO_ACADEMICO_ORIGEN_DESTINO_IGUALES_MESSAGE = "El curso académico origen y destino no pueden ser iguales";
+
+	/** Error - El aula no está disponible para usarse como desdoble (no existe en el catálogo o ya es aula de referencia) */
+	public static final int ERR_ESPACIO_NO_DISPONIBLE_DESDOBLE_CODE = 440;
+
+	/** Mensaje - El aula no está disponible para usarse como desdoble */
+	public static final String ERR_ESPACIO_NO_DISPONIBLE_DESDOBLE_MESSAGE = "El aula no está disponible para usarse como desdoble: no existe en el catálogo del instituto o ya está asignada como aula de referencia de un grupo";
+
+	/** Error - El aula ya está usada como desdoble y no puede asignarse como aula de referencia (fijo) */
+	public static final int ERR_ESPACIO_USADO_COMO_DESDOBLE_CODE = 441;
+
+	/** Mensaje - El aula ya está usada como desdoble y no puede asignarse como aula de referencia (fijo) */
+	public static final String ERR_ESPACIO_USADO_COMO_DESDOBLE_MESSAGE = "El aula ya está asignada como aula de desdoble a uno o varios bloques, por lo que no puede asignarse a la vez como aula de referencia de un grupo";
+
+	/** Error - No se ha indicado la asignatura a la que asignar el aula de desdoble */
+	public static final int ERR_DESDOBLE_ASIGNATURA_NULA_VACIA_CODE = 442;
+
+	/** Mensaje - No se ha indicado la asignatura a la que asignar el aula de desdoble */
+	public static final String ERR_DESDOBLE_ASIGNATURA_NULA_VACIA_MESSAGE = "Debes indicar la asignatura del bloque a la que asignar el aula de desdoble";
+
+	/** Error - La asignatura indicada no pertenece al bloque */
+	public static final int ERR_DESDOBLE_ASIGNATURA_NO_EN_BLOQUE_CODE = 443;
+
+	/** Mensaje - La asignatura indicada no pertenece al bloque */
+	public static final String ERR_DESDOBLE_ASIGNATURA_NO_EN_BLOQUE_MESSAGE = "La asignatura indicada no pertenece al bloque seleccionado";
+
+	/** Error - Se ha superado el tope de aulas de desdoble del bloque (no más aulas que asignaturas) */
+	public static final int ERR_DESDOBLE_TOPE_AULAS_CODE = 444;
+
+	/** Mensaje - Se ha superado el tope de aulas de desdoble del bloque (no más aulas que asignaturas) */
+	public static final String ERR_DESDOBLE_TOPE_AULAS_MESSAGE = "No se pueden asignar más aulas de desdoble que asignaturas tiene el bloque";
+
+	/** Opción de copia - catálogo curso/etapa del curso académico */
+	public static final String OPCION_COPIAR_CURSOS_ETAPAS = "cursos_etapas";
+
+	/** Opción de copia - asignaturas (horas, bloques, flags) de los cursos/etapas del origen */
+	public static final String OPCION_COPIAR_ASIGNATURAS = "asignaturas";
+
+	/** Opción de copia - reducciones (con docencia) del curso académico origen */
+	public static final String OPCION_COPIAR_REDUCCIONES = "reducciones";
+
+	/**
+	 * Prefijo común del nombre sintetizado de una reducción de tipo TUTORÍA. El nombre completo de la tutoría a
+	 * nivel curso/etapa (plantilla cargada por CSV) es {@code "Tutoría <curso>º <etapa>"} (p. ej. "Tutoría 1º ESO");
+	 * la tutoría por grupo añade además el grupo al final ({@code "Tutoría <curso>º <etapa> <grupo>"}). Se centraliza
+	 * aquí para que el parseo CSV (que crea las plantillas) y la sincronización por grupo (que las materializa por
+	 * grupo) compartan exactamente el mismo formato.
+	 */
+	public static final String PREFIJO_REDUCCION_TUTORIA = "Tutoría ";
+
+	/** Error - No se ha seleccionado ninguna opción de copia */
+	public static final int ERR_COPIAR_SIN_OPCIONES_CODE = 434;
+
+	/** Mensaje - No se ha seleccionado ninguna opción de copia */
+	public static final String ERR_COPIAR_SIN_OPCIONES_MESSAGE = "Selecciona al menos una opción de copia";
+
+	/** Error - esoBachillerato es nulo en la creación de curso/etapa */
+	public static final int ERR_ESO_BACHILLERATO_NULO_CODE = 431;
+
+	/** Mensaje - esoBachillerato es nulo en la creación de curso/etapa */
+	public static final String ERR_ESO_BACHILLERATO_NULO_MESSAGE = "El indicador esoBachillerato no puede ser nulo";
+
+	/** Error - El curso y etapa ya existen */
+	public static final int ERR_CURSO_ETAPA_YA_EXISTE_CODE = 432;
+
+	/** Mensaje - El curso y etapa ya existen */
+	public static final String ERR_CURSO_ETAPA_YA_EXISTE_MESSAGE = "El curso y etapa ya existen en la base de datos";
+
+	/** Error - El curso y etapa no existen */
+	public static final int ERR_CURSO_ETAPA_NO_EXISTE_CODE = 433;
+
+	/** Mensaje - El curso y etapa no existen */
+	public static final String ERR_CURSO_ETAPA_NO_EXISTE_MESSAGE = "El curso y etapa no existen en la base de datos";
+
+	/** Error - El nombre del departamento es nulo o vacío */
+	public static final int ERR_DEPARTAMENTO_NOMBRE_NULO_VACIO_CODE = 434;
+
+	/** Mensaje - El nombre del departamento es nulo o vacío */
+	public static final String ERR_DEPARTAMENTO_NOMBRE_NULO_VACIO_MESSAGE = "El nombre del departamento no puede ser nulo o vacío";
+
+	/** Error - El departamento ya existe */
+	public static final int ERR_DEPARTAMENTO_YA_EXISTE_CODE = 435;
+
+	/** Mensaje - El departamento ya existe */
+	public static final String ERR_DEPARTAMENTO_YA_EXISTE_MESSAGE = "El departamento ya existe en la base de datos";
+
+	/** Error - El departamento no existe */
+	public static final int ERR_DEPARTAMENTO_NO_EXISTE_CODE = 436;
+
+	/** Mensaje - El departamento no existe */
+	public static final String ERR_DEPARTAMENTO_NO_EXISTE_MESSAGE = "El departamento no existe en la base de datos";
+
+	/** Error - Datos de asignatura ad-hoc inválidos (nombre/curso/etapa) */
+	public static final int ERR_ASIGNATURA_AD_HOC_DATOS_INVALIDOS_CODE = 437;
+
+	/** Mensaje - Datos de asignatura ad-hoc inválidos */
+	public static final String ERR_ASIGNATURA_AD_HOC_DATOS_INVALIDOS_MESSAGE = "El nombre, curso y etapa de la asignatura ad-hoc no pueden ser nulos o vacíos";
+
+	/** Error - La asignatura ad-hoc ya existe */
+	public static final int ERR_ASIGNATURA_AD_HOC_YA_EXISTE_CODE = 438;
+
+	/** Mensaje - La asignatura ad-hoc ya existe */
+	public static final String ERR_ASIGNATURA_AD_HOC_YA_EXISTE_MESSAGE = "Ya existe una asignatura ad-hoc con ese nombre para el curso y etapa indicados";
+
+	/** Error - La asignatura no es ad-hoc o no existe (no se puede borrar por esta vía) */
+	public static final int ERR_ASIGNATURA_NO_AD_HOC_CODE = 439;
+
+	/** Mensaje - La asignatura no es ad-hoc o no existe */
+	public static final String ERR_ASIGNATURA_NO_AD_HOC_MESSAGE = "La asignatura no existe o no es ad-hoc, por lo que no puede borrarse por esta vía";
+
+	/** Error - El fichero de carga de alumnos por grupo tiene un formato inválido */
+	public static final int ERR_CARGA_ALUMNOS_FICHERO_FORMATO_CODE = 445;
+
+	/** Mensaje - Formato inválido del fichero de carga de alumnos por grupo */
+	public static final String ERR_CARGA_ALUMNOS_FICHERO_FORMATO_MESSAGE = "El fichero de alumnos tiene un formato inválido. Se espera por fila: nombreApellidos, curso etapa grupo";
+
+	/** Error - Alumnos del fichero que no existen en los datos brutos del curso/etapa/curso académico */
+	public static final int ERR_ALUMNOS_NO_EN_DATOS_BRUTOS_CODE = 446;
+
+	/** Mensaje - Alumnos del fichero que no existen en los datos brutos */
+	public static final String ERR_ALUMNOS_NO_EN_DATOS_BRUTOS_MESSAGE = "Los siguientes alumnos del fichero no existen en los datos brutos de matrícula y no se ha importado nada: ";
 }

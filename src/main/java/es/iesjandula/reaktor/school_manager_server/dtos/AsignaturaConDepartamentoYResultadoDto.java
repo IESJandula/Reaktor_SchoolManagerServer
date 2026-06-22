@@ -13,15 +13,31 @@ public class AsignaturaConDepartamentoYResultadoDto
 
     private int plantilla;
 
-    private int horasNecesarias;
+    /**
+     * Horas necesarias por las asignaturas asignadas (como receptor) al departamento.
+     */
+    private long horasNecesarias;
 
+    /**
+     * Horas disponibles que aporta la plantilla actual del departamento.
+     */
     private long horasTotales;
 
+    /**
+     * Desfase = horasTotales - horasNecesarias.
+     * Positivo = sobran horas, 0 = cerrado, negativo = faltan horas.
+     */
     private long desfase;
 
     private String resultado;
 
-    public AsignaturaConDepartamentoYResultadoDto(String nombre, int plantilla, int horasNecesarias, long horasTotales, long desfase)
+    /**
+     * Propuesta automática de profesores en plantilla para cubrir las horas necesarias:
+     * techo(horasNecesarias / horas lectivas por profesor). Es orientativa y editable por el usuario.
+     */
+    private int plantillaPropuesta;
+
+    public AsignaturaConDepartamentoYResultadoDto(String nombre, int plantilla, long horasNecesarias, long horasTotales, long desfase)
     {
         this.nombre = nombre;
         this.plantilla = plantilla;

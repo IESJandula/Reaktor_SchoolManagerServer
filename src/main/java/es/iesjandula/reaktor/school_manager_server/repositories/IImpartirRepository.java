@@ -6,9 +6,11 @@ import es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorImpartirDto;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import es.iesjandula.reaktor.school_manager_server.models.Impartir;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdImpartir;
@@ -25,12 +27,23 @@ import java.util.Optional;
  */
 @Repository
 public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
-{ 
+{
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM Impartir i "
+            + "WHERE i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico "
+            + "AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso "
+            + "AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+    void borrarPorCursoYEtapa(@Param("cursoAcademico") String cursoAcademico,
+                              @Param("curso") int curso,
+                              @Param("etapa") String etapa);
+
     @Query("SELECT COUNT(i) " +
             "FROM Impartir i " +
-            "WHERE i.asignatura.idAsignatura.nombre = :nombre AND i.cupoHoras = :horas AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura" +
+            "WHERE i.asignatura.idAsignatura.nombre = :nombre AND i.cupoHoras = :horas AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura" +
             ".cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND i.asignatura.departamentoReceptor.nombre = :departamento ")
-    Long encontrarAsignaturaAsignada(@Param("nombre") String nombre,
+    Long encontrarAsignaturaAsignada(@Param("cursoAcademico") String cursoAcademico,
+                                              @Param("nombre") String nombre,
                                               @Param("horas") Integer horas,
                                               @Param("curso") Integer curso,
                                               @Param("etapa") String etapa,
@@ -39,13 +52,14 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirHorasDto(i.asignatura.idAsignatura.nombre, i.asignatura.horas, i.cupoHoras, i.asignatura.idAsignatura.cursoEtapaGrupo" +
             ".idCursoEtapaGrupo.curso, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo, i.asignadoDireccion) " +
             "FROM Impartir i " +
-            "WHERE i.idImpartir.profesor.email = :email")
-    List<ImpartirHorasDto> encontrarAsignaturasImpartidasPorEmail(@Param("email") String email);
+            "WHERE i.idImpartir.profesor.email = :email AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico")
+    List<ImpartirHorasDto> encontrarAsignaturasImpartidasPorEmail(@Param("cursoAcademico") String cursoAcademico, @Param("email") String email);
 
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartirDto(i.asignatura.idAsignatura.nombre, i.cupoHoras, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa, i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo) " +
             "FROM Impartir i " +
-            "WHERE i.idImpartir.profesor.email = :email AND i.asignatura.idAsignatura.nombre = :nombre AND i.cupoHoras = :horas AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
-    ImpartirDto encontrarAsignaturaImpartidaPorEmail(@Param("email") String email,
+            "WHERE i.idImpartir.profesor.email = :email AND i.asignatura.idAsignatura.nombre = :nombre AND i.cupoHoras = :horas AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo")
+    ImpartirDto encontrarAsignaturaImpartidaPorEmail(@Param("cursoAcademico") String cursoAcademico,
+                                                     @Param("email") String email,
                                                      @Param("nombre") String nombre,
                                                      @Param("horas") Integer horas,
                                                      @Param("curso") Integer curso,
@@ -54,43 +68,50 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
 
     @Query("SELECT i " +
             "FROM Impartir i " +
-            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
-    List<Impartir> encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(@Param("nombreAsignatura") String nombreAsignatura,
+            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+    List<Impartir> encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(@Param("cursoAcademico") String cursoAcademico,
+                                                               @Param("nombreAsignatura") String nombreAsignatura,
                                                                @Param("curso") Integer curso,
                                                                @Param("etapa") String etapa);
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ProfesorImpartirDto(i.idImpartir.profesor.nombre, i.idImpartir.profesor.apellidos) " +
             "FROM Impartir i " +
-            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
-    List<ProfesorImpartirDto> encontrarProfesorPorNombreAndCursoEtpa(@Param("nombreAsignatura") String nombreAsignatura,
+            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+    List<ProfesorImpartirDto> encontrarProfesorPorNombreAndCursoEtpa(@Param("cursoAcademico") String cursoAcademico,
+                                                            @Param("nombreAsignatura") String nombreAsignatura,
                                                             @Param("curso") Integer curso,
                                                             @Param("etapa") String etapa);
 
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ImpartidaGrupoDeptDto(i.idImpartir.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo, a.departamentoReceptor.nombre)  " +
             "FROM Impartir i " +
             "JOIN i.asignatura a " +
-            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
-    List<ImpartidaGrupoDeptDto> encontrarGruposYDeptAsignaturaImpartidaPorNombreAndCursoEtapa(@Param("nombreAsignatura") String nombreAsignatura,
+            "WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombreAsignatura AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa")
+    List<ImpartidaGrupoDeptDto> encontrarGruposYDeptAsignaturaImpartidaPorNombreAndCursoEtapa(@Param("cursoAcademico") String cursoAcademico,
+                                                                                         @Param("nombreAsignatura") String nombreAsignatura,
                                                                                          @Param("curso") Integer curso,
                                                                                          @Param("etapa") String etapa);
     /**
-     * Método que devuelve todos los registros de Impartir con las preferencias horarias del profesor cargadas eagerly
+     * Método que devuelve todos los registros de Impartir del curso académico activo con las preferencias horarias del profesor cargadas eagerly
+     * @param cursoAcademico - El curso académico activo.
      * @return Lista de todos los registros de Impartir con las preferencias horarias del profesor
      */
     @Query("SELECT DISTINCT i " +
             "FROM Impartir i " +
             "LEFT JOIN FETCH i.idImpartir.profesor p " +
-            "LEFT JOIN FETCH p.preferenciasHorariasProfesor")
-    Optional<List<Impartir>> findAllWithPreferenciasHorarias();
+            "LEFT JOIN FETCH p.preferenciasHorariasProfesor " +
+            "WHERE i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico")
+    Optional<List<Impartir>> findAllWithPreferenciasHorarias(@Param("cursoAcademico") String cursoAcademico);
 
     @Query("""
         SELECT i
         FROM Impartir i
         WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombre
+              AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico
               AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso
               AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa
               AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo
         """)
-    Optional<Impartir> encontrarImpartirPorNombreAndCursoAndEtapaAndGrupo(@Param("nombre") String nombre,
+    Optional<Impartir> encontrarImpartirPorNombreAndCursoAndEtapaAndGrupo(@Param("cursoAcademico") String cursoAcademico,
+                                                                          @Param("nombre") String nombre,
                                                                           @Param("curso") int curso,
                                                                           @Param("etapa") String etapa,
                                                                           @Param("grupo") String grupo);  
@@ -98,12 +119,14 @@ public interface IImpartirRepository extends JpaRepository<Impartir, IdImpartir>
         SELECT i
         FROM Impartir i
         WHERE i.idImpartir.asignatura.idAsignatura.nombre = :nombre 
+          AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.cursoAcademico = :cursoAcademico
           AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.curso = :curso
           AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.etapa = :etapa
           AND i.asignatura.idAsignatura.cursoEtapaGrupo.idCursoEtapaGrupo.grupo = :grupo
           AND i.idImpartir.profesor.email = :profesor
         """)
-    Optional<Impartir> buscarPorNombreAndCursoAndEtapaAndGrupoAndProfesor(@Param("nombre") String nombre,
+    Optional<Impartir> buscarPorNombreAndCursoAndEtapaAndGrupoAndProfesor(@Param("cursoAcademico") String cursoAcademico,
+                                                                          @Param("nombre") String nombre,
                                                                           @Param("curso") int curso,
                                                                           @Param("etapa") String etapa,
                                                                           @Param("grupo") String grupo,

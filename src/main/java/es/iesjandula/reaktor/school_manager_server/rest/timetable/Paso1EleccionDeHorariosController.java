@@ -64,6 +64,9 @@ public class Paso1EleccionDeHorariosController
     @Autowired
     private ProfesorService profesorService;
 
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver;
+
     /**
      * Recupera una lista de profesores junto con sus horarios desde la base de datos.
      * <p>
@@ -121,9 +124,10 @@ public class Paso1EleccionDeHorariosController
     {
         try
         {
-            String departamento = this.iProfesorReduccionRepository.encontrarDepartamentoPorProfesor(email);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            String departamento = this.iProfesorReduccionRepository.encontrarDepartamentoPorProfesor(cursoAcademico, email);
 
-            List<ImpartirAsignaturaDto> asignaturaDtoSinGrupos = this.iAsignaturaRepository.encontrarAsignaturasPorDepartamento(departamento);
+            List<ImpartirAsignaturaDto> asignaturaDtoSinGrupos = this.iAsignaturaRepository.encontrarAsignaturasPorDepartamento(cursoAcademico, departamento);
 
             if (asignaturaDtoSinGrupos.isEmpty())
             {
@@ -185,11 +189,13 @@ public class Paso1EleccionDeHorariosController
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
 
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
 //            Buscar el departamento receptor
-            List<DepartamentoDto> listDepartamentoDto = this.iAsignaturaRepository.encontrarDepartamentoReceptor(nombreAsignatura, curso, etapa);
+            List<DepartamentoDto> listDepartamentoDto = this.iAsignaturaRepository.encontrarDepartamentoReceptor(cursoAcademico, nombreAsignatura, curso, etapa);
             List<String> listDepartamento = listDepartamentoDto.stream().map(DepartamentoDto::getNombre).toList();
 
-            String departamentoProfesor = this.iProfesorRepository.buscarDepartamentoPorEmail(email);
+            String departamentoProfesor = this.iProfesorRepository.buscarDepartamentoPorEmail(cursoAcademico, email);
 
             Map<String, Long> mapAsignaturasPorDepartamento = new HashMap<>();
             Map<String, Long> mapAsignaturasAComparar = new HashMap<>();
@@ -197,19 +203,19 @@ public class Paso1EleccionDeHorariosController
 //          Contamos las asignaturas que hay por nombre, horas, curso y etapa
             for (String departamento : listDepartamento)
             {
-                Long asignaturaImpartir = Optional.ofNullable(this.iImpartirRepository.encontrarAsignaturaAsignada(nombreAsignatura, horas, curso, etapa, departamento)).orElse(0L); //Si es nulo a 0
+                Long asignaturaImpartir = Optional.ofNullable(this.iImpartirRepository.encontrarAsignaturaAsignada(cursoAcademico, nombreAsignatura, horas, curso, etapa, departamento)).orElse(0L); //Si es nulo a 0
 
                 mapAsignaturasPorDepartamento.put(departamento, asignaturaImpartir);
 
 //              Contamos los grupos que hay por asignaturas
-                long cantidadGrupos = this.iAsignaturaRepository.contarGruposPorNombreCursoEtapaDepartamento(nombreAsignatura, curso, etapa, departamento);
+                long cantidadGrupos = this.iAsignaturaRepository.contarGruposPorNombreCursoEtapaDepartamento(cursoAcademico, nombreAsignatura, curso, etapa, departamento);
                 mapAsignaturasAComparar.put(departamento, cantidadGrupos);
 
             }
 
-            boolean desdoble = this.iAsignaturaRepository.isDesdoble(nombreAsignatura, curso, etapa);
+            boolean desdoble = this.iAsignaturaRepository.isDesdoble(cursoAcademico, nombreAsignatura, curso, etapa);
 
-            List<Asignatura> asignaturas = this.iAsignaturaRepository.findNombreByCursoEtapaAndNombres(curso, etapa, nombreAsignatura);
+            List<Asignatura> asignaturas = this.iAsignaturaRepository.findNombreByCursoEtapaAndNombres(cursoAcademico, curso, etapa, nombreAsignatura);
 
             String grupo = Constants.GRUPO_INICIAL;
             if (asignaturas != null && !asignaturas.isEmpty() && asignaturas.get(0).isOptativa())
@@ -219,7 +225,7 @@ public class Paso1EleccionDeHorariosController
             else
             {
 //              Lista de impartidas actuales
-                List<ImpartidaGrupoDeptDto> gruposDistintosPorAsignaturaImpartida = iImpartirRepository.encontrarGruposYDeptAsignaturaImpartidaPorNombreAndCursoEtapa(nombreAsignatura, curso, etapa);
+                List<ImpartidaGrupoDeptDto> gruposDistintosPorAsignaturaImpartida = iImpartirRepository.encontrarGruposYDeptAsignaturaImpartidaPorNombreAndCursoEtapa(cursoAcademico, nombreAsignatura, curso, etapa);
 
 //              Este stream filtra las asignaturas de la lista original que sean del departamento del profesor a asignar
                 assert asignaturas != null;
@@ -244,7 +250,7 @@ public class Paso1EleccionDeHorariosController
                 grupo = grupoLibre.orElse(grupo);
             }
 
-            Impartir asignarAsignatura = construirImpartir(email, nombreAsignatura, horas, curso, etapa, grupo);
+            Impartir asignarAsignatura = construirImpartir(cursoAcademico, email, nombreAsignatura, horas, curso, etapa, grupo);
             asignarAsignatura.setAsignadoDireccion(false);
 
 
@@ -254,7 +260,7 @@ public class Paso1EleccionDeHorariosController
 
             if (!desdoble && yaAsignadas >= maxPermitidas)
             {
-                List<ProfesorImpartirDto> listProfesores = this.iImpartirRepository.encontrarProfesorPorNombreAndCursoEtpa(nombreAsignatura, curso, etapa);
+                List<ProfesorImpartirDto> listProfesores = this.iImpartirRepository.encontrarProfesorPorNombreAndCursoEtpa(cursoAcademico, nombreAsignatura, curso, etapa);
                 String mensajeError = null;
                 if (listProfesores.size() > 1)
                 {
@@ -507,6 +513,7 @@ public class Paso1EleccionDeHorariosController
 
             // Añadimos la información del id de las preferencias horarias
             idPreferenciasHorariasProfesor.setIdSeleccion(idSeleccion) ;
+            idPreferenciasHorariasProfesor.setProfesorCursoAcademico(profesor.getCursoAcademico()) ;
             idPreferenciasHorariasProfesor.setProfesorEmail(profesor.getEmail()) ;
             idPreferenciasHorariasProfesor.setDiaTramoTipoHorarioId(diaTramoTipoHorario.getId()) ;
 
@@ -548,9 +555,12 @@ public class Paso1EleccionDeHorariosController
      */
     private PreferenciasHorariasProfesor obtenerPreferenciasHorarias(String email, Integer idSeleccion) throws SchoolManagerServerException
     {
+        // El curso académico se resuelve internamente (curso seleccionado): NO viaja en la petición
+        String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+
         // Buscamos las preferencias horarias del profesor
         Optional<PreferenciasHorariasProfesor> optionalPreferenciasHorariasProfesor = 
-                this.iPreferenciasHorariasRepository.buscarPorEmailIdSeleccion(email, idSeleccion) ;
+                this.iPreferenciasHorariasRepository.buscarPorEmailIdSeleccion(cursoAcademico, email, idSeleccion) ;
 
         PreferenciasHorariasProfesor preferenciasHorariasProfesor = null;
 
@@ -626,8 +636,11 @@ public class Paso1EleccionDeHorariosController
      */
     private ObservacionesAdicionales obtenerObservaciones(String email) throws SchoolManagerServerException
     {
+        // El curso académico se resuelve internamente (curso seleccionado): NO viaja en la petición
+        String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+
         // Buscamos las observaciones adicionales del profesor
-        Optional<ObservacionesAdicionales> optionalObservacionesAdicionales = iObservacionesAdicionalesRepository.buscarPorEmail(email) ;
+        Optional<ObservacionesAdicionales> optionalObservacionesAdicionales = iObservacionesAdicionalesRepository.buscarPorEmail(cursoAcademico, email) ;
 
         ObservacionesAdicionales observacionesAdicionales = null;
 
@@ -641,7 +654,8 @@ public class Paso1EleccionDeHorariosController
             // Construimos las observaciones adicionales
             observacionesAdicionales = new ObservacionesAdicionales() ;
 
-            // Añadimos el email del profesor a las observaciones adicionales
+            // Añadimos la clave del profesor (curso académico + email) a las observaciones adicionales
+            observacionesAdicionales.setProfesorCursoAcademico(cursoAcademico) ;
             observacionesAdicionales.setProfesorEmail(email) ;
             
             // Inicializamos los campos booleanos para evitar valores nulos
@@ -676,9 +690,12 @@ public class Paso1EleccionDeHorariosController
             {
                 this.validacionesGlobales.validacionesGlobalesPreviasEleccionHorarios();
             }
-            
+
+            // El curso académico se resuelve internamente (curso seleccionado): NO viaja en la petición
+            String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+
             // Buscamos las observaciones adicionales del profesor
-            Optional<ObservacionesAdicionales> observacionesEncontradas = iObservacionesAdicionalesRepository.buscarPorEmail(email) ;
+            Optional<ObservacionesAdicionales> observacionesEncontradas = iObservacionesAdicionalesRepository.buscarPorEmail(cursoAcademico, email) ;
 
             // Si hay observaciones, las añadimos al dto
             if (observacionesEncontradas.isPresent())
@@ -690,7 +707,7 @@ public class Paso1EleccionDeHorariosController
             }
 
             // Buscamos las preferencias horarias del profesor
-            Optional<List<PreferenciasHorariasProfesor>> preferenciasHorariasEncontradas = iPreferenciasHorariasRepository.buscarPorEmail(email);
+            Optional<List<PreferenciasHorariasProfesor>> preferenciasHorariasEncontradas = iPreferenciasHorariasRepository.buscarPorEmail(cursoAcademico, email);
 
             // Si hay preferencias horarias, las añadimos al dto
             if (preferenciasHorariasEncontradas.isPresent() && !preferenciasHorariasEncontradas.get().isEmpty())
@@ -753,7 +770,8 @@ public class Paso1EleccionDeHorariosController
     {
         try
         {
-            List<ImpartirHorasDto> listAsignaturasImpartidas = this.iImpartirRepository.encontrarAsignaturasImpartidasPorEmail(email);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<ImpartirHorasDto> listAsignaturasImpartidas = this.iImpartirRepository.encontrarAsignaturasImpartidasPorEmail(cursoAcademico, email);
 
             // Convertimos la listAsignaturasImpartidas en dto.
             List<ImpartirTipoDto> listAsignaturasImpartidasDto = listAsignaturasImpartidas.stream().map(impartir ->
@@ -768,7 +786,7 @@ public class Paso1EleccionDeHorariosController
                             impartir.getAsignadoDireccion()
                     )).collect(Collectors.toList());
 
-            List<ReduccionProfesoresDto> listReduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionesPorProfesor(email);
+            List<ReduccionProfesoresDto> listReduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionesPorProfesor(cursoAcademico, email);
 
             // Convertimos la listReduccionProfesoresDto en dto.
             List<ReduccionAsignadaDto> listReduccionAsignadaDto = listReduccionProfesoresDto.stream().map(reduccion ->
@@ -940,7 +958,8 @@ public class Paso1EleccionDeHorariosController
     {
         try
         {
-            List<GrupoAsignaturaDto> grupoAsignaturaDtos = this.iAsignaturaRepository.encontrarGrupoPorNombreAndHorasAndCursoAndEtapa(nombreAsignatura, horasAsignatura, curso, etapa);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<GrupoAsignaturaDto> grupoAsignaturaDtos = this.iAsignaturaRepository.encontrarGrupoPorNombreAndHorasAndCursoAndEtapa(cursoAcademico, nombreAsignatura, horasAsignatura, curso, etapa);
 
             if (grupoAsignaturaDtos.isEmpty())
             {
@@ -981,7 +1000,10 @@ public class Paso1EleccionDeHorariosController
      */
     private ProfesorReduccion construirSoliciturReduccionProfesores(String email, String nombreReduccion, Integer horasReduccion) throws SchoolManagerServerException
     {
-        ReduccionProfesoresDto reduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionPorProfesor(email, nombreReduccion, horasReduccion);
+        // El profesor/reducción pertenecen al curso académico activo (seleccionado = true): NO viaja en la petición
+        String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+        ReduccionProfesoresDto reduccionProfesoresDto = this.iProfesorReduccionRepository.encontrarReudccionPorProfesor(cursoAcademico, email, nombreReduccion, horasReduccion);
 
         if (reduccionProfesoresDto == null)
         {
@@ -1005,9 +1027,10 @@ public class Paso1EleccionDeHorariosController
      * @param grupoAntiguo     el grupo antiguo asociado a la asignatura.
      * @return una instancia de {@code IdImpartir} que contiene los identificadores compuestos.
      */
-    private IdImpartir construirIdImpartir(String email, String nombreAsignatura, Integer curso, String etapa, String grupoAntiguo)
+    private IdImpartir construirIdImpartir(String cursoAcademico, String email, String nombreAsignatura, Integer curso, String etapa, String grupoAntiguo)
     {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+        idCursoEtapaGrupo.setCursoAcademico(cursoAcademico);
         idCursoEtapaGrupo.setCurso(curso);
         idCursoEtapaGrupo.setEtapa(etapa);
         idCursoEtapaGrupo.setGrupo(grupoAntiguo);
@@ -1023,6 +1046,7 @@ public class Paso1EleccionDeHorariosController
         asignatura.setIdAsignatura(idAsignatura);
 
         Profesor profesor = new Profesor();
+        profesor.setCursoAcademico(cursoAcademico);
         profesor.setEmail(email);
 
         return new IdImpartir(asignatura, profesor);
@@ -1040,10 +1064,10 @@ public class Paso1EleccionDeHorariosController
      * @param grupo            el identificador del grupo asignado a la asignatura.
      * @return una nueva instancia de {@code Impartir} con los detalles especificados.
      */
-    private Impartir construirImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, String grupo)
+    private Impartir construirImpartir(String cursoAcademico, String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, String grupo)
     {
 
-        IdImpartir idImpartir = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupo);
+        IdImpartir idImpartir = construirIdImpartir(cursoAcademico, email, nombreAsignatura, curso, etapa, grupo);
 
         Impartir impartir = new Impartir();
         impartir.setIdImpartir(idImpartir);
@@ -1070,8 +1094,9 @@ public class Paso1EleccionDeHorariosController
      */
     private Impartir construirSolicitudGuardarImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, String grupoAntiguo, String grupoNuevo) throws SchoolManagerServerException
     {
+        String cursoAcademico = this.cursoAcademicoResolver.resolver();
 
-        IdImpartir idImpartirGrupoViejo = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupoAntiguo);
+        IdImpartir idImpartirGrupoViejo = construirIdImpartir(cursoAcademico, email, nombreAsignatura, curso, etapa, grupoAntiguo);
 
         Optional<Impartir> asignaturaImpartida = this.iImpartirRepository.findById(idImpartirGrupoViejo);
         if (asignaturaImpartida.isEmpty())
@@ -1083,7 +1108,7 @@ public class Paso1EleccionDeHorariosController
 
         this.iImpartirRepository.delete(asignaturaImpartida.get());
 
-        IdImpartir idImpartirGrupoNuevo = construirIdImpartir(email, nombreAsignatura, curso, etapa, grupoNuevo);
+        IdImpartir idImpartirGrupoNuevo = construirIdImpartir(cursoAcademico, email, nombreAsignatura, curso, etapa, grupoNuevo);
 
         Impartir impartir = new Impartir();
         impartir.setIdImpartir(idImpartirGrupoNuevo);
@@ -1101,12 +1126,17 @@ public class Paso1EleccionDeHorariosController
      * @param horasReduccion  el número de horas asociadas a la reducción.
      * @return el objeto {@link ProfesorReduccion} construido con los datos asignados.
      */
-    private ProfesorReduccion construirProfesorReduccion(String email, String nombreReduccion, Integer horasReduccion)
+    private ProfesorReduccion construirProfesorReduccion(String email, String nombreReduccion, Integer horasReduccion) throws SchoolManagerServerException
     {
+        // La reducción está scoped por el curso académico activo (seleccionado = true)
+        String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
         Profesor profesor = new Profesor();
+        profesor.setCursoAcademico(cursoAcademico);
         profesor.setEmail(email);
 
         IdReduccion idReduccion = new IdReduccion();
+        idReduccion.setCursoAcademico(cursoAcademico);
         idReduccion.setNombre(nombreReduccion);
         idReduccion.setHoras(horasReduccion);
 
@@ -1140,7 +1170,8 @@ public class Paso1EleccionDeHorariosController
      */
     private Impartir construirSolicitudImpartir(String email, String nombreAsignatura, Integer horasAsignatura, Integer curso, String etapa, String grupo) throws SchoolManagerServerException
     {
-        ImpartirDto asignaturaImpartidaDto = this.iImpartirRepository.encontrarAsignaturaImpartidaPorEmail(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
+        String cursoAcademico = this.cursoAcademicoResolver.resolver();
+        ImpartirDto asignaturaImpartidaDto = this.iImpartirRepository.encontrarAsignaturaImpartidaPorEmail(cursoAcademico, email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
 
         if (asignaturaImpartidaDto == null)
         {
@@ -1149,6 +1180,6 @@ public class Paso1EleccionDeHorariosController
             throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ASIGNADA_A_PROFESOR, mensajeError);
         }
 
-        return construirImpartir(email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
+        return construirImpartir(cursoAcademico, email, nombreAsignatura, horasAsignatura, curso, etapa, grupo);
     }
 }

@@ -303,6 +303,7 @@ public class GeneradorService
         // Obtenemos el curso, etapa y grupo de la sesión de asignatura, junto con el nombre e email del profesor
         CursoEtapaGrupo cursoEtapaGrupo = sesionAsignatura.getAsignatura().getIdAsignatura().getCursoEtapaGrupo() ;
         
+        String cursoAcademico = cursoEtapaGrupo.getIdCursoEtapaGrupo().getCursoAcademico() ;
         int curso     = cursoEtapaGrupo.getIdCursoEtapaGrupo().getCurso() ;
         String etapa  = cursoEtapaGrupo.getIdCursoEtapaGrupo().getEtapa() ;
         String grupo  = cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo() ;
@@ -311,7 +312,7 @@ public class GeneradorService
 
         // Buscamos la instancia de Impartir relacionada con la sesión de asignatura
         Optional<Impartir> optionalImpartir =
-            this.impartirRepository.buscarPorNombreAndCursoAndEtapaAndGrupoAndProfesor(nombre, curso, etapa, grupo, email) ;
+            this.impartirRepository.buscarPorNombreAndCursoAndEtapaAndGrupoAndProfesor(cursoAcademico, nombre, curso, etapa, grupo, email) ;
 
         if (!optionalImpartir.isPresent())
         {
@@ -762,7 +763,7 @@ public class GeneradorService
     private int calcularHuecosEntreSesionesProfesor(GeneradorInstancia generadorInstancia, Profesor profesor, boolean esMatutino)
     {
         // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
-        Integer huecosEntreSesionesProfesor = this.generadorAsignadaImpartirRepository.contarHuecosEntreSesiones(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+        Integer huecosEntreSesionesProfesor = this.generadorAsignadaImpartirRepository.contarHuecosEntreSesiones(generadorInstancia.getId(), profesor.getCursoAcademico(), profesor.getEmail(), esMatutino) ;
 
         // Obtenemos el numerador de la operación
         double numeradorOperacionProfesor = (double) huecosEntreSesionesProfesor / Constants.FACTOR_HUECOS ;
@@ -791,12 +792,12 @@ public class GeneradorService
         if (profesor.getObservacionesAdicionales().getSinClasePrimeraHora())
         {
             // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
-            preferenciasDiariasProfesor = this.generadorAsignadaImpartirRepository.contarPreferenciasDiariasPrimeraHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+            preferenciasDiariasProfesor = this.generadorAsignadaImpartirRepository.contarPreferenciasDiariasPrimeraHora(generadorInstancia.getId(), profesor.getCursoAcademico(), profesor.getEmail(), esMatutino) ;
         }
         else
         {
             // Obtenemos de la tabla GeneradorSesionAsignada todos los horarios que tengan asignado este profesor    
-            preferenciasDiariasProfesor = this.generadorAsignadaImpartirRepository.contarPreferenciasDiariasUltimaHora(generadorInstancia.getId(), profesor.getEmail(), esMatutino) ;
+            preferenciasDiariasProfesor = this.generadorAsignadaImpartirRepository.contarPreferenciasDiariasUltimaHora(generadorInstancia.getId(), profesor.getCursoAcademico(), profesor.getEmail(), esMatutino) ;
         }
 
         // Invertimos el valor ya que lo que encuentra es lo que no quería
@@ -837,6 +838,7 @@ public class GeneradorService
                 // Si no la encuentra es cuando cuenta como hit
                 hitsPreferenciasConcretasProfesor = hitsPreferenciasConcretasProfesor + 
                                                     this.generadorAsignadaImpartirRepository.contarPreferenciasConcretas(generadorInstancia.getId(), 
+                                                                                                                         profesor.getCursoAcademico(),
                                                                                                                          profesor.getEmail(),
                                                                                                                          esMatutino,
                                                                                                                          preferenciaHorariaProfesor.getDiaTramoTipoHorario().getDia(),

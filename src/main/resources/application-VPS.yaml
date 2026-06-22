@@ -1,7 +1,7 @@
 spring:
   application:
     name: schoolManager
-  jpa.hibernate.ddl-auto: validate
+  jpa.hibernate.ddl-auto: create
   datasource:
     url: jdbc:mysql://localhost:3306/reaktor_schoolManagerServer?createDatabaseIfNotExist=true
     username: root
@@ -28,6 +28,7 @@ logging:
 reaktor:
   publicKeyFile: ${PUBLIC_KEY_FILE}
   urlCors: https://somos.iesjandula.es
+  curso_academico: "2025/2026"
   reiniciarConstantes: true
   constantes:
     seleccionHorariosPorClaustro: ""

@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,12 +23,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import es.iesjandula.reaktor.base.utils.BaseConstants;
+import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaAdHocDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.AsignaturaSinGrupoDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.CursoEtapaDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.DatosMatriculaDto;
 import es.iesjandula.reaktor.school_manager_server.models.Alumno;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.Bloque;
+import es.iesjandula.reaktor.school_manager_server.models.CursoAcademico;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
@@ -38,9 +41,11 @@ import es.iesjandula.reaktor.school_manager_server.models.ids.IdMatricula;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAlumnoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IAsignaturaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IBloqueRepository;
+import es.iesjandula.reaktor.school_manager_server.repositories.ICursoAcademicoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IMatriculaRepository;
+import es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver;
 import es.iesjandula.reaktor.school_manager_server.services.manager.CursoEtapaService;
 import es.iesjandula.reaktor.school_manager_server.services.manager.ParseoCsvService;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -75,6 +80,12 @@ public class Paso1CargarMatriculaController
 
     @Autowired
     private IBloqueRepository iBloqueRepository;
+
+    @Autowired
+    private ICursoAcademicoRepository iCursoAcademicoRepository;
+
+    @Autowired
+    private CursoAcademicoResolver cursoAcademicoResolver;
 
 
     /**
@@ -136,12 +147,14 @@ public class Paso1CargarMatriculaController
                 throw new SchoolManagerServerException(Constants.ASIGNATURA_NO_ENCONTRADA, mensajeError);
             }
 
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
             CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
 
-            cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(curso, etapa, Constants.SIN_GRUPO_ASIGNADO));
+            cursoEtapaGrupo.setIdCursoEtapaGrupo(new IdCursoEtapaGrupo(cursoAcademico, curso, etapa, Constants.SIN_GRUPO_ASIGNADO));
 
             // Borramos el cursoEtapa si ya existen diferentes grupos
-            this.iCursoEtapaGrupoRepository.borrarPorCursoEtapa(curso, etapa);
+            this.iCursoEtapaGrupoRepository.borrarPorCursoEtapa(cursoAcademico, curso, etapa);
 
             // Guardamos el cursoEtapaGrupo
             this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo);
@@ -226,7 +239,8 @@ public class Paso1CargarMatriculaController
     {
         try
         {
-            List<CursoEtapaDto> listCursoEtapa = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso();
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<CursoEtapaDto> listCursoEtapa = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso(cursoAcademico);
 
             return ResponseEntity.ok().body(listCursoEtapa);
         }
@@ -262,7 +276,8 @@ public class Paso1CargarMatriculaController
     {
         try
         {
-            List<CursoEtapaDto> listAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso(curso, etapa);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<CursoEtapaDto> listAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosMatriculaPorEtapaYCurso(cursoAcademico, curso, etapa);
 
             if (listAlumnoMatriculas.isEmpty())
             {
@@ -280,7 +295,7 @@ public class Paso1CargarMatriculaController
             //   CursoEtapa -> DatosBrutoAlumnoMatricula
 
             // 1. Borramos los grupos del curso/etapa: la BBDD propaga el borrado a Asignatura y Matricula
-            this.iCursoEtapaGrupoRepository.borrarPorCursoEtapa(curso, etapa);
+            this.iCursoEtapaGrupoRepository.borrarPorCursoEtapa(cursoAcademico, curso, etapa);
 
             // 2. Limpiamos los Bloques que se hayan quedado huérfanos (sin asignaturas asociadas)
             this.iBloqueRepository.deleteBloquesSinAsignaturas();
@@ -289,7 +304,7 @@ public class Paso1CargarMatriculaController
             this.iAlumnoRepository.deleteAlumnosSinMatriculas();
 
             // 4. Borramos los datos en bruto del curso/etapa
-            this.iDatosBrutoAlumnoMatriculaRepository.borrarPorCursoYEtapa(curso, etapa);
+            this.iDatosBrutoAlumnoMatriculaRepository.borrarPorCursoYEtapa(cursoAcademico, curso, etapa);
 
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
@@ -329,7 +344,8 @@ public class Paso1CargarMatriculaController
     {
         try
         {
-            List<DatosMatriculaDto> listDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarDatosMatriculaPorCursoYEtapa(curso, etapa);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<DatosMatriculaDto> listDatosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarDatosMatriculaPorCursoYEtapa(cursoAcademico, curso, etapa);
 
             if (listDatosBrutoAlumnoMatriculas.isEmpty())
             {
@@ -389,7 +405,9 @@ public class Paso1CargarMatriculaController
     {
         try
         {
-            DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+            DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(cursoAcademico, nombre, apellidos, asignatura, curso, etapa);
 
             if (datosBrutoAlumnoMatriculas == null)
             {
@@ -399,12 +417,12 @@ public class Paso1CargarMatriculaController
             }
 
 //          Si el alumno ya está asignado a un grupo al cambiar el estado de la matrícula se añade o se borra
-            if (this.iMatriculaRepository.encontrarAlumnoPorNombreAndApellidosAndCursoAndEtapa(nombre, apellidos, curso, etapa) != null)
+            if (this.iMatriculaRepository.encontrarAlumnoPorNombreAndApellidosAndCursoAndEtapa(cursoAcademico, nombre, apellidos, curso, etapa) != null)
             {
 //              Si el estado de la matricula es MATR o PEND
                 if (estado.equals(Constants.ESTADO_MATRICULADO) || estado.equals(Constants.ESTADO_PENDIENTE))
                 {
-                    if (this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtapa(nombre, apellidos, asignatura, curso, etapa) == null)
+                    if (this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtapa(cursoAcademico, nombre, apellidos, asignatura, curso, etapa) == null)
                     {
 //                      Buscamos el alumno en base de datos
                         Optional<Alumno> alumno = this.iAlumnoRepository.findByNombreAndApellidos(nombre, apellidos);
@@ -416,7 +434,7 @@ public class Paso1CargarMatriculaController
                         }
 
 //                      Buscamos el grupo al que pertenece el alumno
-                        List<String> listaGrupos = this.iMatriculaRepository.encontrarGrupoPorNombreAndApellidosAndCursoAndEtapa(alumno.get().getNombre(), alumno.get().getApellidos(), curso, etapa);
+                        List<String> listaGrupos = this.iMatriculaRepository.encontrarGrupoPorNombreAndApellidosAndCursoAndEtapa(cursoAcademico, alumno.get().getNombre(), alumno.get().getApellidos(), curso, etapa);
 
                         if (listaGrupos.isEmpty())
                         {
@@ -433,7 +451,7 @@ public class Paso1CargarMatriculaController
 
                             // Buscamos la asignatura en base de datos
                             Optional<Asignatura> asignaturaExistente = this.iAsignaturaRepository
-                                    .encontrarAsignaturaPorNombreYCursoYEtapaYGrupoOptativas(curso, etapa, asignatura);
+                                    .encontrarAsignaturaPorNombreYCursoYEtapaYGrupoOptativas(cursoAcademico, curso, etapa, asignatura);
                             Bloque bloqueDeOptativas = new Bloque();
                             if (asignaturaExistente.isPresent())
                             {
@@ -444,7 +462,7 @@ public class Paso1CargarMatriculaController
                             Bloque finalBloqueDeOptativas = bloqueDeOptativas;
                             Asignatura asignaturaParaMatricula = asignaturaExistente.orElseGet(() -> {
                                 AsignaturaSinGrupoDto asignaturaABuscar = this.iAsignaturaRepository
-                                        .encontrarPorCursoYEtapaYNombre(curso, etapa, asignatura);
+                                        .encontrarPorCursoYEtapaYNombre(cursoAcademico, curso, etapa, asignatura);
 
                                 if (asignaturaABuscar == null)
                                 {
@@ -462,6 +480,7 @@ public class Paso1CargarMatriculaController
 
                                 IdAsignatura idAsignatura = new IdAsignatura();
                                 IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+                                idCursoEtapaGrupo.setCursoAcademico(cursoAcademico);
                                 idCursoEtapaGrupo.setCurso(curso);
                                 idCursoEtapaGrupo.setEtapa(etapa);
                                 idCursoEtapaGrupo.setGrupo(Constants.GRUPO_OPTATIVAS);
@@ -487,6 +506,7 @@ public class Paso1CargarMatriculaController
 
 //                        Primero buscamos si existe la asignatura con grupo "sin grupo" y la borramos
                             Optional<Asignatura> asignaturaGrupoZ = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
+                                    cursoAcademico,
                                     curso,
                                     etapa,
                                     asignatura,
@@ -511,7 +531,7 @@ public class Paso1CargarMatriculaController
                         {
 //                          Buscamos la asignatura en base de datos
                             Optional<Asignatura> asignaturaExistente = this.iAsignaturaRepository
-                                    .encontrarAsignaturaPorNombreYCursoYEtapaYGrupoOSinEl(curso, etapa, asignatura, grupo);
+                                    .encontrarAsignaturaPorNombreYCursoYEtapaYGrupoOSinEl(cursoAcademico, curso, etapa, asignatura, grupo);
                             Bloque bloqueDeOptativas = new Bloque();
                             if (asignaturaExistente.isPresent())
                             {
@@ -521,7 +541,7 @@ public class Paso1CargarMatriculaController
                             Bloque finalBloqueDeOptativas = bloqueDeOptativas;
                             Asignatura asignaturaParaMatricula = asignaturaExistente.orElseGet(() -> {
                                 AsignaturaSinGrupoDto asignaturaABuscar = this.iAsignaturaRepository
-                                        .encontrarPorCursoYEtapaYNombre(curso, etapa, asignatura);
+                                        .encontrarPorCursoYEtapaYNombre(cursoAcademico, curso, etapa, asignatura);
 
                                 if (asignaturaABuscar == null)
                                 {
@@ -539,6 +559,7 @@ public class Paso1CargarMatriculaController
 
                                 IdAsignatura idAsignatura = new IdAsignatura();
                                 IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+                                idCursoEtapaGrupo.setCursoAcademico(cursoAcademico);
                                 idCursoEtapaGrupo.setCurso(curso);
                                 idCursoEtapaGrupo.setEtapa(etapa);
 
@@ -576,13 +597,13 @@ public class Paso1CargarMatriculaController
                             if (vieja.isOptativa())
                             {
                                 cegA = iCursoEtapaGrupoRepository
-                                        .findById(new IdCursoEtapaGrupo(curso, etapa, Constants.GRUPO_OPTATIVAS))
+                                        .findById(new IdCursoEtapaGrupo(cursoAcademico, curso, etapa, Constants.GRUPO_OPTATIVAS))
                                         .orElseThrow();
                             }
                             else
                             {
                                 cegA = iCursoEtapaGrupoRepository
-                                        .findById(new IdCursoEtapaGrupo(curso, etapa, grupo))
+                                        .findById(new IdCursoEtapaGrupo(cursoAcademico, curso, etapa, grupo))
                                         .orElseThrow();
                             }
 //                          3) Creo la nueva Asignatura con grupo="A":
@@ -612,6 +633,7 @@ public class Paso1CargarMatriculaController
 
                             //Primero buscamos si existe la asignatura con grupo "sin grupo" y la borramos
                             Optional<Asignatura> asignaturaGrupoZ = iAsignaturaRepository.encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
+                                    cursoAcademico,
                                     curso,
                                     etapa,
                                     asignatura,
@@ -630,7 +652,7 @@ public class Paso1CargarMatriculaController
                 else
                 {
 //                  Buscamos la matricula y la eliminamos
-                    Matricula matricula = this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtapa(nombre, apellidos, asignatura, curso, etapa);
+                    Matricula matricula = this.iMatriculaRepository.encontrarMatriculaPorNombreAndApellidosAndCursoAndEtapa(cursoAcademico, nombre, apellidos, asignatura, curso, etapa);
                     if (matricula != null)
                     {
                         datosBrutoAlumnoMatriculas.setAsignado(false);
@@ -640,13 +662,13 @@ public class Paso1CargarMatriculaController
 
                         // Si la matricula actual de asignatura del alumno es la única de su grupo
                         if (this.iMatriculaRepository.numeroAsignaturasPorNombreYGrupo(
-                                asignatura, curso, etapa,
+                                cursoAcademico, asignatura, curso, etapa,
                                 matricula.getIdMatricula().getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo()) == 0)
                         {
 
                             Optional<Asignatura> asignaturaEncontrada = iAsignaturaRepository
                                     .encontrarAsignaturaPorNombreYCursoYEtapaYGrupo(
-                                            curso, etapa, asignatura,
+                                            cursoAcademico, curso, etapa, asignatura,
                                             matricula.getIdMatricula().getAsignatura().getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getGrupo());
 
                             // Primero borramos la asignatura actual
@@ -656,6 +678,7 @@ public class Paso1CargarMatriculaController
 
                                 // Verificar si quedan más grupos con esta asignatura
                                 Long gruposRestantes = iAsignaturaRepository.contarGruposPorAsignatura(
+                                        cursoAcademico,
                                         asignatura,
                                         curso,
                                         etapa);
@@ -665,6 +688,7 @@ public class Paso1CargarMatriculaController
                                 {
                                     // Creo la asignatura sin el grupo
                                     Asignatura asignaturaSinGrupo = getAsignatura(
+                                            cursoAcademico,
                                             curso,
                                             etapa,
                                             asignatura,
@@ -747,7 +771,8 @@ public class Paso1CargarMatriculaController
         try
         {
 
-            DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(nombre, apellidos, asignatura, curso, etapa);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculas = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAsignaturaPorNombreYApellidosYAsignaturaYCursoYEtapa(cursoAcademico, nombre, apellidos, asignatura, curso, etapa);
 
             if (datosBrutoAlumnoMatriculas != null)
             {
@@ -823,7 +848,8 @@ public class Paso1CargarMatriculaController
         try
         {
 
-            DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaABorrar = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnoPorNombreYApellidosYAsignaturaYCursoYEtapaYEstado(nombre, apellidos,
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            DatosBrutoAlumnoMatricula datosBrutoAlumnoMatriculaABorrar = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnoPorNombreYApellidosYAsignaturaYCursoYEtapaYEstado(cursoAcademico, nombre, apellidos,
                     asignatura, curso, etapa, estado);
 
             if (datosBrutoAlumnoMatriculaABorrar == null)
@@ -870,6 +896,247 @@ public class Paso1CargarMatriculaController
     }
 
     /**
+     * Crea una asignatura ad-hoc (a medida) para un curso, etapa y curso académico concretos.
+     * <p>
+     * La asignatura se persiste con el grupo {@link Constants#SIN_GRUPO_ASIGNADO} (catálogo) y el curso académico
+     * global (igual que el resto de asignaturas de este flujo de matrículas), pero marcada con {@code esAdHoc = true}.
+     * Al crearla, TODOS los alumnos del curso/etapa quedan como NO_MATR: esto se materializa creando una fila
+     * {@link DatosBrutoAlumnoMatricula} por alumno con estado {@link Constants#ESTADO_NO_MATRICULADO} y
+     * {@code asignado = false} (NO se crean filas {@link Matricula}, ya que en este modelo NO_MATR es un estado de
+     * datos brutos sin matrícula real, que es lo que pinta la tabla del frontend).
+     * </p>
+     *
+     * @param cursoAcademico el curso académico, proporcionado en la cabecera de la solicitud.
+     * @param asignaturaAdHocDto cuerpo con {@code nombre}, {@code curso} y {@code etapa}.
+     * @return una {@link ResponseEntity} con:
+     * - 201 (CREATED) si la asignatura ad-hoc se crea correctamente.
+     * - 400 (BAD_REQUEST) si los datos son inválidos o la asignatura ya existe.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @Transactional
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/asignaturaAdHoc", consumes = "application/json")
+    public ResponseEntity<?> crearAsignaturaAdHoc(@RequestBody AsignaturaAdHocDto asignaturaAdHocDto)
+    {
+        try
+        {
+            // El curso académico activo se resuelve internamente (seleccionado = true); el cliente no lo envía
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            this.validarAsignaturaAdHocDto(asignaturaAdHocDto);
+
+            Integer curso = asignaturaAdHocDto.getCurso();
+            String etapa = asignaturaAdHocDto.getEtapa();
+            String nombre = asignaturaAdHocDto.getNombre();
+
+            // Validamos que el curso/etapa exista (estructura global usada por matrículas)
+            this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
+
+            // Comprobamos que no exista ya una asignatura ad-hoc con ese nombre en el curso/etapa
+            List<Asignatura> asignaturasExistentes = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(cursoAcademico, curso, etapa, nombre);
+            boolean yaExisteAdHoc = asignaturasExistentes.stream().anyMatch(Asignatura::isEsAdHoc);
+            if (yaExisteAdHoc)
+            {
+                log.error(Constants.ERR_ASIGNATURA_AD_HOC_YA_EXISTE_MESSAGE);
+                throw new SchoolManagerServerException(Constants.ERR_ASIGNATURA_AD_HOC_YA_EXISTE_CODE, Constants.ERR_ASIGNATURA_AD_HOC_YA_EXISTE_MESSAGE);
+            }
+
+            // Aseguramos que exista el CursoEtapaGrupo (global, "Sin grupo") al que colgar la asignatura
+            CursoEtapaGrupo cursoEtapaGrupo = this.obtenerOCrearCursoEtapaGrupoSinGrupo(cursoAcademico, curso, etapa);
+
+            // Creamos la asignatura ad-hoc
+            IdAsignatura idAsignatura = new IdAsignatura(cursoEtapaGrupo, nombre);
+            Asignatura asignatura = new Asignatura();
+            asignatura.setIdAsignatura(idAsignatura);
+            asignatura.setEsAdHoc(true);
+            this.iAsignaturaRepository.saveAndFlush(asignatura);
+
+            // Materializamos a NO_MATR a todos los alumnos del curso/etapa
+            this.materializarNoMatriculados(cursoAcademico, curso, etapa, nombre);
+
+            log.info("INFO - Asignatura ad-hoc '" + nombre + "' creada para " + curso + " " + etapa + " (cursoAcademico " + cursoAcademico + ")");
+
+            return ResponseEntity.status(HttpStatus.CREATED).build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudo crear la asignatura ad-hoc";
+            log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Borra una asignatura ad-hoc (y sus filas NO_MATR materializadas) de un curso, etapa y curso académico.
+     * <p>
+     * Solo borra asignaturas marcadas como ad-hoc; si la asignatura no existe o no es ad-hoc, devuelve error
+     * para impedir el borrado de asignaturas normales provenientes del CSV.
+     * </p>
+     *
+     * @param cursoAcademico el curso académico, proporcionado en la cabecera de la solicitud.
+     * @param asignaturaAdHocDto cuerpo con {@code nombre}, {@code curso} y {@code etapa}.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si la asignatura ad-hoc se borra correctamente.
+     * - 400 (BAD_REQUEST) si los datos son inválidos o la asignatura no es ad-hoc.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @Transactional
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/asignaturaAdHoc", consumes = "application/json")
+    public ResponseEntity<?> borrarAsignaturaAdHoc(@RequestBody AsignaturaAdHocDto asignaturaAdHocDto)
+    {
+        try
+        {
+            // El curso académico activo se resuelve internamente (seleccionado = true); el cliente no lo envía
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            this.validarAsignaturaAdHocDto(asignaturaAdHocDto);
+
+            Integer curso = asignaturaAdHocDto.getCurso();
+            String etapa = asignaturaAdHocDto.getEtapa();
+            String nombre = asignaturaAdHocDto.getNombre();
+
+            // Recuperamos las asignaturas ad-hoc con ese nombre en el curso/etapa
+            List<Asignatura> asignaturasAdHoc = this.iAsignaturaRepository.encontrarAsignaturaPorNombre(cursoAcademico, curso, etapa, nombre)
+                    .stream().filter(Asignatura::isEsAdHoc).toList();
+
+            if (asignaturasAdHoc.isEmpty())
+            {
+                log.error(Constants.ERR_ASIGNATURA_NO_AD_HOC_MESSAGE);
+                throw new SchoolManagerServerException(Constants.ERR_ASIGNATURA_NO_AD_HOC_CODE, Constants.ERR_ASIGNATURA_NO_AD_HOC_MESSAGE);
+            }
+
+            // Borramos las filas NO_MATR materializadas (datos brutos) de esa asignatura
+            this.iDatosBrutoAlumnoMatriculaRepository.borrarPorAsignaturaYCursoYEtapa(cursoAcademico, nombre, curso, etapa);
+
+            // Borramos las asignaturas ad-hoc (las matrículas asociadas caen por FK ON DELETE CASCADE)
+            for (Asignatura asignaturaAdHoc : asignaturasAdHoc)
+            {
+                this.iAsignaturaRepository.delete(asignaturaAdHoc);
+            }
+            this.iAsignaturaRepository.flush();
+
+            log.info("INFO - Asignatura ad-hoc '" + nombre + "' borrada de " + curso + " " + etapa + " (cursoAcademico " + cursoAcademico + ")");
+
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudo borrar la asignatura ad-hoc";
+            log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Obtiene (o crea si no existe) el {@link CursoEtapaGrupo} global con grupo {@link Constants#SIN_GRUPO_ASIGNADO}.
+     *
+     * @param curso el curso.
+     * @param etapa la etapa.
+     * @return el {@link CursoEtapaGrupo} persistido.
+     */
+    private CursoEtapaGrupo obtenerOCrearCursoEtapaGrupoSinGrupo(String cursoAcademico, Integer curso, String etapa)
+    {
+        IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo(cursoAcademico, curso, etapa, Constants.SIN_GRUPO_ASIGNADO);
+
+        Optional<CursoEtapaGrupo> cursoEtapaGrupoOpt = this.iCursoEtapaGrupoRepository.findById(idCursoEtapaGrupo);
+        if (cursoEtapaGrupoOpt.isPresent())
+        {
+            return cursoEtapaGrupoOpt.get();
+        }
+
+        CursoEtapaGrupo cursoEtapaGrupo = new CursoEtapaGrupo();
+        cursoEtapaGrupo.setIdCursoEtapaGrupo(idCursoEtapaGrupo);
+        return this.iCursoEtapaGrupoRepository.saveAndFlush(cursoEtapaGrupo);
+    }
+
+    /**
+     * Materializa como NO_MATR a todos los alumnos del curso/etapa para la asignatura indicada, creando filas
+     * {@link DatosBrutoAlumnoMatricula} con estado {@link Constants#ESTADO_NO_MATRICULADO}.
+     *
+     * @param curso       el curso.
+     * @param etapa       la etapa.
+     * @param asignatura  el nombre de la asignatura ad-hoc.
+     * @throws SchoolManagerServerException si no se encuentra el curso/etapa.
+     */
+    private void materializarNoMatriculados(String cursoAcademico, Integer curso, String etapa, String asignatura) throws SchoolManagerServerException
+    {
+        CursoEtapa cursoEtapa = this.cursoEtapaService.validarYObtenerCursoEtapa(curso, etapa);
+
+        List<Object[]> alumnos = this.iDatosBrutoAlumnoMatriculaRepository.encontrarAlumnosDistintosPorCursoYEtapa(cursoAcademico, curso, etapa);
+
+        for (Object[] alumno : alumnos)
+        {
+            String nombreAlumno = (String) alumno[0];
+            String apellidosAlumno = (String) alumno[1];
+
+            DatosBrutoAlumnoMatricula datosBruto = new DatosBrutoAlumnoMatricula();
+            datosBruto.setNombre(nombreAlumno);
+            datosBruto.setApellidos(apellidosAlumno);
+            datosBruto.setAsignatura(asignatura);
+            datosBruto.setAsignado(false);
+            datosBruto.setEstadoMatricula(Constants.ESTADO_NO_MATRICULADO);
+            datosBruto.setCursoEtapa(cursoEtapa);
+
+            this.iDatosBrutoAlumnoMatriculaRepository.save(datosBruto);
+        }
+
+        this.iDatosBrutoAlumnoMatriculaRepository.flush();
+    }
+
+    /**
+     * Valida que el curso académico no sea nulo/vacío y que exista en la base de datos.
+     *
+     * @param cursoAcademico el curso académico a validar.
+     * @throws SchoolManagerServerException si el curso académico es nulo/vacío o no existe.
+     */
+    private void validarCursoAcademico(String cursoAcademico) throws SchoolManagerServerException
+    {
+        if (cursoAcademico == null || cursoAcademico.isEmpty())
+        {
+            log.error(Constants.ERR_CURSO_ACADEMICO_NULO_VACIO_MESSAGE);
+            throw new SchoolManagerServerException(Constants.ERR_CURSO_ACADEMICO_NULO_VACIO_CODE, Constants.ERR_CURSO_ACADEMICO_NULO_VACIO_MESSAGE);
+        }
+
+        Optional<CursoAcademico> cursoAcademicoEntity = this.iCursoAcademicoRepository.findByCursoAcademico(cursoAcademico);
+        if (cursoAcademicoEntity.isEmpty())
+        {
+            log.error(Constants.ERR_CURSO_ACADEMICO_NO_EXISTE_MESSAGE);
+            throw new SchoolManagerServerException(Constants.ERR_CURSO_ACADEMICO_NO_EXISTE_CODE, Constants.ERR_CURSO_ACADEMICO_NO_EXISTE_MESSAGE);
+        }
+    }
+
+    /**
+     * Valida que el cuerpo de la asignatura ad-hoc tenga nombre, curso y etapa.
+     *
+     * @param asignaturaAdHocDto el cuerpo a validar.
+     * @throws SchoolManagerServerException si algún campo es nulo o vacío.
+     */
+    private void validarAsignaturaAdHocDto(AsignaturaAdHocDto asignaturaAdHocDto) throws SchoolManagerServerException
+    {
+        if (asignaturaAdHocDto == null ||
+            asignaturaAdHocDto.getNombre() == null || asignaturaAdHocDto.getNombre().isEmpty() ||
+            asignaturaAdHocDto.getCurso() == null ||
+            asignaturaAdHocDto.getEtapa() == null || asignaturaAdHocDto.getEtapa().isEmpty())
+        {
+            log.error(Constants.ERR_ASIGNATURA_AD_HOC_DATOS_INVALIDOS_MESSAGE);
+            throw new SchoolManagerServerException(Constants.ERR_ASIGNATURA_AD_HOC_DATOS_INVALIDOS_CODE, Constants.ERR_ASIGNATURA_AD_HOC_DATOS_INVALIDOS_MESSAGE);
+        }
+    }
+
+    /**
      * Recupera una instancia de {@code Asignatura} construyéndola a partir de los parámetros proporcionados.
      *
      * @param curso                el identificador del curso académico.
@@ -879,9 +1146,10 @@ public class Paso1CargarMatriculaController
      *                             utilizada para completar campos específicos.
      * @return una instancia de {@code Asignatura} poblada con los parámetros proporcionados y detalles de {@code asignaturaEncontrada}.
      */
-    private Asignatura getAsignatura(Integer curso, String etapa, String nombreAsignatura, Optional<Asignatura> asignaturaEncontrada)
+    private Asignatura getAsignatura(String cursoAcademico, Integer curso, String etapa, String nombreAsignatura, Optional<Asignatura> asignaturaEncontrada)
     {
         IdCursoEtapaGrupo idCursoEtapaGrupo = new IdCursoEtapaGrupo();
+        idCursoEtapaGrupo.setCursoAcademico(cursoAcademico);
         idCursoEtapaGrupo.setCurso(curso);
         idCursoEtapaGrupo.setEtapa(etapa);
         idCursoEtapaGrupo.setGrupo(Constants.SIN_GRUPO_ASIGNADO);

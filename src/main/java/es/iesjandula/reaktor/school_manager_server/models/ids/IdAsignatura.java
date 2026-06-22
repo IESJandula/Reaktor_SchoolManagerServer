@@ -34,6 +34,7 @@ public class IdAsignatura implements Serializable
 	 */
     @ManyToOne
     @JoinColumns({
+        @JoinColumn(name = "cursoAcademico", referencedColumnName = "cursoAcademico"),
         @JoinColumn(name = "curso", referencedColumnName = "curso"),
         @JoinColumn(name = "etapa", referencedColumnName = "etapa"),
         @JoinColumn(name = "grupo", referencedColumnName = "grupo")

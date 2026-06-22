@@ -44,6 +44,9 @@ public class Paso5AsignaturasYDepartamentosController
     @Autowired
     private IImpartirRepository iImpartirRepository;
 
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver;
+
     /**
      * Recupera todos los departamentos registrados en la base de datos y los convierte en objetos DTO.
      * <p>
@@ -63,19 +66,14 @@ public class Paso5AsignaturasYDepartamentosController
     {
         try
         {
-            List<Departamento> departamentos = iDepartamentoRepository.findAll();
+            List<DepartamentoDto> departamentosDto = iDepartamentoRepository.findAllDtoByCursoAcademico(Constants.CURSO_ACADEMICO_GLOBAL);
 
-            if (departamentos.isEmpty())
+            if (departamentosDto.isEmpty())
             {
                 String mensajeError = "No se encontraron departamentos registrados en el sistema.";
                 log.warn(mensajeError);
                 throw new SchoolManagerServerException(Constants.DEPARTAMENTO_NO_ENCONTRADO, mensajeError);
             }
-
-            // Convertimos los departamentos a DTOs
-            List<DepartamentoDto> departamentosDto = departamentos.stream()
-                    .map(departamento -> new DepartamentoDto(departamento.getNombre()))
-                    .collect(Collectors.toList());
 
             return ResponseEntity.ok().body(departamentosDto);
         }
@@ -165,34 +163,9 @@ public class Paso5AsignaturasYDepartamentosController
     {
         try
         {
-            List<AsignaturaConDepartamentoDto> asignaturaConDepartamentoDtos = this.iAsignaturaRepository.encontrarAsignaturasConDepartamento();
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
 
-            List<AsignaturaConDepartamentoYResultadoDto> asignaturaConDepartamentoYResultadoDtos = asignaturaConDepartamentoDtos.stream().map(asignaturaConDepartamentoDto ->
-                    new AsignaturaConDepartamentoYResultadoDto(
-                            asignaturaConDepartamentoDto.getNombre(),
-                            asignaturaConDepartamentoDto.getPlantilla(),
-                            asignaturaConDepartamentoDto.getHorasNecesarias(),
-                            asignaturaConDepartamentoDto.getHorasTotales(),
-                            asignaturaConDepartamentoDto.getDesfase()
-                    )).toList();
-
-            for (AsignaturaConDepartamentoYResultadoDto asignaturaConDepartamentoYResultadoDto : asignaturaConDepartamentoYResultadoDtos)
-            {
-                if (asignaturaConDepartamentoYResultadoDto.getDesfase() > 0)
-                {
-                    asignaturaConDepartamentoYResultadoDto.setResultado("Sobran horas");
-                }
-                else if (asignaturaConDepartamentoYResultadoDto.getDesfase() < 0)
-                {
-                    asignaturaConDepartamentoYResultadoDto.setResultado("Faltan horas");
-                }
-                else
-                {
-                    asignaturaConDepartamentoYResultadoDto.setResultado("Cerrado");
-                }
-            }
-
-            return ResponseEntity.ok(asignaturaConDepartamentoYResultadoDtos);
+            return ResponseEntity.ok(this.construirInfoDepartamentos(cursoAcademico));
         }
         catch (Exception exception)
         {
@@ -224,7 +197,8 @@ public class Paso5AsignaturasYDepartamentosController
     {
         try
         {
-            List<CursoEtapaGrupo> cursoEtapaGrupos = this.iCursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGrupos();
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<CursoEtapaGrupo> cursoEtapaGrupos = this.iCursoEtapaGrupoRepository.buscarTodosLosCursosEtapasGrupos(cursoAcademico);
 
             if (cursoEtapaGrupos.isEmpty())
             {
@@ -235,6 +209,7 @@ public class Paso5AsignaturasYDepartamentosController
 
             List<CursoEtapaGrupoDto> cursoEtapaGrupoDto = cursoEtapaGrupos.stream().map(cursoEtapaGrupo ->
                     new CursoEtapaGrupoDto(
+                            cursoEtapaGrupo.getIdCursoEtapaGrupo().getCursoAcademico(),
                             cursoEtapaGrupo.getIdCursoEtapaGrupo().getCurso(),
                             cursoEtapaGrupo.getIdCursoEtapaGrupo().getEtapa(),
                             cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo(),
@@ -281,7 +256,8 @@ public class Paso5AsignaturasYDepartamentosController
     {
         try
         {
-            List<Asignatura> asignaturas = iAsignaturaRepository.asignaturasPorCursoEtapaGrupo(curso, etapa, grupo);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<Asignatura> asignaturas = iAsignaturaRepository.asignaturasPorCursoEtapaGrupo(cursoAcademico, curso, etapa, grupo);
 
             // Convertimos las asignaturas a DTOs
             List<NombreAsignaturaDto> NombreAsignaturaDto = asignaturas.stream().map(asignatura ->
@@ -385,9 +361,11 @@ public class Paso5AsignaturasYDepartamentosController
     {
         try
         {
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
             // Buscar la asignatura con los datos proporcionados
             Optional<Asignatura> asignaturaOpt = iAsignaturaRepository
-                    .findAsignaturasByCursoEtapaGrupoAndNombre(curso, etapa, grupo, nombre);
+                    .findAsignaturasByCursoEtapaGrupoAndNombre(cursoAcademico, curso, etapa, grupo, nombre);
 
             if (asignaturaOpt.isEmpty())
             {
@@ -402,7 +380,7 @@ public class Paso5AsignaturasYDepartamentosController
             asignatura.setDepartamentoReceptor(null);
 
 //          Comprobamos si la asignatura ya está asignada a profesores
-            if (!iImpartirRepository.encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(asignatura.getIdAsignatura().getNombre(), asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getCurso(),
+            if (!iImpartirRepository.encontrarAsignaturaImpartidaPorNombreAndCursoEtpa(cursoAcademico, asignatura.getIdAsignatura().getNombre(), asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getCurso(),
                     asignatura.getIdAsignatura().getCursoEtapaGrupo().getIdCursoEtapaGrupo().getEtapa()).isEmpty())
             {
                 String mensajeError = "No se puede borrar la asignatura ya que está asignadas a profesores";
@@ -467,9 +445,11 @@ public class Paso5AsignaturasYDepartamentosController
     {
         try
         {
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
             // Buscar la asignatura con los datos proporcionados
             Optional<Asignatura> asignaturaOpt = iAsignaturaRepository
-                    .findAsignaturasByCursoEtapaGrupoAndNombre(curso, etapa, grupo, nombre);
+                    .findAsignaturasByCursoEtapaGrupoAndNombre(cursoAcademico, curso, etapa, grupo, nombre);
 
             if (asignaturaOpt.isEmpty())
             {
@@ -498,7 +478,10 @@ public class Paso5AsignaturasYDepartamentosController
             iAsignaturaRepository.saveAndFlush(asignatura);
 
             log.info("INFO - Departamentos asignados para la asignatura: {}", nombre);
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+
+            // Tras asignar la asignatura, devolvemos el estado recalculado de los departamentos
+            // (horas, desfase y propuesta automática de plantilla) para que el frontend lo refleje.
+            return ResponseEntity.ok(this.construirInfoDepartamentos(cursoAcademico));
 
         }
         catch (SchoolManagerServerException schoolManagerServerException)
@@ -515,5 +498,62 @@ public class Paso5AsignaturasYDepartamentosController
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+
+    /**
+     * Construye la información agregada por departamento (receptor) para el curso académico indicado:
+     * horas necesarias por las asignaturas asignadas, horas que aporta la plantilla actual, desfase,
+     * etiqueta de resultado y la propuesta automática de plantilla.
+     * <p>
+     * Semántica del desfase: {@code desfase = horasTotales (disponibles) - horasNecesarias}.
+     * <ul>
+     *     <li>Positivo: sobran horas.</li>
+     *     <li>Cero: el departamento cuadra (cerrado).</li>
+     *     <li>Negativo: faltan horas.</li>
+     * </ul>
+     * Heurística de la propuesta de plantilla: {@code techo(horasNecesarias / HORAS_LECTIVAS_PROFESOR)},
+     * es decir, el número mínimo de profesores a jornada completa necesario para cubrir las horas
+     * de las asignaturas asignadas al departamento. Es orientativa; el usuario puede modificarla.
+     *
+     * @param cursoAcademico curso académico resuelto.
+     * @return lista de {@link AsignaturaConDepartamentoYResultadoDto} con el estado de cada departamento.
+     */
+    private List<AsignaturaConDepartamentoYResultadoDto> construirInfoDepartamentos(String cursoAcademico)
+    {
+        List<AsignaturaConDepartamentoDto> asignaturaConDepartamentoDtos =
+                this.iAsignaturaRepository.encontrarAsignaturasConDepartamento(cursoAcademico, Constants.HORAS_LECTIVAS_PROFESOR);
+
+        List<AsignaturaConDepartamentoYResultadoDto> asignaturaConDepartamentoYResultadoDtos = asignaturaConDepartamentoDtos.stream().map(asignaturaConDepartamentoDto ->
+                new AsignaturaConDepartamentoYResultadoDto(
+                        asignaturaConDepartamentoDto.getNombre(),
+                        asignaturaConDepartamentoDto.getPlantilla(),
+                        asignaturaConDepartamentoDto.getHorasNecesarias(),
+                        asignaturaConDepartamentoDto.getHorasTotales(),
+                        asignaturaConDepartamentoDto.getDesfase()
+                )).collect(Collectors.toList());
+
+        for (AsignaturaConDepartamentoYResultadoDto asignaturaConDepartamentoYResultadoDto : asignaturaConDepartamentoYResultadoDtos)
+        {
+            if (asignaturaConDepartamentoYResultadoDto.getDesfase() > 0)
+            {
+                asignaturaConDepartamentoYResultadoDto.setResultado("Sobran horas");
+            }
+            else if (asignaturaConDepartamentoYResultadoDto.getDesfase() < 0)
+            {
+                asignaturaConDepartamentoYResultadoDto.setResultado("Faltan horas");
+            }
+            else
+            {
+                asignaturaConDepartamentoYResultadoDto.setResultado("Cerrado");
+            }
+
+            // Propuesta automática: nº de profesores = techo(horas necesarias / jornada lectiva estándar)
+            int plantillaPropuesta = (int) Math.ceil(
+                    (double) asignaturaConDepartamentoYResultadoDto.getHorasNecesarias() / Constants.HORAS_LECTIVAS_PROFESOR);
+
+            asignaturaConDepartamentoYResultadoDto.setPlantillaPropuesta(plantillaPropuesta);
+        }
+
+        return asignaturaConDepartamentoYResultadoDtos;
     }
 }

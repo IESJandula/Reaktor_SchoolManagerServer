@@ -20,7 +20,10 @@ public class PreferenciasHorariasProfesor
      * Esta propiedad se mantiene sincronizada con el profesor en la clave compuesta.
      */
     @ManyToOne
-    @JoinColumn(name = "profesor_email", referencedColumnName = "email", insertable = false, updatable = false)
+    @JoinColumns({
+        @JoinColumn(name = "profesor_curso_academico", referencedColumnName = "cursoAcademico", insertable = false, updatable = false),
+        @JoinColumn(name = "profesor_email", referencedColumnName = "email", insertable = false, updatable = false)
+    })
     private Profesor profesor;
     
     /**

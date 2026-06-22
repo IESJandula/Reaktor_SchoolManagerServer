@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdCursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaRepository;
+import es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,9 @@ public class CursoEtapaService
     @Autowired
     private ICursoEtapaRepository iCursoEtapaRepository ;
 
+    @Autowired
+    private CursoAcademicoResolver cursoAcademicoResolver ;
+
     /**
      * Método para validar si existe el curso y etapa en la BD y obtener el Curso Etapa
      * 
@@ -29,8 +33,11 @@ public class CursoEtapaService
      */
     public CursoEtapa validarYObtenerCursoEtapa(Integer curso, String etapa) throws SchoolManagerServerException
     {
+        // Resolvemos el curso académico activo (seleccionado = true)
+        String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+
         // Validamos si existe el curso y etapa en la BD
-        Optional<CursoEtapa> cursoEtapaOptional = this.iCursoEtapaRepository.findById(new IdCursoEtapa(curso, etapa));
+        Optional<CursoEtapa> cursoEtapaOptional = this.iCursoEtapaRepository.findById(new IdCursoEtapa(cursoAcademico, curso, etapa));
 
         if(!cursoEtapaOptional.isPresent())
         {

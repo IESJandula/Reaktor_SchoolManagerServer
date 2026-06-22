@@ -37,20 +37,21 @@ public interface IProfesorReduccionRepository extends JpaRepository<ProfesorRedu
 
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto(pR.idProfesorReduccion.reduccion.idReduccion.nombre, pR.idProfesorReduccion.reduccion.idReduccion.horas) " +
             "FROM ProfesorReduccion pR " +
-            "WHERE pR.idProfesorReduccion.profesor.email = :email")
-    List<ReduccionProfesoresDto> encontrarReudccionesPorProfesor(@Param("email") String email);
+            "WHERE pR.idProfesorReduccion.profesor.cursoAcademico = :cursoAcademico AND pR.idProfesorReduccion.profesor.email = :email")
+    List<ReduccionProfesoresDto> encontrarReudccionesPorProfesor(@Param("cursoAcademico") String cursoAcademico, @Param("email") String email);
 
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.ReduccionProfesoresDto(pR.idProfesorReduccion.reduccion.idReduccion.nombre, pR.idProfesorReduccion.reduccion.idReduccion.horas) " +
             "FROM ProfesorReduccion pR " +
-            "WHERE pR.idProfesorReduccion.profesor.email = :email AND pR.idProfesorReduccion.reduccion.idReduccion.nombre = :nombre AND pR.idProfesorReduccion.reduccion.idReduccion.horas = :horas")
-    ReduccionProfesoresDto encontrarReudccionPorProfesor(@Param("email") String email,
+            "WHERE pR.idProfesorReduccion.profesor.cursoAcademico = :cursoAcademico AND pR.idProfesorReduccion.profesor.email = :email AND pR.idProfesorReduccion.reduccion.idReduccion.nombre = :nombre AND pR.idProfesorReduccion.reduccion.idReduccion.horas = :horas")
+    ReduccionProfesoresDto encontrarReudccionPorProfesor(@Param("cursoAcademico") String cursoAcademico,
+                                                         @Param("email") String email,
                                                          @Param("nombre") String nombre,
                                                          @Param("horas") Integer horas);
 
     @Query("SELECT p.departamento.nombre " +
             "FROM Profesor p " +
-            "WHERE p.email = :email")
-    String encontrarDepartamentoPorProfesor(@Param("email") String email);
+            "WHERE p.cursoAcademico = :cursoAcademico AND p.email = :email")
+    String encontrarDepartamentoPorProfesor(@Param("cursoAcademico") String cursoAcademico, @Param("email") String email);
 
     @Query("SELECT new es.iesjandula.reaktor.school_manager_server.dtos.generador.GeneradorReduccionConRestriccionesDto(pr.idProfesorReduccion.reduccion, pr.idProfesorReduccion.profesor, pr.idProfesorReduccion.reduccion.cursoEtapaGrupo, gri.idGeneradorRestriccionesReduccion.diaTramoTipoHorario) " +
            "FROM ProfesorReduccion pr " +
@@ -70,5 +71,16 @@ public interface IProfesorReduccionRepository extends JpaRepository<ProfesorRedu
                                                                                         @Param("curso") int curso,
                                                                                         @Param("etapa") String etapa,
                                                                                         @Param("grupo") String grupo);
+
+    /**
+     * Devuelve las asignaciones profesor-reducción cuya reducción tiene docencia en el curso académico indicado.
+     *
+     * @param cursoAcademico curso académico cuyas asignaciones se buscan.
+     * @return lista de asignaciones profesor-reducción vinculadas a ese curso académico.
+     */
+    @Query("SELECT pr " +
+            "FROM ProfesorReduccion pr " +
+            "WHERE pr.idProfesorReduccion.reduccion.idReduccion.cursoAcademico = :cursoAcademico")
+    List<ProfesorReduccion> findAllByCursoAcademico(@Param("cursoAcademico") String cursoAcademico);
 
 }

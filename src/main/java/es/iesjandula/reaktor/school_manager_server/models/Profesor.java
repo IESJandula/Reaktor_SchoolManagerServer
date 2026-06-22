@@ -2,12 +2,16 @@ package es.iesjandula.reaktor.school_manager_server.models;
 
 import java.util.List;
 import java.util.Objects;
+
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesor;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
@@ -30,11 +34,21 @@ import lombok.extern.slf4j.Slf4j;
 @NoArgsConstructor
 @Entity
 @Table(name = "Profesor")
+@IdClass(IdProfesor.class)
 @Slf4j
 public class Profesor 
 {
 	/**
-	 * Correo electrónico del profesor, que sirve como la clave primaria de la entidad.
+	 * Curso académico al que pertenece el profesor. Forma parte de la clave primaria compuesta
+	 * {@code (cursoAcademico, email)}. Se resuelve internamente (curso académico seleccionado) al persistir; NO viaja
+	 * en el CSV ni en los DTO de Firebase.
+	 */
+	@Id
+	@Column(length = 9)
+	private String cursoAcademico;
+
+	/**
+	 * Correo electrónico del profesor. Junto con {@code cursoAcademico} forma la clave primaria de la entidad.
 	 */
 	@Id
 	@Column(length = 100)
@@ -56,7 +70,10 @@ public class Profesor
 	 * Departamento al que pertenece el profesor. Relación de muchos a uno con la entidad {@link Departamento}.
 	 */
 	@ManyToOne
-	@JoinColumn(name = "departamento_nombre")
+	@JoinColumns({
+		@JoinColumn(name = "departamento_curso_academico", referencedColumnName = "cursoAcademico"),
+		@JoinColumn(name = "departamento_nombre", referencedColumnName = "nombre")
+	})
 	private Departamento departamento;
 	
 	/**
@@ -92,7 +109,7 @@ public class Profesor
     @Override
 	public int hashCode()
     {
-		return Objects.hash(this.email) ;
+		return Objects.hash(this.cursoAcademico, this.email) ;
 	}
 
 	@Override
@@ -113,6 +130,6 @@ public class Profesor
 		
 		Profesor other = (Profesor) obj ;
 		
-		return Objects.equals(this.email, other.email) ;
+		return Objects.equals(this.cursoAcademico, other.cursoAcademico) && Objects.equals(this.email, other.email) ;
 	}
 }

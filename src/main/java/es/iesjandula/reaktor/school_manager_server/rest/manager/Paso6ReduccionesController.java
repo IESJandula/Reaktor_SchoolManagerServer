@@ -3,7 +3,9 @@ package es.iesjandula.reaktor.school_manager_server.rest.manager;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -18,8 +20,10 @@ import es.iesjandula.reaktor.school_manager_server.dtos.ProfesorReduccionesDto;
 import es.iesjandula.reaktor.school_manager_server.models.Departamento;
 import es.iesjandula.reaktor.school_manager_server.models.Profesor;
 import es.iesjandula.reaktor.school_manager_server.models.ProfesorReduccion;
+import es.iesjandula.reaktor.school_manager_server.models.ids.IdDepartamento;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdProfesorReduccion;
 import es.iesjandula.reaktor.school_manager_server.models.ids.IdReduccion;
+import es.iesjandula.reaktor.school_manager_server.repositories.IDepartamentoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorReduccionRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IProfesorRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
@@ -37,13 +41,17 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import es.iesjandula.reaktor.school_manager_server.dtos.CargaCsvResultDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ReduccionDto;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Reduccion;
 import es.iesjandula.reaktor.school_manager_server.repositories.ICursoEtapaGrupoRepository;
 import es.iesjandula.reaktor.school_manager_server.repositories.IReduccionRepository;
+import es.iesjandula.reaktor.school_manager_server.services.manager.ParseoCsvConfiguracionBasicaService;
 import es.iesjandula.reaktor.school_manager_server.services.manager.ReduccionProfesorService;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +74,16 @@ public class Paso6ReduccionesController
     private IProfesorReduccionRepository iProfesorReduccionRepository;
 
     @Autowired
+    private IDepartamentoRepository iDepartamentoRepository;
+
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver;
+
+    @Autowired
     private ReduccionProfesorService reduccionProfesorService;
+
+    @Autowired
+    private ParseoCsvConfiguracionBasicaService parseoCsvConfiguracionBasicaService;
 
     @Value("${reaktor.http_connection_timeout}")
     private int httpConnectionTimeout;
@@ -98,8 +115,10 @@ public class Paso6ReduccionesController
     {
         try
         {
+            // Las reducciones están scoped por el curso académico activo (seleccionado = true)
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
 
-            IdReduccion idReduccion = new IdReduccion(nombre, horas);
+            IdReduccion idReduccion = new IdReduccion(cursoAcademico, nombre, horas);
             Optional<Reduccion> reduccion = this.iReduccionRepository.findById(idReduccion);
 
             if (reduccion.isPresent())
@@ -109,9 +128,6 @@ public class Paso6ReduccionesController
                 throw new SchoolManagerServerException(Constants.REDUCCION_EXISTENTE, mensajeError);
             }
 
-            idReduccion.setNombre(nombre);
-            idReduccion.setHoras(horas);
-
             Reduccion nuevaReduccion = new Reduccion();
             nuevaReduccion.setIdReduccion(idReduccion);
             nuevaReduccion.setDecideDireccion(decideDireccion);
@@ -119,7 +135,7 @@ public class Paso6ReduccionesController
             // Si el curso, etapa y grupo no son nulos, se busca la relación con el cursoEtapaGrupo
             if (curso != null && etapa != null && grupo != null)
             {
-                CursoEtapaGrupo cursoEtapaGrupo = this.iCursoEtapaGrupoRepository.buscarCursoEtapaGrupo(curso, etapa, grupo);
+                CursoEtapaGrupo cursoEtapaGrupo = this.iCursoEtapaGrupoRepository.buscarCursoEtapaGrupo(cursoAcademico, curso, etapa, grupo);
 
                 if (cursoEtapaGrupo == null)
                 {
@@ -170,7 +186,10 @@ public class Paso6ReduccionesController
     {
         try
         {
-            List<ReduccionDto> listReduccions = this.iReduccionRepository.encontrarTodasReducciones();
+            // Solo las reducciones del curso académico activo (seleccionado = true)
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+            List<ReduccionDto> listReduccions = this.iReduccionRepository.encontrarReduccionesPorCursoAcademico(cursoAcademico);
 
             return ResponseEntity.ok().body(listReduccions);
         }
@@ -181,6 +200,83 @@ public class Paso6ReduccionesController
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Carga de forma masiva reducciones del tipo "NO tutorías" desde un fichero CSV de 2 columnas (la primera fila
+     * es la cabecera y se ignora como dato; cada fila restante es {@code nombre,horas}). Reutiliza el parser robusto
+     * y la persistencia idempotente del servicio de carga CSV. El curso académico activo se resuelve internamente
+     * en el servicio (seleccionado = true); el cliente no lo envía.
+     * <p>
+     * Como la PK de la reducción es {@code (nombre, horas)}, las filas con el mismo nombre y horas distintas se
+     * crean como reducciones independientes, y las filas exactamente repetidas se omiten (idempotencia).
+     *
+     * @param archivoCsv el fichero CSV con nombre y horas por fila.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y {@link CargaCsvResultDto} si el procesamiento finaliza correctamente.
+     * - 400 (Bad Request) si el archivo está vacío, no es .csv o no contiene filas de datos.
+     * - 500 (Internal Server Error) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/reducciones/noTutorias/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> cargarReduccionesNoTutoriasDesdeCsv(@RequestParam(value = "csv", required = true) MultipartFile archivoCsv)
+    {
+        try
+        {
+            CargaCsvResultDto resultado = this.parseoCsvConfiguracionBasicaService.cargarReduccionesNoTutoriasDesdeCsv(archivoCsv);
+
+            return ResponseEntity.ok().body(resultado);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron cargar las reducciones (no tutorías) desde el CSV";
+            log.error(mensajeError, exception);
+
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Carga de forma masiva reducciones del tipo "TUTORÍAS" desde un fichero CSV de 3 columnas (la primera fila es
+     * la cabecera y se ignora como dato; cada fila restante es {@code curso,etapa,horas}). El servicio sintetiza un
+     * nombre estable {@code "Tutoría <curso>º <etapa>"} para encajar en la PK existente {@code (nombre, horas)} sin
+     * migración de esquema. El curso académico activo se resuelve internamente en el servicio (seleccionado = true).
+     *
+     * @param archivoCsv el fichero CSV con curso, etapa y horas por fila.
+     * @return una {@link ResponseEntity} con:
+     * - 200 (OK) y {@link CargaCsvResultDto} si el procesamiento finaliza correctamente.
+     * - 400 (Bad Request) si el archivo está vacío, no es .csv o no contiene filas de datos.
+     * - 500 (Internal Server Error) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.POST, value = "/reducciones/tutorias/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> cargarReduccionesTutoriasDesdeCsv(@RequestParam(value = "csv", required = true) MultipartFile archivoCsv)
+    {
+        try
+        {
+            CargaCsvResultDto resultado = this.parseoCsvConfiguracionBasicaService.cargarReduccionesTutoriasDesdeCsv(archivoCsv);
+
+            return ResponseEntity.ok().body(resultado);
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - No se pudieron cargar las reducciones (tutorías) desde el CSV";
+            log.error(mensajeError, exception);
+
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
@@ -209,7 +305,10 @@ public class Paso6ReduccionesController
     {
         try
         {
-            IdReduccion idReduccioABorrar = new IdReduccion(nombre, horas);
+            // La reducción a borrar pertenece al curso académico activo (seleccionado = true)
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+            IdReduccion idReduccioABorrar = new IdReduccion(cursoAcademico, nombre, horas);
             Optional<Reduccion> reduccionABorrar = this.iReduccionRepository.findById(idReduccioABorrar);
 
             if (reduccionABorrar.isEmpty())
@@ -223,7 +322,7 @@ public class Paso6ReduccionesController
 
             if (profesorReduccion != null)
             {
-                Profesor profesor = this.iProfesorRepository.findByEmail(profesorReduccion.getIdProfesorReduccion().getProfesor().getEmail());
+                Profesor profesor = this.iProfesorRepository.findByCursoAcademicoAndEmail(cursoAcademico, profesorReduccion.getIdProfesorReduccion().getProfesor().getEmail());
                 String mensajeError = "No se puede borrar la reducción porque está asignada al profesor " + profesor;
                 log.error(mensajeError);
                 throw new SchoolManagerServerException(Constants.REDUCCION_ASIGNADA, mensajeError);
@@ -253,6 +352,54 @@ public class Paso6ReduccionesController
             log.error(mensajeError, exception);
 
             // Devolver la excepción personalizada con código genérico, el mensaje de error y la excepción general
+            SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+    }
+
+    /**
+     * Borra TODAS las reducciones del curso académico activo de un tipo (tutorías o no tutorías).
+     * <p>
+     * El tipo se distingue por el nombre: las tutorías son las que empiezan por {@link Constants#PREFIJO_REDUCCION_TUTORIA}
+     * (incluye tanto las plantilla a nivel curso/etapa como las materializadas por grupo); el resto son no tutorías.
+     *
+     * @param tutoria {@code true} para borrar todas las tutorías; {@code false} para borrar todas las no tutorías.
+     * @return una {@link ResponseEntity} con:
+     * - 204 (NO_CONTENT) si el borrado se realizó correctamente.
+     * - 500 (INTERNAL_SERVER_ERROR) si ocurre un error inesperado.
+     */
+    @PreAuthorize("hasRole('" + BaseConstants.ROLE_DIRECCION + "')")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/reducciones/borrarTodos")
+    public ResponseEntity<?> borrarTodasReducciones(@RequestParam(value = "tutoria", required = true) Boolean tutoria)
+    {
+        try
+        {
+            // Solo se borran las reducciones del curso académico activo (seleccionado = true)
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+            String patronTutoria = Constants.PREFIJO_REDUCCION_TUTORIA + "%";
+
+            if (Boolean.TRUE.equals(tutoria))
+            {
+                this.iReduccionRepository.borrarPorCursoAcademicoYNombreLike(cursoAcademico, patronTutoria);
+            }
+            else
+            {
+                this.iReduccionRepository.borrarPorCursoAcademicoYNombreNotLike(cursoAcademico, patronTutoria);
+            }
+
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        catch (SchoolManagerServerException schoolManagerServerException)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(schoolManagerServerException.getBodyExceptionMessage());
+        }
+        catch (Exception exception)
+        {
+            String mensajeError = "ERROR - Se produjo un error inesperado al borrar todas las reducciones.";
+            log.error(mensajeError, exception);
+
             SchoolManagerServerException schoolManagerServerException = new SchoolManagerServerException(Constants.ERROR_GENERICO, mensajeError, exception);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(schoolManagerServerException.getBodyExceptionMessage());
@@ -298,6 +445,17 @@ public class Paso6ReduccionesController
         }
         catch (SchoolManagerServerException schoolManagerServerException)
         {
+            // Si el fallo es de CONECTIVIDAD con el servicio externo de profesores (Firebase no levantado, conexión
+            // rechazada o timeout), NO rompemos la vista de Reducciones: devolvemos 200 con lista vacía para que el
+            // resto de la pantalla (reducciones y asignaciones) siga funcionando. El frontend mostrará un aviso suave
+            // (no alarmante) indicando que el listado de profesores no está disponible temporalmente.
+            if (this.esErrorConexionFirebase(schoolManagerServerException.getCode()))
+            {
+                log.warn("AVISO - El servicio de profesores (Firebase) no está disponible; se devuelve una lista de profesores vacía para no romper la vista de Reducciones. Código: {}", schoolManagerServerException.getCode());
+
+                return ResponseEntity.ok().body(new ArrayList<ProfesorDto>());
+            }
+
             return ResponseEntity.status(HttpStatus.NOT_FOUND).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
         catch (Exception exception)
@@ -311,6 +469,64 @@ public class Paso6ReduccionesController
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).contentType(MediaType.APPLICATION_JSON).body(schoolManagerServerException.getBodyExceptionMessage());
         }
+    }
+
+    /**
+     * Indica si el código de error corresponde a un fallo de conexión con el servicio externo de profesores
+     * (Firebase): conexión rechazada / IOException, timeout de conexión o timeout de lectura.
+     *
+     * @param codigoError el código de la {@link SchoolManagerServerException}.
+     * @return {@code true} si es un fallo de conectividad con Firebase.
+     */
+    private boolean esErrorConexionFirebase(int codigoError)
+    {
+        return codigoError == Constants.IO_EXCEPTION_FIREBASE
+                || codigoError == Constants.TIMEOUT_CONEXION_FIREBASE
+                || codigoError == Constants.ERROR_CONEXION_FIREBASE;
+    }
+
+    /**
+     * Resuelve el {@link Departamento} EXISTENTE del curso académico seleccionado a partir del nombre que llega de
+     * Firebase, asociándolo por su id correcto {@code (cursoAcademico, nombre)}.
+     * <p>
+     * Decisión ante un departamento desconocido: si el nombre es nulo/vacío o no existe un departamento con ese
+     * nombre en el curso seleccionado, se devuelve {@code null} (el profesor queda sin departamento) y se registra
+     * un aviso. Así un departamento que no esté dado de alta en el curso seleccionado NO provoca un
+     * EntityNotFoundException ni tumba la carga del resto de profesores. El alta de departamentos se gestiona en la
+     * configuración básica; este método no crea departamentos nuevos para no contaminar el catálogo del curso.
+     *
+     * @param cursoAcademico         curso académico seleccionado.
+     * @param nombreDepartamento     nombre del departamento recibido de Firebase.
+     * @param departamentosPorNombre caché de departamentos ya resueltos (puede contener {@code null} para los no encontrados).
+     * @return el departamento gestionado del curso seleccionado, o {@code null} si no existe.
+     */
+    private Departamento resolverDepartamentoDelCurso(String cursoAcademico, String nombreDepartamento, Map<String, Departamento> departamentosPorNombre)
+    {
+        if (nombreDepartamento == null || nombreDepartamento.trim().isEmpty())
+        {
+            return null;
+        }
+
+        String nombre = nombreDepartamento.trim();
+
+        // Evitamos consultas repetidas: si ya lo intentamos resolver (aunque fuera null), reutilizamos el resultado.
+        if (departamentosPorNombre.containsKey(nombre))
+        {
+            return departamentosPorNombre.get(nombre);
+        }
+
+        Optional<Departamento> departamentoOptional = this.iDepartamentoRepository.findById(new IdDepartamento(cursoAcademico, nombre));
+
+        Departamento departamento = departamentoOptional.orElse(null);
+
+        if (departamento == null)
+        {
+            log.warn("AVISO - El departamento '{}' recibido de Firebase no existe en el curso académico seleccionado '{}'. El profesor se asociará sin departamento.", nombre, cursoAcademico);
+        }
+
+        departamentosPorNombre.put(nombre, departamento);
+
+        return departamento;
     }
 
     /**
@@ -464,13 +680,25 @@ public class Paso6ReduccionesController
                             {
                             });
 
+            // Resolvemos el curso académico activo (seleccionado = true). Tras la migración a curso académico por
+            // año, los departamentos viven bajo el curso seleccionado (p. ej. 2025/2026), NO bajo "". Por eso ya no
+            // se puede crear el Departamento con new Departamento(nombre) (id cursoAcademico=""), porque ese registro
+            // no existe y el merge en saveAllAndFlush lanzaba EntityNotFoundException tumbando toda la carga.
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+
+            // Cacheamos los departamentos ya resueltos por nombre para no consultar la BBDD repetidamente.
+            Map<String, Departamento> departamentosPorNombre = new HashMap<>();
+
             // Creamos una instancia de profesor con la respuesta de Firebase
             for (DtoUsuarioBase dtoUsuarioBase : listDtoUsuarioBase)
             {
-                Departamento departamento = new Departamento();
-                departamento.setNombre(dtoUsuarioBase.getDepartamento());
+                // Asociamos el departamento EXISTENTE del curso seleccionado por nombre. Si el departamento que llega
+                // de Firebase no existe en el curso seleccionado, dejamos el profesor SIN departamento (departamento
+                // = null) y lo registramos, en lugar de provocar un EntityNotFound que rompería toda la carga.
+                Departamento departamento = this.resolverDepartamentoDelCurso(cursoAcademico, dtoUsuarioBase.getDepartamento(), departamentosPorNombre);
 
                 Profesor profesor = new Profesor();
+                profesor.setCursoAcademico(cursoAcademico);
                 profesor.setNombre(dtoUsuarioBase.getNombre());
                 profesor.setApellidos(dtoUsuarioBase.getApellidos());
                 profesor.setEmail(dtoUsuarioBase.getEmail());

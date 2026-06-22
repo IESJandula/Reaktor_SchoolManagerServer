@@ -18,6 +18,7 @@ import es.iesjandula.reaktor.school_manager_server.dtos.ErroresDatosDto;
 import es.iesjandula.reaktor.school_manager_server.dtos.ValidadorDatosDto;
 import es.iesjandula.reaktor.school_manager_server.models.Asignatura;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
+import es.iesjandula.reaktor.school_manager_server.utils.Constants;
 import es.iesjandula.reaktor.school_manager_server.models.CursoEtapaGrupo;
 import es.iesjandula.reaktor.school_manager_server.models.Departamento;
 
@@ -45,27 +46,33 @@ public class ValidadorDatosService
     @Autowired
     private IImpartirRepository impartirRepository ;
 
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver ;
+
     /**
      * Método que realiza una serie de validaciones previas
      */
-    public ValidadorDatosDto validacionDatos()
+    public ValidadorDatosDto validacionDatos() throws es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException
     {
         ValidadorDatosDto validadorDatosDto = new ValidadorDatosDto() ;
 
+        // Resolvemos el curso académico activo (seleccionado = true)
+        String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+
         // Validaciones previas en cursos y etapas
-        this.validacionDatosCursosEtapas(validadorDatosDto) ;
+        this.validacionDatosCursosEtapas(validadorDatosDto, cursoAcademico) ;
 
         // Validaciones previas en departamentos
         this.validacionDatosDepartamentos(validadorDatosDto) ;
 
         // Validaciones previas en asignaturas
-        this.validacionDatosAsignaturas(validadorDatosDto) ;
+        this.validacionDatosAsignaturas(validadorDatosDto, cursoAcademico) ;
 
         // Validaciones previas en profesores
-        this.validacionDatosProfesores(validadorDatosDto) ;
+        this.validacionDatosProfesores(validadorDatosDto, cursoAcademico) ;
 
         // Validaciones previas en impartir
-        this.validacionDatosImpartir(validadorDatosDto) ;
+        this.validacionDatosImpartir(validadorDatosDto, cursoAcademico) ;
 
         return validadorDatosDto ;
     }
@@ -74,10 +81,10 @@ public class ValidadorDatosService
      * Método que realiza una serie de validaciones previas
      * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosCursosEtapas(ValidadorDatosDto validadorDatosDto)
+    private void validacionDatosCursosEtapas(ValidadorDatosDto validadorDatosDto, String cursoAcademico)
     {
-        // Validamos si los hay cursos/etapas/grupos por cada curso/etapa (Consulta 1)
-        Optional<List<CursoEtapa>> cursosEtapas = this.cursoEtapaRepository.buscarCursosEtapasSinCursosEtapasGrupo() ;
+        // Validamos si los hay cursos/etapas/grupos por cada curso/etapa del curso académico activo (Consulta 1)
+        Optional<List<CursoEtapa>> cursosEtapas = this.cursoEtapaRepository.buscarCursosEtapasSinCursosEtapasGrupo(cursoAcademico) ;
 
         if (!cursosEtapas.isEmpty() && cursosEtapas.get().size() > 0)
         {
@@ -122,10 +129,10 @@ public class ValidadorDatosService
      * Método que realiza una serie de validaciones previas
      * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosAsignaturas(ValidadorDatosDto validadorDatosDto)
+    private void validacionDatosAsignaturas(ValidadorDatosDto validadorDatosDto, String cursoAcademico)
     {
         // Validamos si hay asignaturas sin cursos/etapas/grupos asignados (Consulta 1)
-        Optional<List<Asignatura>> asignaturas = this.asignaturaRepository.asignaturaSinCursoEtapaGrupo() ;
+        Optional<List<Asignatura>> asignaturas = this.asignaturaRepository.asignaturaSinCursoEtapaGrupo(cursoAcademico) ;
 
         if (!asignaturas.isEmpty() && asignaturas.get().size() > 0)
         {
@@ -142,7 +149,7 @@ public class ValidadorDatosService
         }
 
         // Validamos si las asignaturas tienen departamentos asociados
-        Optional<List<Asignatura>> asignaturasSinDepartamentos = this.asignaturaRepository.asignaturaSinDepartamentos() ;
+        Optional<List<Asignatura>> asignaturasSinDepartamentos = this.asignaturaRepository.asignaturaSinDepartamentos(cursoAcademico) ;
 
         if (!asignaturasSinDepartamentos.isEmpty() && asignaturasSinDepartamentos.get().size() > 0)
         {
@@ -159,7 +166,7 @@ public class ValidadorDatosService
         }
         
         // Validamos si las asignaturas tienen horas de clase
-        Optional<List<Asignatura>> asignaturasSinHorasDeClase = this.asignaturaRepository.asignaturaSinHorasDeClase() ;
+        Optional<List<Asignatura>> asignaturasSinHorasDeClase = this.asignaturaRepository.asignaturaSinHorasDeClase(cursoAcademico) ;
 
         if (!asignaturasSinHorasDeClase.isEmpty() && asignaturasSinHorasDeClase.get().size() > 0)
         {
@@ -180,7 +187,7 @@ public class ValidadorDatosService
      * Método que realiza una serie de validaciones previas
      * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosProfesores(ValidadorDatosDto validadorDatosDto)
+    private void validacionDatosProfesores(ValidadorDatosDto validadorDatosDto, String cursoAcademico)
     {
         // Validamos si existen profesores en la BBDD
         if (this.profesorRepository.count() == 0)
@@ -201,7 +208,7 @@ public class ValidadorDatosService
         }
 
         // Validamos si hay profesores con la suma de horas de docencia y reducciones incorrectas
-        Optional<List<Profesor>> profesores = this.profesorRepository.profesorConSumaHorasDocenciaReduccionesIncorrectas() ;
+        Optional<List<Profesor>> profesores = this.profesorRepository.profesorConSumaHorasDocenciaReduccionesIncorrectas(cursoAcademico) ;
 
         if (!profesores.isEmpty() && profesores.get().size() > 0)
         {
@@ -222,10 +229,10 @@ public class ValidadorDatosService
      * Método que realiza una serie de validaciones previas
      * @param validadorDatosDto - DTO de validador de datos
      */
-    private void validacionDatosImpartir(ValidadorDatosDto validadorDatosDto)
+    private void validacionDatosImpartir(ValidadorDatosDto validadorDatosDto, String cursoAcademico)
     {
-        // Validamos que todos los cursos tienen 30 horas a la semana asignadas de clase
-        Optional<List<CursoEtapaGrupo>> cursosEtapasGrupos = this.cursoEtapaGrupoRepository.cursoConHorasAsignadasIncorrectas() ;
+        // Validamos que todos los cursos del curso académico activo tienen 30 horas a la semana asignadas de clase
+        Optional<List<CursoEtapaGrupo>> cursosEtapasGrupos = this.cursoEtapaGrupoRepository.cursoConHorasAsignadasIncorrectas(cursoAcademico) ;
 
         if (!cursosEtapasGrupos.isEmpty() && cursosEtapasGrupos.get().size() > 0)
         {
@@ -234,7 +241,7 @@ public class ValidadorDatosService
             // Recorremos la lista de cursos para avisarlas al usuario
             for (CursoEtapaGrupo cursoEtapaGrupo : cursosEtapasGrupos.get())
             {
-                Long totalHorasAsignadas = this.cursoEtapaGrupoRepository.obtenerTotalHorasAsignadas(cursoEtapaGrupo.getIdCursoEtapaGrupo().getCurso(), cursoEtapaGrupo.getIdCursoEtapaGrupo().getEtapa(), cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo()) ;
+                Long totalHorasAsignadas = this.cursoEtapaGrupoRepository.obtenerTotalHorasAsignadas(cursoAcademico, cursoEtapaGrupo.getIdCursoEtapaGrupo().getCurso(), cursoEtapaGrupo.getIdCursoEtapaGrupo().getEtapa(), cursoEtapaGrupo.getIdCursoEtapaGrupo().getGrupo()) ;
 
                 erroresDatosDto.agregarValorImplicado(cursoEtapaGrupo.getCursoEtapaGrupoString() + " - " + totalHorasAsignadas) ;
             }

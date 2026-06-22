@@ -42,6 +42,7 @@ public class IdMatricula implements Serializable
      */
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumns({
+    	@JoinColumn(name = "cursoAcademico", referencedColumnName = "cursoAcademico"),
     	@JoinColumn(name = "curso", referencedColumnName = "curso"),
 		@JoinColumn(name = "etapa", referencedColumnName = "etapa"),
 		@JoinColumn(name = "grupo", referencedColumnName = "grupo"),

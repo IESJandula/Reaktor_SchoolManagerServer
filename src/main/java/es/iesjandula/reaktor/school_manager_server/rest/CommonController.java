@@ -46,6 +46,9 @@ public class CommonController
     @Autowired
     private ValidacionesGlobales validacionesGlobales;
 
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver;
+
     /**
      * Recupera todos los registros de cursos y etapas disponibles en la base de datos.
      * <p>
@@ -64,8 +67,9 @@ public class CommonController
     {
         try
         {
-            // Lista usada para guardar los registros de la Tabla CursoEtapa
-            List<CursoEtapa> listaCursoEtapa = this.iCursoEtapaRepository.findAll();
+            // Lista usada para guardar los registros de la Tabla CursoEtapa del curso académico activo
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<CursoEtapa> listaCursoEtapa = this.iCursoEtapaRepository.findAllByIdCursoEtapaCursoAcademico(cursoAcademico);
 
             // Si la lista esta vacia, lanzar excepcion
             if (listaCursoEtapa.isEmpty())

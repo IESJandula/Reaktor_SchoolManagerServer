@@ -11,6 +11,7 @@ import es.iesjandula.reaktor.school_manager_server.models.CursoEtapa;
 import es.iesjandula.reaktor.school_manager_server.models.DatosBrutoAlumnoMatricula;
 import es.iesjandula.reaktor.school_manager_server.repositories.IDatosBrutoAlumnoMatriculaRepository;
 import es.iesjandula.reaktor.school_manager_server.utils.Constants;
+import es.iesjandula.reaktor.school_manager_server.utils.CsvParserUtil;
 import es.iesjandula.reaktor.school_manager_server.utils.SchoolManagerServerException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,13 +55,28 @@ public class ParseoCsvService
                 String lineaAlumnoCompleta = scanner.nextLine();
                 
                 // Obtenemos el array con los valores de la línea completa del alumno
-                String[] splitLineaAlumnoCompleta = lineaAlumnoCompleta.split(Constants.CSV_DELIMITER, -1);
-                
-                // Obtenemos los apellidos del alumno
-                String apellidosAlumno = splitLineaAlumnoCompleta[0].trim().replace("\"", "") ;
-                
-                // Obtenemos el nombre del alumno
-                String nombreAlumno    = splitLineaAlumnoCompleta[1].trim().replace("\"", "") ;
+                String[] splitLineaAlumnoCompleta = CsvParserUtil.parseLinea(lineaAlumnoCompleta);
+
+                // El primer campo (Alumno/a) viene en formato "Apellidos, Nombre" como un único campo
+                // (el parser RFC4180 respeta la coma dentro de las comillas). Lo separamos por la primera
+                // coma: lo anterior son los apellidos y lo posterior es el nombre.
+                String alumnoCompleto = splitLineaAlumnoCompleta[0].trim().replace("\"", "");
+                int indicePrimeraComa = alumnoCompleto.indexOf(',');
+
+                String apellidosAlumno;
+                String nombreAlumno;
+
+                if (indicePrimeraComa >= 0)
+                {
+                    apellidosAlumno = alumnoCompleto.substring(0, indicePrimeraComa).trim();
+                    nombreAlumno    = alumnoCompleto.substring(indicePrimeraComa + 1).trim();
+                }
+                else
+                {
+                    // Si no hay coma, tomamos todo el campo como apellidos y dejamos el nombre vacío
+                    apellidosAlumno = alumnoCompleto;
+                    nombreAlumno    = "";
+                }
 
                 // Inicializamos la lista de datos brutos de este alumno y sus matrículas
                 List<DatosBrutoAlumnoMatricula> listaDatosBrutoAlumnoMatriculas = new ArrayList<DatosBrutoAlumnoMatricula>();
@@ -142,7 +158,7 @@ public class ParseoCsvService
     private String[] obtenerCabeceraSoloAsignaturas(String cabecera, int indiceAsignaturas)
     {
         // Obtenemos el array con los valores de la cabecera
-        String[] cabeceraArray = cabecera.split(Constants.CSV_DELIMITER);
+        String[] cabeceraArray = CsvParserUtil.parseLinea(cabecera);
 
         // Obtenemos el número de asignaturas
         int numeroAsignaturas = cabeceraArray.length - indiceAsignaturas;
@@ -166,10 +182,10 @@ public class ParseoCsvService
      */
     private String[] obtenerAlumnoSoloAsignaturas(String[] splitLineaAlumnoCompleta, int indiceAsignaturasCabecera)
     {
-        // Las cabeceras tienen el campo Alumno/a que realmente contiene el nombre y apellidos del alumno
-        // Por ello, si nos vamos a la línea de un alumno nos encontramos que el nombre y apellidos realmente
-        // son dos campos ya que están separados por una coma. De esta forma, el índice de asignaturas debe ser uno más
-        int indiceAsignaturasAlumno = indiceAsignaturasCabecera + 1;
+        // Con el parser RFC4180, el campo Alumno/a ("Apellidos, Nombre") se mantiene como un único campo,
+        // por lo que la fila del alumno está alineada exactamente con la cabecera: las asignaturas comienzan
+        // en el mismo índice que en la cabecera (NO hay que sumar uno por la coma del nombre).
+        int indiceAsignaturasAlumno = indiceAsignaturasCabecera;
 
         // Obtenemos el número de asignaturas
         int numeroAsignaturas = splitLineaAlumnoCompleta.length - indiceAsignaturasAlumno;

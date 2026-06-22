@@ -9,6 +9,7 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Column;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinColumns;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -69,7 +70,10 @@ public class Asignatura
      * "departamento_propietario" en la tabla "Asignatura".</p>
      */
     @ManyToOne
-    @JoinColumn(name="departamento_propietario", referencedColumnName = "nombre")
+    @JoinColumns({
+        @JoinColumn(name = "departamento_propietario_curso_academico", referencedColumnName = "cursoAcademico"),
+        @JoinColumn(name = "departamento_propietario", referencedColumnName = "nombre")
+    })
     private Departamento departamentoPropietario;
     
     /**
@@ -78,7 +82,10 @@ public class Asignatura
      * "departamento_receptor" en la tabla "Asignatura".</p>
      */
     @ManyToOne
-    @JoinColumn(name="departamento_receptor", referencedColumnName = "nombre")
+    @JoinColumns({
+        @JoinColumn(name = "departamento_receptor_curso_academico", referencedColumnName = "cursoAcademico"),
+        @JoinColumn(name = "departamento_receptor", referencedColumnName = "nombre")
+    })
     private Departamento departamentoReceptor;
     
     /**
@@ -89,6 +96,13 @@ public class Asignatura
     @ManyToOne
     @JoinColumn(name="bloque_id", referencedColumnName="id")
     private Bloque bloqueId;
+
+    /**
+     * Indica si la asignatura es "ad-hoc" (creada a medida por dirección, no proveniente del CSV de matrículas).
+     * <p>Las asignaturas ad-hoc pueden borrarse desde la vista de matrículas; las normales no.</p>
+     */
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    private boolean esAdHoc;
 
     /**
      * @return true si la asignatura es optativa, false en caso contrario

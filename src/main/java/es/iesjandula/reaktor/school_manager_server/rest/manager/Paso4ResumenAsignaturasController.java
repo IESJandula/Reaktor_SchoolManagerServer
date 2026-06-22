@@ -36,6 +36,9 @@ public class Paso4ResumenAsignaturasController
     @Autowired
     private IAsignaturaRepository iAsignaturaRepository;
 
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver;
+
     /**
      * Método que obtiene todos los grupos asociados a un curso y etapa específicos.
      *
@@ -51,8 +54,9 @@ public class Paso4ResumenAsignaturasController
     {
         try
         {
-            // Obtener la lista de grupos según curso y etapa
-            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.buscaTodosCursoEtapaGruposCreados(curso, etapa);
+            // Obtener la lista de grupos según curso y etapa del curso académico activo
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<CursoEtapaGrupoDto> cursosEtapasGrupos = this.iCursoEtapaGrupoRepository.buscaTodosCursoEtapaGruposCreados(cursoAcademico, curso, etapa);
 
             // Devolver la lista de cursos, etapas y grupos encontrados
             return ResponseEntity.ok().body(cursosEtapasGrupos);
@@ -89,7 +93,8 @@ public class Paso4ResumenAsignaturasController
     {
         try
         {
-            List<AsignaturasUnicasDto> asignaturas = iAsignaturaRepository.findByCursoAndEtapaDistinct(curso, etapa);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<AsignaturasUnicasDto> asignaturas = iAsignaturaRepository.findByCursoAndEtapaDistinct(cursoAcademico, curso, etapa);
 
             if (asignaturas.isEmpty())
             {
@@ -143,7 +148,8 @@ public class Paso4ResumenAsignaturasController
     {
         try
         {
-            List<String> listaGrupos = iCursoEtapaGrupoRepository.buscaLetrasGruposDeCursoEtapas(curso, etapa);
+            String cursoAcademico = this.cursoAcademicoResolver.resolver();
+            List<String> listaGrupos = iCursoEtapaGrupoRepository.buscaLetrasGruposDeCursoEtapas(cursoAcademico, curso, etapa);
 
             // Si no esta ese grupo lanzar excepcion
             if (!listaGrupos.contains(grupo))
@@ -153,8 +159,8 @@ public class Paso4ResumenAsignaturasController
                 throw new SchoolManagerServerException(Constants.GRUPO_NO_ENCONTRADO, mensajeError);
             }
 
-            // Alumnos en el grupo
-            Long numAlumnos = iMatriculaRepository.numeroAlumnosPorGrupoYAsignatura(curso, etapa, grupo, asignatura);
+            // Alumnos en el grupo del curso académico activo
+            Long numAlumnos = iMatriculaRepository.numeroAlumnosPorGrupoYAsignatura(cursoAcademico, curso, etapa, grupo, asignatura);
 
             // Devolver la lista
             log.info("INFO - Lista de los cursos etapas");

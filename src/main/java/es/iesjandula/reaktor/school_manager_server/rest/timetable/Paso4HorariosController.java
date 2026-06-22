@@ -38,14 +38,18 @@ public class Paso4HorariosController
     @Autowired
     private IGeneradorAsignadaImpartirRepository iGeneradorAsignadaImpartirRepository;
 
+    @Autowired
+    private es.iesjandula.reaktor.school_manager_server.services.manager.CursoAcademicoResolver cursoAcademicoResolver;
+
     @PreAuthorize("hasRole('" + BaseConstants.ROLE_PROFESOR + "')")
     @RequestMapping(method = RequestMethod.GET, value = "/individual")
     public ResponseEntity<?> obtenerHorarioIndividual(@RequestHeader(value = "email") String email)
     {
         try
         {
-            // Buscamos el profesor
-            Profesor profesor = this.iProfesorRepository.findByEmail(email) ;
+            // Buscamos el profesor del curso académico activo (seleccionado = true)
+            String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+            Profesor profesor = this.iProfesorRepository.findByCursoAcademicoAndEmail(cursoAcademico, email) ;
 
             if (profesor == null)
             {
@@ -95,8 +99,9 @@ public class Paso4HorariosController
     {
         try
         {
-            // Buscamos el curso etapa grupo
-            CursoEtapaGrupo cursoEtapaGrupo = this.iCursoEtapaGrupoRepository.buscarCursoEtapaGrupo(curso, etapa, grupo) ;
+            // Buscamos el curso etapa grupo del curso académico activo
+            String cursoAcademico = this.cursoAcademicoResolver.resolver() ;
+            CursoEtapaGrupo cursoEtapaGrupo = this.iCursoEtapaGrupoRepository.buscarCursoEtapaGrupo(cursoAcademico, curso, etapa, grupo) ;
 
             if (cursoEtapaGrupo == null)
             {

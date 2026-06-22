@@ -3,6 +3,7 @@ package es.iesjandula.reaktor.school_manager_server.repositories;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,4 +35,16 @@ public interface IBloqueRepository extends JpaRepository<Bloque, String>
 	@Transactional
 	@Query("DELETE FROM Bloque b WHERE NOT EXISTS (SELECT 1 FROM Asignatura a WHERE a.bloqueId = b)")
 	void deleteBloquesSinAsignaturas();
+
+	/**
+	 * Indica si existe un bloque con el identificador indicado.
+	 * <p>
+	 * Se define explícitamente porque la clave primaria de la entidad {@link Bloque} es de tipo {@link Long},
+	 * mientras que el repositorio declara la clave como {@link String} por compatibilidad histórica.
+	 *
+	 * @param id - El identificador del bloque.
+	 * @return true si el bloque existe, false en caso contrario.
+	 */
+	@Query("SELECT COUNT(b) > 0 FROM Bloque b WHERE b.id = :id")
+	boolean existePorId(@Param("id") Long id);
 }

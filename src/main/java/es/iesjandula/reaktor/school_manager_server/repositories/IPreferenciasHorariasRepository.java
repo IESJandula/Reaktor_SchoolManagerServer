@@ -13,12 +13,15 @@ public interface IPreferenciasHorariasRepository extends JpaRepository<Preferenc
 {
     @Query("SELECT p " +
             "FROM PreferenciasHorariasProfesor p " +
-            "WHERE p.idPreferenciasHorariasProfesor.profesorEmail = :email " + 
+            "WHERE p.idPreferenciasHorariasProfesor.profesorCursoAcademico = :cursoAcademico " +
+            "AND p.idPreferenciasHorariasProfesor.profesorEmail = :email " + 
             "ORDER BY p.idPreferenciasHorariasProfesor.idSeleccion ASC")
-    Optional<List<PreferenciasHorariasProfesor>> buscarPorEmail(@Param("email") String email);
+    Optional<List<PreferenciasHorariasProfesor>> buscarPorEmail(@Param("cursoAcademico") String cursoAcademico, @Param("email") String email);
 
     @Query("SELECT p " +
             "FROM PreferenciasHorariasProfesor p " +
-            "WHERE p.idPreferenciasHorariasProfesor.profesorEmail = :email AND p.idPreferenciasHorariasProfesor.idSeleccion = :idSeleccion")
-    Optional<PreferenciasHorariasProfesor> buscarPorEmailIdSeleccion(@Param("email") String email, @Param("idSeleccion") Integer idSeleccion);
+            "WHERE p.idPreferenciasHorariasProfesor.profesorCursoAcademico = :cursoAcademico " +
+            "AND p.idPreferenciasHorariasProfesor.profesorEmail = :email " +
+            "AND p.idPreferenciasHorariasProfesor.idSeleccion = :idSeleccion")
+    Optional<PreferenciasHorariasProfesor> buscarPorEmailIdSeleccion(@Param("cursoAcademico") String cursoAcademico, @Param("email") String email, @Param("idSeleccion") Integer idSeleccion);
 }
